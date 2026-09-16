@@ -1,88 +1,81 @@
 # [Project name] | [Month YYYY - Month YYYY]
 
-> Purpose: interview preparation and a fact-checked source for CV/resume bullets. This is a sourcebook, not a script to memorize. Keep the concise answer first, move exhaustive inventories to appendices, and remove sections that genuinely do not apply.
+> Purpose: a finished interview reference and a source for CV/resume bullets. Include only facts and conclusions accepted for external use. Omit unsupported detail instead of adding editorial notes, confidence labels, clarification requests or future-work checklists.
 
-Use explicit evidence labels throughout the document:
-
-- **Verified:** supported by code, tests, release notes, logs or a first-hand artifact.
-- **Public:** supported by a linked public source; distinguish official, vendor and third-party material.
-- **Inferred:** a reasonable conclusion from evidence, but not directly recorded.
-- **To verify:** remembered or plausible, but not safe to present as fact yet.
-
-Recommended size: keep the snapshot and main narrative readable in 5-10 minutes. Detailed subsystem inventories and extra debugging prompts may remain as reference appendices.
-
-Repetition is useful only when the level changes: pitch = summary, contribution = implementation, STAR = one concrete episode, outcome = evidence. If the same paragraph could appear unchanged in several sections, keep it once and link back to it.
+Keep the concise answer first and detailed reference material later. Repetition is useful only when the level changes: pitch = summary, contribution = implementation, story = concrete episode, outcome = delivered value.
 
 ## 01 Project Snapshot
 
 | Field | Details |
 |---|---|
-| Product / system | [What was built?] |
+| Product / system | [What was built or maintained] |
 | Domain | [Industry and problem domain] |
 | Period | [Start - end] |
+| Delivery company / customer | [Employer/delivery organization and customer] |
 | Role | [Official role and actual function] |
-| Target roles | [Which interviews this version is optimized for] |
-| Team | [Size and disciplines] |
-| Users / deployment / scale | [Who used it, where, how many, and how critical it was; use `unknown` if not measured] |
-| Main stack | [5-8 technologies that matter most] |
-| Primary ownership | [The areas you can confidently claim] |
-| Product status | [Released, production, pilot, internal, discontinued, etc.] |
-| Contribution status | [Status when you left the project: released / merged / internal / prototype / unknown; distinguish per feature if needed] |
-| Confidentiality | [Public facts, safe internal detail, NDA-restricted detail, secrets to omit] |
+| Target roles | [Interview roles for which this project is most relevant] |
+| Team | [Size, disciplines and collaboration model] |
+| Users / deployment | [Who used it and where it ran] |
+| Main stack | [Technologies that matter most] |
+| Primary responsibility | [Areas personally implemented or maintained] |
+| Product status | [Production, released product, pilot, internal system or prototype] |
+| Confidentiality | [Which details are safe to discuss and which remain private] |
 
 ### 30-Second Summary
 
-[Approximately 60-100 words: product, your role, hardest problem, main contribution, outcome. This should be usable as the first interview answer.]
+[Approximately 60-100 words: product, role, main technical responsibility, hardest problem and delivered result.]
 
 ### Two-Minute Overview
 
-[Approximately 180-300 words: context -> responsibility -> technical challenge -> decisions/actions -> outcome. Avoid listing every technology.]
+[Approximately 180-300 words: context → responsibility → technical challenge → actions → result. Avoid reciting the full stack.]
 
 ## 02 Context, Goals & Constraints
 
 ### Customer / Business Context
 
-[Who needed the system and why? Separate public facts from confidential implementation details.]
+[Who needed the system, what business workflow it supported and why the software mattered.]
 
 ### Product and Users
 
-[What the product did, who used it, deployment environment, scale, and critical workflows.]
+[What the product did, who used it and how it fit into their work.]
 
-### Scope, Scale & Criticality
+### Scope and Criticality
 
-- [Number of users/devices/requests/data volume/regions, if verified.]
-- [Availability, safety, latency, security or operational criticality.]
-- [If scale is unknown, record which proxy evidence exists and do not invent a number.]
+- [Major subsystems and integration boundaries.]
+- [Reliability, operational or data-correctness requirements.]
+- [Relevant product or deployment scale supported by the chosen sources.]
 
 ### Problem and Goals
 
 - [Business or user problem.]
 - [Technical goal.]
-- [Reliability, security, performance, or compatibility goal.]
+- [Reliability, compatibility, performance or maintainability goal.]
 
-### Non-Goals
+### Ownership Boundaries
 
-- [Explicitly out-of-scope behavior or responsibility.]
+- [Primary responsibility.]
+- [Shared or integration responsibility.]
+- [Adjacent areas owned by other engineers or teams.]
 
 ### Constraints
 
-- [Legacy or inherited architecture.]
-- [Hardware, latency, memory, network, protocol, or compliance constraints.]
+- [Inherited architecture or long-lived code.]
+- [Hardware, runtime, protocol, database or deployment constraints.]
 - [Compatibility and release constraints.]
-- [Team/process constraints.]
+- [Team or process constraints.]
 
 ### Cross-Cutting Requirements
 
-- **Reliability:** [Failure/recovery expectations.]
-- **Performance/resources:** [Latency, throughput, CPU, memory, battery, storage, build time.]
-- **Security/privacy:** [Trust boundaries, credentials, privacy and threat assumptions; distinguish confidentiality, integrity and authenticity rather than treating "encrypted" as all three.]
-- **Compatibility:** [Protocols, versions, migrations, legacy data or external systems.]
+- **Reliability:** [Failure and recovery expectations.]
+- **Performance/resources:** [Latency, throughput, CPU, memory, storage or build constraints.]
+- **Security/privacy:** [Trust boundaries, credentials and sensitive data.]
+- **Compatibility:** [Protocols, versions, schemas, persisted data or external systems.]
 
 ### Success Criteria
 
-- [Observable acceptance criterion.]
-- [How the behavior was tested or demonstrated.]
-- [Metric, if one existed. Do not invent one after the fact.]
+- [Observable acceptance behavior.]
+- [How development and QA validated it.]
+- [Measured result, when a stable source supports it.]
 
 ## 03 System Architecture & Integration Boundaries
 
@@ -98,79 +91,79 @@ flowchart LR
 
 ### Main Components and Data Flow
 
-[Explain the system in one screenful. Focus on control flow, state ownership, asynchronous boundaries, persistence, and failure paths.]
+[Explain the system in one screenful. Focus on control flow, state ownership, asynchronous boundaries, persistence and failure paths.]
 
-| Component | Responsibility / state owned | Interface | My involvement | Evidence |
-|---|---|---|---|---|
-| [Component] | [What it owns] | [Protocol/API/events/files] | [Owned / contributed / integrated] | [Artifact] |
+| Component | Responsibility / state | Interface | My involvement |
+|---|---|---|---|
+| [Component] | [What it owns] | [Protocol, API, events or files] | [Owned, contributed or integrated] |
 
 ### External Integrations
 
-- [Service, protocol, device, or third-party system and why it mattered.]
+- [Service, protocol, device or third-party system and why it mattered.]
 
 ### State, Failure & Trust Boundaries
 
-- [Where the same logical state exists in multiple places and how it converges.]
+- [Where the same logical state exists in multiple places.]
 - [Timeout, retry, partial failure, restart and recovery behavior.]
 - [Where credentials or sensitive data cross a boundary.]
-- [Legacy/insecure protocols or trusted-network assumptions that must not be oversold.]
 
-### Technical Ownership Boundaries
+### Technical Ownership
 
-**I owned or directly implemented:**
-
-- [Area.]
-
-**I integrated with or contributed to:**
+**Direct implementation:**
 
 - [Area.]
 
-**Outside my ownership:**
+**Integration work:**
 
-- [Area and the accurate wording to use in an interview.]
+- [Area.]
+
+**Adjacent platform areas:**
+
+- [Area owned by another component or team.]
 
 ## 04 Tech Stack & Technical Decisions
 
-| Area | Technologies | Why / constraint | My depth |
+| Area | Technologies | Project use / constraint | My depth |
 |---|---|---|---|
-| [Client] | [Technologies] | [Why used or inherited] | [Owned / contributed / integrated] |
-| [Backend / SDK] | [Technologies] | [Why used or inherited] | [Depth] |
-| [Platform / infrastructure] | [Technologies] | [Why used or inherited] | [Depth] |
+| [Client] | [Technologies] | [Why used] | [Primary, secondary or integration] |
+| [Backend / SDK] | [Technologies] | [Why used] | [Depth] |
+| [Platform / infrastructure] | [Technologies] | [Why used] | [Depth] |
 | [Testing / diagnostics] | [Technologies] | [Why used] | [Depth] |
 
 ### Important Decisions and Tradeoffs
 
-| Context / decision | Realistic alternatives | Why this option | Cost / risk accepted | My role | Evidence / status |
-|---|---|---|---|---|---|
-| [Decision] | [Alternatives] | [Reason] | [Downside] | [Decided / proposed / implemented / inherited] | [Artifact; released or internal] |
+| Context / decision | Alternative | Chosen approach | Tradeoff | My role |
+|---|---|---|---|---|
+| [Decision] | [Alternative] | [Why this option] | [Cost or risk accepted] | [Proposed, implemented or inherited] |
 
-Do not retroactively present an inherited technology as your architecture decision. A reverted approach can be an excellent story when the reason for changing course is clear.
+Describe inherited technologies as project constraints rather than personal architecture choices.
 
 ## 05 Team, Role & Ownership
 
 ### Team and Collaboration
 
-[Team size, disciplines, reporting/collaboration model, stakeholders, and communication tools.]
+[Team size, disciplines, stakeholders and collaboration model.]
 
 ### Responsibilities
 
 - [Recurring responsibility.]
 
-### Role and Delivery Boundaries
+### Role Boundaries
 
-- **Safe to claim:** [Specific ownership.]
-- **Contributed to:** [Shared area.]
-- **Do not claim:** [Someone else's responsibility or an inherited decision.]
+- **Primary:** [Direct responsibility.]
+- **Secondary:** [Occasional contribution.]
+- **Integrated with:** [Adjacent systems.]
+- **Outside my responsibility:** [Platform or component owned elsewhere.]
 
 ## 06 Delivery, Testing & Quality
 
 ### Development Process
 
-[How work arrived, how it was refined, reviewed, integrated, released, and supported.]
+[How work arrived, was refined, reviewed, integrated, released and supported.]
 
 ### Build and Deployment
 
-[Build pipeline, environments, release cadence, deployment target, rollback/recovery path.]
+[Build pipeline, environments, deployment target and release workflow.]
 
 ### Test Strategy
 
@@ -178,92 +171,74 @@ Do not retroactively present an inherited technology as your architecture decisi
 - **Integration:** [Scope and tools.]
 - **System / end-to-end:** [Scope and environment.]
 - **Manual / hardware:** [Why it was needed.]
-- **Regression:** [How regressions were prevented.]
+- **Regression:** [How established behavior was protected.]
 
-### Compatibility & Migration Matrix
+### Compatibility Matrix
 
-Use this when a change touches persisted data, protocols, configuration, APIs, hardware revisions or release versions. Do not use "backward compatible" without naming both versions and the verified behavior.
-
-| From / artifact | To / consumer | Expected behavior | Actual status | Evidence |
-|---|---|---|---|---|
-| [Version, schema or producer] | [Version, schema or consumer] | [Migrate / preserve / reject clearly / unsupported] | [Verified / partial / unknown] | [Fixture, test, code path, release note] |
+| Producer / artifact | Consumer | Required behavior | Validation |
+|---|---|---|---|
+| [Version, schema or producer] | [Version, schema or consumer] | [Preserve, migrate, reject clearly or replace] | [Test, fixture, scenario or release check] |
 
 ### Observability and Debugging
 
-[Logs, metrics, tracing, packet captures, debuggers, device diagnostics, reproducible test setup.]
+[Logs, metrics, traces, packet captures, debuggers, diagnostics and reproducible scenarios.]
 
 ### Reliability, Security & Performance Validation
 
-- [Failure injection, recovery, soak, load, resource, security or compatibility checks.]
-- [What was not tested and the resulting residual risk.]
+- [Recovery, load, resource, security or compatibility checks relevant to the product.]
 
 ## 07 Contributions
 
-Use one subsection per subsystem or responsibility. Describe the initial state, your changes, key decisions, and the resulting behavior.
+Use one subsection per meaningful subsystem or responsibility.
 
-### [Subsystem / Contribution 1]
+### [Subsystem / Contribution]
 
-- **Starting point:** [What existed?]
-- **My contribution:** [What you changed or built.]
-- **Technical detail:** [Architecture, algorithms, protocols, tricky edge cases.]
-- **Result:** [Verified outcome.]
-- **Status:** [Released / merged / internal / prototype / unknown.]
-- **Evidence:** [PRs, commits, tests, release notes, logs, public product behavior; include a release version where useful.]
-
-### [Subsystem / Contribution 2]
-
-[Repeat only for meaningful areas.]
+- **Starting point:** [What existed.]
+- **My contribution:** [What was changed or built.]
+- **Technical detail:** [Architecture, algorithm, protocol or edge cases.]
+- **Result:** [Delivered behavior or engineering value.]
+- **Status:** [Released, merged, internal or prototype.]
 
 ## 08 Key Engineering Challenges
 
-Summarize 3-6 challenges worth discussing. Do not duplicate every bug story.
+Summarize three to six challenges worth discussing. Keep each challenge focused on the system, constraint, engineering insight and result.
 
 ### [Challenge]
 
 - Why it was difficult.
 - Systems and constraints involved.
 - Core design or debugging insight.
-- Outcome or remaining limitation.
+- Delivered result or lasting lesson.
 
-## 09 Selected STAR Stories
+## 09 Representative Interview Stories
 
-Prepare 3-5 complete stories covering different signals: architecture, debugging, delivery, conflict/ambiguity, and learning from a mistake. Put incomplete examples into a separate "debugging prompts" list rather than presenting them as finished STAR stories.
+Include only complete stories that can be presented as written.
 
 ### [Story title]
 
 - **Situation:** [Context and symptom.]
-- **Task:** [Your responsibility and success condition.]
-- **Actions:** [Specific actions you personally took; explain why.]
-- **Result:** [Observable result and metric/evidence where available.]
-- **Status / evidence:** [Released or internal; artifact that substantiates the story.]
-- **Tradeoff / lesson:** [What you learned or would change.]
-- **Follow-up questions:** [Technical questions an interviewer may ask.]
+- **Task:** [Personal responsibility and success condition.]
+- **Actions:** [Specific actions and reasoning.]
+- **Result:** [Observable technical, user or delivery result.]
+- **Tradeoff / lesson:** [What the case demonstrates.]
 
-An implementation is not automatically an outcome. If shipment, adoption or business impact is unknown, say "implemented and verified in [environment]" rather than implying production impact.
+## 10 Outcomes and Impact
 
-## 10 Outcomes, Impact & Evidence
+| Outcome | Engineering / user value | Source |
+|---|---|---|
+| [Delivered behavior] | [Why it mattered] | [Code, test, release, task, log, first-hand project record or public material] |
 
-| Outcome | Impact | Evidence | Confidence |
-|---|---|---|---|
-| [Delivered behavior] | [User/business/engineering value] | [How it can be verified] | [Verified / estimate / unknown] |
-
-Use confidence consistently: **Verified**, **Public**, **Inferred**, or **To verify**. Keep implementation status separate from product impact; code can be verified while adoption remains unknown.
-
-### Metrics Worth Collecting
-
-- [Latency, crash rate, provisioning time, supported devices, defect count, test coverage, build time, or other relevant metric.]
-- If a metric was not measured, say so instead of creating a false number.
+Use measured numbers only when the source and measurement method are stable enough to explain during an interview.
 
 ### Resume-Ready Bullets
 
-- [Action verb] [what you built/changed] [scope/technology], resulting in [verified outcome].
-- [Action verb] [hard problem], improving [quality/reliability/workflow] as shown by [evidence].
+- [Action verb] [what was built or changed] [scope and technology], resulting in [delivered behavior or measured outcome].
 
 ## 11 Tradeoffs, Lessons & Retrospective
 
 ### Tradeoffs
 
-- [Decision] improved [benefit] but increased [cost/risk].
+- [Decision] improved [benefit] while accepting [cost or constraint].
 
 ### What I Learned
 
@@ -271,49 +246,45 @@ Use confidence consistently: **Verified**, **Public**, **Inferred**, or **To ver
 
 ### Mistakes and Course Corrections
 
-- [Initial approach, signal that it was wrong, how you changed it, and what improved.]
+- [Initial approach, evidence that changed the direction, revised approach and result.]
 
-### What I Would Change Now
+### What I Would Improve Today
 
-- [Concrete design, test, observability, or process improvement and why.]
+- [Concrete architecture, testing, observability or process improvement.]
 
 ## 12 Interview Answer Kit
 
 ### Role-Specific Emphasis
 
-- **[Target role]:** [Which two contributions and one STAR story to emphasize; which details to omit.]
+- **[Target role]:** [Two contributions and one story to emphasize.]
 
 ### Strongest Technical Deep Dives
 
-- [Topic -> why it demonstrates seniority / relevance.]
+- [Topic and why it demonstrates relevant engineering depth.]
 
 ### Likely Follow-Up Questions
 
-- [Question and a short answer outline.]
+- **[Question]** [Short, final answer based on the document.]
 
-### Claims and Confidentiality Boundaries
+### Confidentiality Boundaries
 
-- [Accurate wording.]
-- [Wording to avoid.]
-- [What is public, internally verifiable, confidential, or uncertain.]
-- [Secrets, credentials, private hostnames/URLs, customer data and security-sensitive implementation details to omit.]
+- [Details safe to discuss.]
+- [Customer data, credentials, endpoints, internal names and implementation secrets to keep private.]
 
 ### Glossary
 
 - **[Term]:** [One-sentence explanation suitable for a non-specialist interviewer.]
 
-## 13 Sources, Evidence & Open Questions
+## 13 Sources and Reference Material
 
-### Sources
+### Repository / Project Sources
 
-- [Public product page, standard, internal repository path, release note, or other evidence.]
-- Classify public sources: official/primary documentation, vendor marketing, government/registry data, or third-party reporting. Do not treat all links as equally authoritative.
-- Prefer durable references such as release versions, stable file paths, tests and public URLs. Avoid audit timestamps and temporary branch names; describe uncertain status relative to the end of your involvement.
+- [Stable file, test, release, task record or project artifact.]
 
-| Claim | Evidence/source | Evidence type | Disclosure status |
-|---|---|---|---|
-| [Claim] | [Artifact or URL] | [Verified / Public / Inferred / To verify] | [Public / safe internal / restricted] |
+### Public Sources
 
-### Open Questions Before the Interview
+- [Official product page, standard, vendor documentation or public company material.]
 
-- [Missing metric, scope detail, team detail, release status, or result to verify.]
+| Claim | Source | Disclosure |
+|---|---|---|
+| [Project fact] | [Artifact or URL] | [Public, safe internal or confidential] |
