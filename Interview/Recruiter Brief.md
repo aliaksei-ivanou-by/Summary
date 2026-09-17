@@ -15,13 +15,14 @@ C++ engineer with more than six years in the language, five of them in commercia
 | Citizenship | Belarus |
 | Current location | Minsk, Belarus |
 | Immigration status | Polish national D visa, valid 26 September 2026 - 25 September 2027 |
+| After the D visa | A temporary residence and work permit - karta pobytu - applied for from within Poland while employed |
 | Notice period | One month |
 | Available on-site in Warsaw | One month from an accepted offer; the visa is valid from 26 September 2026 and does not constrain the start date |
 | Contract type sought | UoP - umowa o pracę, a standard Polish employment contract |
-| Paperwork the employer files | A registered oświadczenie - the employer declaration filed with the local labour office, which is the basis for the work permission - and a signed employment contract |
+| What the employer arranges | A registered oświadczenie - the employer declaration filed with the local labour office, which is the basis for the work permission - and a signed employment contract |
 | Prior work in Poland | EPAM Systems Poland, Warsaw, August 2022 - August 2024, on a Polish work permit |
 | Location preference | Warsaw, hybrid; open to roles elsewhere in Poland |
-| Remote | Open to fully remote or hybrid; on-site in Warsaw from the availability date above |
+| Remote | Open to remote, hybrid or fully on-site in Warsaw, on the availability above |
 
 Worth stating early: this is a return to Warsaw rather than a first move. Two years of legal employment in Poland are already on the record, and the relocation logistics are familiar rather than new.
 
@@ -31,15 +32,15 @@ Worth stating early: this is a return to Warsaw rather than a first move. Two ye
 |---|---|---|
 | Russian | Native | |
 | Belarusian | Native | |
-| English | B2 | Working language throughout EPAM and Innowise; distributed teams in the US, India and across Europe |
+| English | B2 | Streamline language school, 2015-2017; graded exams |
 | Polish | B1+ | Accent School of Polish, 2023-2024 |
 | Swedish | B2 | The Centre for Swedish Studies, 2022-2023 |
 
-Polish at B1+ is conversational rather than a working technical level; English has carried the technical work throughout EPAM and Innowise.
+English is the one that matters day to day: it has been the working language throughout EPAM and Innowise, across distributed teams in the US, India and Europe. Polish at B1+ is conversational rather than a working technical level. The Swedish is from courses that ended in 2023 and has faded without use since - worth listing, not worth relying on.
 
 ## 04 Career Timeline
 
-| Period | Role | Organization | Where |
+| Period | Role or activity | Organization | Where |
 |---|---|---|---|
 | Jun 2010 - Jan 2020 | Engineering and R&D before the move to commercial C++: GNSS vehicle monitoring, then satellite imaging algorithms | Land Cadastre Information Centre, then PELENG, JSC | Minsk |
 | Mar 2020 - May 2020 | C++ Software Engineer | RIFTEK, LLC | Minsk |
@@ -73,6 +74,7 @@ Full detail in `2020-2021. Independent C++ Engineering Projects.md`.
 - **"Where are you based?"** Minsk, relocating to Warsaw. My Polish national D visa is valid from 26 September 2026.
 - **"Have you worked in Poland before?"** Yes - two years at EPAM Systems Poland in Warsaw, from August 2022 to August 2024, on a Polish work permit.
 - **"When could you start?"** One month's notice at Innowise, so on-site in Warsaw a month after an accepted offer. The visa is valid from 26 September 2026, so it does not delay that.
+- **"What happens when the visa expires in September 2027?"** I apply for a temporary residence and work permit - karta pobytu - from within Poland while employed. That is the standard route: I file the application and the employer completes the standard employer annex, rather than running a separate permit process. Beyond that there is a route that does not depend on employment at all - my wife holds a Karta Polaka, which is the basis for permanent residence in Poland, and once she has that, family reunification and later citizenship become available to me.
 - **"What contract do you need?"** A standard Polish employment contract, umowa o pracę. The employer files an oświadczenie - the declaration registered with the local labour office - and provides the signed contract.
 - **"How many years of C++?"** More than six years of C++ practice, five of them in commercial employment - RIFTEK, EPAM and Innowise - with sixteen months of full-time independent work and EPAM's C++ programme in 2020-2021 making up the rest. Thirteen-plus years across software engineering and R&D in total; the earlier part was algorithm and image-processing R&D in MATLAB for satellite and UAV optical systems.
 - **"What are you working on now?"** The embedded SIP desk-phone platform ran to August 2026 - C++17 and Qt 5.15 on embedded Linux built with Yocto, running on NXP i.MX, with SIP and WebRTC telephony, plus a Windows provisioning tool in C#/.NET. Since September I have been between assignments at Innowise.
@@ -86,11 +88,11 @@ Full detail in `2020-2021. Independent C++ Engineering Projects.md`.
 
 For the screening-call question "what have you worked on?", most recent first. Full versions are in the project documents; ten-minute spoken versions are in `SelfIntro.md`.
 
-- **Embedded SIP desk-phone platform** (Innowise, 2025-2026) - C++17/Qt on embedded Linux with Yocto; SIP/WebRTC telephony, primary/backup server failover and a Windows provisioning tool.
-- **Sierra integrated library system** (EPAM for Innovative Interfaces, 2022-2024) - C89 developer on the core of a decades-old production platform spanning C, Java, Scala and PostgreSQL on AWS, serving 9,000+ libraries.
-- **Oil and gas corporate system** (EPAM for Schlumberger, Oct-Dec 2021) - C++17 industrial sensor-data processing with MySQL and JavaScript, hosted in Azure, for a Fortune 500 company operating in 120+ countries.
-- **Industrial 3D scanning** (RIFTEK, Mar-May 2020) - C++17/Qt prototype reconstructing 3D models from multiple 2D laser scanners using the Point Cloud Library.
-- **Satellite and UAV optical imaging** (PELENG, 2012-2020) - image-processing algorithms for Earth remote-sensing satellite payloads: onboard compression, frame stitching, resolution assessment, UAV imaging modules.
+- **Embedded SIP desk-phone platform** (Innowise, May 2025 - Aug 2026) - C++17/Qt on embedded Linux with Yocto; SIP/WebRTC telephony, primary/backup server failover and a Windows provisioning tool.
+- **Sierra integrated library system** (EPAM for Innovative Interfaces, Mar 2022 - Apr 2024) - C89 developer on the core of a decades-old production platform spanning C, Java, Scala and PostgreSQL on AWS, serving 9,000+ libraries.
+- **Oil and gas corporate system** (EPAM for Schlumberger, Oct - Dec 2021) - C++17 industrial sensor-data processing with MySQL and JavaScript, hosted in Azure, for a Fortune 500 company operating in 120+ countries.
+- **Industrial 3D scanning** (RIFTEK, Mar - May 2020) - C++17/Qt prototype reconstructing 3D models from multiple 2D laser scanners using the Point Cloud Library.
+- **Satellite and UAV optical imaging** (PELENG, Aug 2012 - Jan 2020) - image-processing algorithms for Earth remote-sensing satellite payloads: onboard compression, frame stitching, resolution assessment, UAV imaging modules.
 
 ## 09 Online Presence
 
