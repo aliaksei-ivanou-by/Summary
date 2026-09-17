@@ -16,9 +16,9 @@ C++ engineer with more than six years in the language, five of them in commercia
 | Current location | Minsk, Belarus |
 | Immigration status | Polish national D visa, valid 26 September 2026 - 25 September 2027 |
 | Notice period | One month |
-| Available on-site in Warsaw | One month from an accepted offer. The visa is valid from 26 September 2026, so it does not constrain the start date |
+| Available on-site in Warsaw | One month from an accepted offer; the visa is valid from 26 September 2026 and does not constrain the start date |
 | Contract type sought | UoP - umowa o pracę, a standard Polish employment contract |
-| What the employer provides | A registered oświadczenie - the employer declaration filed with the local labour office, which is the basis for the work permission - and a signed employment contract |
+| Paperwork the employer files | A registered oświadczenie - the employer declaration filed with the local labour office, which is the basis for the work permission - and a signed employment contract |
 | Prior work in Poland | EPAM Systems Poland, Warsaw, August 2022 - August 2024, on a Polish work permit |
 | Location preference | Warsaw, hybrid; open to roles elsewhere in Poland |
 | Remote | Open to fully remote or hybrid; on-site in Warsaw from the availability date above |
@@ -50,11 +50,11 @@ Polish at B1+ is conversational rather than a working technical level; English h
 | Sep 2024 - Dec 2024 | Relocation to Minsk, tax residency arrangements and job search | N/A | Warsaw, then Minsk |
 | Dec 2024 - present | C++ Software Engineer; technical lead of an engineering sub-group, grown from 4 to 6 engineers | Innowise Group | Minsk |
 
-Two things in this table are worth pointing out before they are asked about. First, the promotion from Junior to middle grade in May 2022, eight months after joining. Second, the internal relocation from EPAM Belarus to EPAM Poland in August 2022: I stayed on Sierra throughout, with the same customer and the same codebase - only the employing entity and my location changed.
+Two things in this table are worth pointing out before anyone asks. First, the promotion from Junior to middle grade in May 2022, eight months after joining. Second, the internal relocation from EPAM Belarus to EPAM Poland in August 2022: I stayed on Sierra throughout, with the same customer and the same codebase - only the employing entity and my location changed.
 
 The full history back to 2007, including the university period and the month-by-month breakdown of project assignments, is in `00. Career Overview.md`.
 
-## 05 The 2020-2021 Period
+## 05 The 2020-2021 Transition
 
 Sixteen months between RIFTEK and joining EPAM, spent moving from MATLAB R&D into commercial C++. EPAM's C++ mentoring programme ran from May 2020 to September 2021 and their C++ laboratory from March to September 2021. Alongside those I built a desktop financial analytics application in C++17 with FLTK, SQLite, GoogleTest, plog and CMake, published at `github.com/aliaksei-ivanou-by/Home_Bookkeeping`, and worked through Stroustrup's *Programming: Principles and Practice*. EPAM hired me in September 2021 at the end of that programme.
 
@@ -79,26 +79,26 @@ Full detail in `2020-2021. Independent C++ Engineering Projects.md`.
 - **"Why are you leaving Innowise?"** Two reasons, both plain. I have been without a project since September and there is no engagement lined up. And I would rather be hired on what I have actually done than presented through a profile shaped to fit a client's requisition. Product work and outsourcing project teams both suit me; it is staff augmentation specifically that I would like to move away from.
 - **"What was the gap in 2020-2021?"** A planned transition into commercial C++ - EPAM's mentoring programme and laboratory, plus my own C++ projects. Section 05.
 - **"What about the gap in late 2024?"** The EPAM Poland contract ended in August 2024. I moved back from Warsaw to Minsk, settled the tax residency that came with the move, and looked for the next role. Innowise started in December 2024.
-- **"Are you a senior by title?"** No - my grade is middle, and senior was never formally awarded. The scope is senior-level, though: technical lead of an engineering sub-group grown from four to six, architectural decisions on an embedded product, code review, onboarding, mentoring and interview support, alongside roughly 80% hands-on delivery. I would rather state that plainly than let a title do the work.
+- **"Are you a senior by title?"** No - my grade is middle, and senior was never formally awarded. The scope is senior-level, though: technical lead of an engineering sub-group grown from four to six, design decisions on an embedded product, code review, onboarding, mentoring and interview support, alongside roughly 80% hands-on delivery. I would rather state that plainly than let a title do the work.
 - **"Do you have certifications?"** No certification exams. What I do have: two AWS digital training badges from 2024, verifiable on Credly, and a 108-academic-hour classroom C++ course at the High-Tech Park educational centre in Minsk. Details in `Certificates and Continuing Education.md`.
 
 ## 08 One-Line Project Summaries
 
-For the screening-call question "what have you worked on?". Full versions are in the project documents; ten-minute spoken versions are in `SelfIntro.md`.
+For the screening-call question "what have you worked on?", most recent first. Full versions are in the project documents; ten-minute spoken versions are in `SelfIntro.md`.
 
-- **Embedded SIP desk-phone platform** (Innowise, 2025-2026) - C++17/Qt on embedded Linux with Yocto; SIP/WebRTC telephony, primary/backup server failover, and a Windows provisioning tool.
+- **Embedded SIP desk-phone platform** (Innowise, 2025-2026) - C++17/Qt on embedded Linux with Yocto; SIP/WebRTC telephony, primary/backup server failover and a Windows provisioning tool.
 - **Sierra integrated library system** (EPAM for Innovative Interfaces, 2022-2024) - C89 developer on the core of a decades-old production platform spanning C, Java, Scala and PostgreSQL on AWS, serving 9,000+ libraries.
-- **Oil and gas corporate system** (EPAM for Schlumberger, 2021) - C++17 industrial sensor-data processing with MySQL and JavaScript, hosted in Azure, for a Fortune 500 company operating in 120+ countries.
-- **Industrial 3D scanning** (RIFTEK, 2020) - C++17/Qt prototype reconstructing 3D models from multiple 2D laser scanners using the Point Cloud Library.
+- **Oil and gas corporate system** (EPAM for Schlumberger, Oct-Dec 2021) - C++17 industrial sensor-data processing with MySQL and JavaScript, hosted in Azure, for a Fortune 500 company operating in 120+ countries.
+- **Industrial 3D scanning** (RIFTEK, Mar-May 2020) - C++17/Qt prototype reconstructing 3D models from multiple 2D laser scanners using the Point Cloud Library.
 - **Satellite and UAV optical imaging** (PELENG, 2012-2020) - image-processing algorithms for Earth remote-sensing satellite payloads: onboard compression, frame stitching, resolution assessment, UAV imaging modules.
 
 ## 09 Online Presence
 
 | Where | What is there |
 |---|---|
-| LinkedIn `in/aliaksei-ivanou-by` | Profile, certifications and recommendations |
-| GitHub `aliaksei-ivanou-by` | The `Summary` repository, including the `Certificates` folder that CVs link to. Also `Home_Bookkeeping`, the C++17/FLTK/SQLite application from 2020-2021 and the only public code sample |
-| Credly | AWS Well-Architected Proficient and AWS Cloud Quest: Cloud Practitioner, both issued May 2024 |
+| LinkedIn `in/aliaksei-ivanou-by` | Profile, credentials and recommendations |
+| GitHub `aliaksei-ivanou-by` | The `Summary` repository, including the `Certificates` folder my CV links to. Also `Home_Bookkeeping`, the C++17/FLTK/SQLite application from 2020-2021 and the only public code sample |
+| Credly | AWS Well-Architected Proficient and AWS Cloud Quest: Cloud Practitioner - digital training badges rather than certification exams, both issued May 2024 |
 
 ## 10 Outside Work
 
