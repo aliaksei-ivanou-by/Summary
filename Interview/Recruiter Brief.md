@@ -4,11 +4,11 @@
 
 ## 01 The Short Version
 
-C++ engineer with more than six years in the language, five of them in commercial employment, out of 13+ years in software engineering and R&D. Most recent work is an embedded SIP desk-phone platform: C++17 and Qt on embedded Linux with Yocto, SIP/WebRTC telephony, on NXP i.MX hardware. Alongside delivery I lead a small engineering sub-group at Innowise. Belarusian national, currently in Minsk, holding a Polish national D visa and returning to Warsaw - where I already worked for two years at EPAM Systems Poland.
+C++ engineer with more than six years in the language, five of them in commercial employment, out of 13+ years in software engineering and R&D. Most recent work is an embedded SIP desk-phone platform: C++17 and Qt on embedded Linux with Yocto, SIP/WebRTC telephony, on NXP i.MX hardware. At Innowise I also lead a small engineering sub-group. Belarusian national, currently in Minsk, holding a Polish national D visa and returning to Warsaw - where I already worked for two years at EPAM Systems Poland.
 
 **Targeting:** senior C++ roles - Qt · Embedded Linux · Yocto · SIP/WebRTC · HMI.
 
-## 02 Work Authorization and Availability
+## 02 Status and Availability
 
 | Question | Answer |
 |---|---|
@@ -66,7 +66,7 @@ Full detail in `2020-2021. Independent C++ Engineering Projects.md`.
 - **Domains that fit:** embedded products, telecom and VoIP, industrial and measurement systems, aerospace-adjacent R&D, long-lived production systems.
 - **What I want from the work:** systems where behavior depends on several layers at once - application code, protocols, configuration, runtime environment and real hardware. That is consistently where I have been most useful.
 - **Company model:** product companies and outsourcing project teams both fit. Staff augmentation is the one model I would rather move on from.
-- **Team:** currently technical lead of an engineering sub-group that has grown from four to six engineers and is still growing - code review, onboarding, mentoring and interview support, alongside roughly 80% hands-on delivery as an individual contributor. Comfortable either as a senior IC or with a lead component.
+- **Team:** currently technical lead of an engineering sub-group that has grown from four to six engineers and is still growing, alongside roughly 80% hands-on delivery as an individual contributor. Comfortable either as a senior IC or with a lead component.
 
 ## 07 Frequently Asked, Answered
 
@@ -91,14 +91,14 @@ For the screening-call question "what have you worked on?", most recent first. F
 - **Sierra integrated library system** (EPAM for Innovative Interfaces, Mar 2022 - Apr 2024) - C89 developer on the core of a decades-old production platform spanning C, Java, Scala and PostgreSQL on AWS, serving 9,000+ libraries.
 - **Oil and gas corporate system** (EPAM for Schlumberger, Oct - Dec 2021) - C++17 industrial sensor-data processing with MySQL and JavaScript, hosted in Azure, for a Fortune 500 company operating in 120+ countries.
 - **Industrial 3D scanning** (RIFTEK, Mar - May 2020) - C++17/Qt prototype reconstructing 3D models from multiple 2D laser scanners using the Point Cloud Library.
-- **Satellite and UAV optical imaging** (PELENG, Aug 2012 - Jan 2020) - image-processing algorithms for Earth remote-sensing satellite payloads: onboard compression, frame stitching, resolution assessment, UAV imaging modules.
+- **Satellite and UAV optical imaging** (PELENG, Aug 2012 - Jan 2020) - image-processing algorithms for Earth remote-sensing satellite payloads - onboard compression, frame stitching, resolution assessment - and imaging modules for a UAV optical system.
 
 ## 09 Online Presence
 
 | Where | What is there |
 |---|---|
 | LinkedIn `in/aliaksei-ivanou-by` | Profile, credentials and recommendations |
-| GitHub `aliaksei-ivanou-by` | The `Summary` repository, including the `Certificates` folder my CV links to. Also `Home_Bookkeeping`, the C++17/FLTK/SQLite application from 2020-2021 and the only public code sample - the commercial work has all been proprietary |
+| GitHub `aliaksei-ivanou-by` | The `Summary` repository, including the `Certificates` folder my CV links to. Also `Home_Bookkeeping` (C++17/FLTK/SQLite, 2020-2021) - the only public code sample, since the commercial work has all been proprietary |
 | Credly | AWS Well-Architected Proficient and AWS Cloud Quest: Cloud Practitioner - digital training badges rather than certification exams, both issued May 2024 |
 
 ## 10 Outside Work
