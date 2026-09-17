@@ -4,7 +4,7 @@
 
 ## 01 The Short Version
 
-C++ engineer with more than six years in the language, five of them in commercial employment, and more than 13 years in software engineering and R&D in total. Most recent work is an embedded SIP desk-phone platform: C++17 and Qt on embedded Linux with Yocto, SIP/WebRTC telephony, on NXP i.MX hardware. Belarusian national, currently in Minsk, holding a Polish national D visa and returning to Warsaw - where I already worked for two years at EPAM Systems Poland.
+C++ engineer with more than six years in the language, five of them in commercial employment, out of 13+ years in software engineering and R&D. Most recent work is an embedded SIP desk-phone platform: C++17 and Qt on embedded Linux with Yocto, SIP/WebRTC telephony, on NXP i.MX hardware. Belarusian national, currently in Minsk, holding a Polish national D visa and returning to Warsaw - where I already worked for two years at EPAM Systems Poland.
 
 **Targeting:** senior C++ roles - Qt · Embedded Linux · Yocto · SIP/WebRTC · HMI.
 
@@ -16,14 +16,14 @@ C++ engineer with more than six years in the language, five of them in commercia
 | Current location | Minsk, Belarus |
 | Immigration status | Polish national D visa, valid 26 September 2026 - 25 September 2027 |
 | Notice period | One month |
-| Available on-site in Warsaw | One month from an accepted offer; the visa takes effect on 26 September 2026 and does not delay any realistic start date |
+| Available on-site in Warsaw | One month from an accepted offer. The visa is valid from 26 September 2026, so it does not constrain the start date |
 | Contract type sought | UoP - umowa o pracę, a standard Polish employment contract |
 | What the employer provides | A registered oświadczenie - the employer declaration filed with the local labour office, which is the basis for the work permission - and a signed employment contract |
 | Prior work in Poland | EPAM Systems Poland, Warsaw, August 2022 - August 2024, on a Polish work permit |
 | Location preference | Warsaw, hybrid; open to roles elsewhere in Poland |
-| Remote | Open; on-site in Warsaw on the terms above |
+| Remote | Open to fully remote or hybrid; on-site in Warsaw from the availability date above |
 
-Worth stating early: the two years at EPAM Systems Poland make this a return to Warsaw rather than a first move, with an established record of legal employment in the country behind it.
+Worth stating early: this is a return to Warsaw rather than a first move. Two years of legal employment in Poland are already on the record, and the relocation logistics are familiar rather than new.
 
 ## 03 Languages
 
@@ -31,7 +31,7 @@ Worth stating early: the two years at EPAM Systems Poland make this a return to 
 |---|---|---|
 | Russian | Native | |
 | Belarusian | Native | |
-| English | B2 | Working language across all commercial roles; distributed teams in the US, India and across Europe |
+| English | B2 | Working language throughout EPAM and Innowise; distributed teams in the US, India and across Europe |
 | Polish | B1+ | Accent School of Polish, 2023-2024 |
 | Swedish | B2 | The Centre for Swedish Studies, 2022-2023 |
 
@@ -47,11 +47,12 @@ Polish at B1+ is conversational rather than a working technical level; English h
 | Sep 2021 - May 2022 | Junior C++ Software Engineer | EPAM Systems Belarus | Minsk |
 | May 2022 - Aug 2022 | C++ Software Engineer - promoted to middle grade | EPAM Systems Belarus | Minsk |
 | Aug 2022 - Aug 2024 | C++ Software Engineer | EPAM Systems Poland | Warsaw |
+| Sep 2024 - Dec 2024 | Relocation to Minsk, tax residency arrangements and job search | N/A | Warsaw, then Minsk |
 | Dec 2024 - present | C++ Software Engineer; technical lead of an engineering sub-group, grown from 4 to 6 engineers | Innowise Group | Minsk |
 
-Two things here answer the "how did you progress" question without being asked: the promotion from Junior to middle grade in May 2022, eight months after joining, and the internal relocation from EPAM Belarus to EPAM Poland in August 2022, which happened mid-project - I stayed on Sierra throughout, with the same customer and the same codebase; only the employing entity and my location changed.
+Two things in this table are worth pointing out before they are asked about. First, the promotion from Junior to middle grade in May 2022, eight months after joining. Second, the internal relocation from EPAM Belarus to EPAM Poland in August 2022: I stayed on Sierra throughout, with the same customer and the same codebase - only the employing entity and my location changed.
 
-The full history back to 2007, including the university period and the year-by-year breakdown of project assignments, is in `00. Career Overview.md`.
+The full history back to 2007, including the university period and the month-by-month breakdown of project assignments, is in `00. Career Overview.md`.
 
 ## 05 The 2020-2021 Period
 
@@ -64,19 +65,22 @@ Full detail in `2020-2021. Independent C++ Engineering Projects.md`.
 - **Role:** senior C++ engineer. Embedded Linux with Qt/HMI is the strongest fit; systems C++, networking and protocol work, and legacy modernization each have a project behind them.
 - **Domains that fit:** embedded products, telecom and VoIP, industrial and measurement systems, aerospace-adjacent R&D, long-lived production systems.
 - **What I want from the work:** systems where behavior depends on several layers at once - application code, protocols, configuration, runtime environment and real hardware. That is consistently where I have been most useful.
+- **Company model:** product companies and outsourcing project teams both fit. Staff augmentation is the one model I would rather move on from.
 - **Team:** currently technical lead of an engineering sub-group that has grown from four to six engineers and is still growing - code review, onboarding, mentoring and interview support, alongside roughly 80% hands-on delivery as an individual contributor. Comfortable either as a senior IC or with a lead component.
 
 ## 07 Frequently Asked, Answered
 
-- **"Where are you based?"** Minsk, relocating to Warsaw. My Polish national D visa takes effect on 26 September 2026.
+- **"Where are you based?"** Minsk, relocating to Warsaw. My Polish national D visa is valid from 26 September 2026.
 - **"Have you worked in Poland before?"** Yes - two years at EPAM Systems Poland in Warsaw, from August 2022 to August 2024, on a Polish work permit.
-- **"When could you start?"** One month's notice at Innowise, so on-site in Warsaw a month after an accepted offer. The visa takes effect on 26 September 2026 and does not delay that.
+- **"When could you start?"** One month's notice at Innowise, so on-site in Warsaw a month after an accepted offer. The visa is valid from 26 September 2026, so it does not delay that.
 - **"What contract do you need?"** A standard Polish employment contract, umowa o pracę. The employer files an oświadczenie - the declaration registered with the local labour office - and provides the signed contract.
 - **"How many years of C++?"** More than six years of C++ practice, five of them in commercial employment - RIFTEK, EPAM and Innowise - with sixteen months of full-time independent work and EPAM's C++ programme in 2020-2021 making up the rest. Thirteen-plus years across software engineering and R&D in total; the earlier part was algorithm and image-processing R&D in MATLAB for satellite and UAV optical systems.
 - **"What are you working on now?"** The embedded SIP desk-phone platform ran to August 2026 - C++17 and Qt 5.15 on embedded Linux built with Yocto, running on NXP i.MX, with SIP and WebRTC telephony, plus a Windows provisioning tool in C#/.NET. Since September I have been between assignments at Innowise.
-- **"Do you have certifications?"** No certification exams. What I do have: two AWS digital training badges from 2024, verifiable on Credly, and a 108-academic-hour classroom C++ course at the High-Tech Park educational centre in Minsk. Details in `Certificates and Continuing Education.md`.
+- **"Why are you leaving Innowise?"** Two reasons, both plain. I have been without a project since September and there is no engagement lined up. And I would rather be hired on what I have actually done than presented through a profile shaped to fit a client's requisition. Product work and outsourcing project teams both suit me; it is staff augmentation specifically that I would like to move away from.
 - **"What was the gap in 2020-2021?"** A planned transition into commercial C++ - EPAM's mentoring programme and laboratory, plus my own C++ projects. Section 05.
+- **"What about the gap in late 2024?"** The EPAM Poland contract ended in August 2024. I moved back from Warsaw to Minsk, settled the tax residency that came with the move, and looked for the next role. Innowise started in December 2024.
 - **"Are you a senior by title?"** No - my grade is middle, and senior was never formally awarded. The scope is senior-level, though: technical lead of an engineering sub-group grown from four to six, architectural decisions on an embedded product, code review, onboarding, mentoring and interview support, alongside roughly 80% hands-on delivery. I would rather state that plainly than let a title do the work.
+- **"Do you have certifications?"** No certification exams. What I do have: two AWS digital training badges from 2024, verifiable on Credly, and a 108-academic-hour classroom C++ course at the High-Tech Park educational centre in Minsk. Details in `Certificates and Continuing Education.md`.
 
 ## 08 One-Line Project Summaries
 
