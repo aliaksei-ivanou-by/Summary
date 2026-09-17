@@ -98,9 +98,10 @@ The sixteen months between RIFTEK and the first EPAM project have no employer be
 
 - **EPAM C++ Mentoring Program**, May 2020 - September 2021 - the substantial item, no certificate issued.
 - **EPAM C++ Laboratory**, March - September 2021 - no certificate issued.
-- Coursera / MIPT C++ white belt, completed 4 March 2020.
-- LinkedIn Learning C++ Essential Training, January 2021; C++ Pointers and Nail Your C++ Interview, August 2021; Functional Programming in C++, November 2021.
+- LinkedIn Learning C++ Essential Training, January 2021; Learning C++ Pointers and Nail Your C++ Interview, both August 2021.
 - Alongside these, the independent C++ projects - the FLTK/SQLite financial analytics application and the Stroustrup exercises.
+
+Two further items bracket the period rather than fall inside it: the Coursera / MIPT C++ white belt was completed on 4 March 2020, during the RIFTEK months, and Introducing Functional Programming in C++ in November 2021, after EPAM had already hired me.
 
 Stated together, that period is a structured transition into commercial C++ rather than a gap. The EPAM programmes carry the most weight in it, and no certificates were issued for either.
 
@@ -168,13 +169,13 @@ These are worth keeping visible. They come from language schools rather than sel
 
 | Date | Item | Issuer | Note |
 |---|---|---|---|
-| Aug 2011 | Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS |
-| Aug 2013 | Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS; attended while at PELENG |
-| Mar - Apr 2011 | Youth conference with elements of scientific school | Moscow State University | |
-| Nov - Dec 2009 | Short practice | Moscow State University | |
 | Oct 2009 | Youth Scientific School | Kostroma | |
-| 5 - 6 Apr 2024 | Warszawskie Dni Informatyki 2024 | Fundacja Academic Partners, Warsaw | Participant |
+| Nov - Dec 2009 | Short practice | Moscow State University | |
+| Mar - Apr 2011 | Youth conference with elements of scientific school | Moscow State University | |
+| Aug 2011 | Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS |
 | 2012 - 2020 | Conference talk, "Integrated space monitoring systems as an evolution of geographic information systems" | Conference programme of the TIBO exhibition, Minsk | Speaker; text in `Articles/` |
+| Aug 2013 | Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS; attended while at PELENG |
+| 5 - 6 Apr 2024 | Warszawskie Dni Informatyki 2024 | Fundacja Academic Partners, Warsaw | Participant |
 
 The two Samara schools carry ECTS credit, which makes them the only academic credit on this list outside the degree itself. They also support the aerospace specialization directly.
 
@@ -193,8 +194,8 @@ The TIBO talk does a second job: its text is signed "Алексей Иванов
 | 2021 | Learning SQL Programming; From Excel to SQL; Learning REST APIs; JSON Essential Training; HTTP Essential Training; Web Programming Foundations | LinkedIn Learning |
 | Jun 2023 | Learning Jira Software | LinkedIn Learning |
 | 2023 | Foundations of the Fourth Industrial Revolution (Industry 4.0) | LinkedIn Learning |
-| Jan 2025 | Advanced Prompt Engineering Techniques | LinkedIn Learning |
 | Feb - Mar 2024 | **HelloNewJob, Stream 6** - how successful candidates search for jobs today; job-search strategy and tactics; where to find suitable vacancies; the CV as a ticket to the interview; LinkedIn as a job-search tool; standing out among other candidates; self-presentation; talking about experience without failing | NewHR |
+| Jan 2025 | Advanced Prompt Engineering Techniques | LinkedIn Learning |
 
 The Ruby on Rails course (2015) lines up with the satellite reference database built at PELENG on Rails and PostgreSQL in 2015-2016, which is a good example of training that was applied immediately.
 
@@ -222,7 +223,7 @@ HelloNewJob is the one structured programme in this section - seven weeks with h
 
 ## 11 Deliberately Excluded
 
-Roughly forty files in `Certificates/` are not represented above, and that is intentional. They fall into three groups:
+Roughly forty files in `Certificates/` are not represented above, and that is intentional. They fall into four groups:
 
 - **Presentation, communication and soft skills** (2021-2023): Keynote, PowerPoint, public speaking, impromptu speaking, first impressions, speaker credibility, sales presentations, plain English, culturally sensitive communication, critical-thinking questions.
 - **Productivity and personal development**: time management, Getting Things Done, morning-habit and personal-finance titles, well-being programmes, career development planning, decision making under stress, preparing for change.
@@ -230,6 +231,8 @@ Roughly forty files in `Certificates/` are not represented above, and that is in
 - **Unrelated**: anti-doping course for athletes (2025), Kangaroo mathematics competition (2006), school Russian-language olympiad (2006).
 
 None of these are embarrassing, and a few are genuinely useful. They are excluded because listing them next to "Parallel and Concurrent Programming with C++" drags the technical credentials down to their level. A reader who sees forty entries stops reading and concludes the list is padding.
+
+The line is length and structure, not subject. HelloNewJob in section 09 is also career training, and it is listed: seven weeks, a cohort, homework and reviewed work. The excluded career and productivity titles are recorded videos of an hour or two.
 
 For presentation and stakeholder-communication skills the real evidence is elsewhere anyway: bi-weekly sprint demos to customer department heads at EPAM, technical sessions with customer developers on Sierra, and onboarding, mentoring and interviewing as the Innowise team grew to six.
 
