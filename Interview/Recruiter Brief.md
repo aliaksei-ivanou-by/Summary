@@ -4,7 +4,7 @@
 
 ## 01 The Short Version
 
-C++ engineer with more than six years in the language, five of them in commercial employment, out of 13+ years in software engineering and R&D. Most recent work is an embedded SIP desk-phone platform: C++17 and Qt on embedded Linux with Yocto, SIP/WebRTC telephony, on NXP i.MX hardware. Belarusian national, currently in Minsk, holding a Polish national D visa and returning to Warsaw - where I already worked for two years at EPAM Systems Poland.
+C++ engineer with more than six years in the language, five of them in commercial employment, out of 13+ years in software engineering and R&D. Most recent work is an embedded SIP desk-phone platform: C++17 and Qt on embedded Linux with Yocto, SIP/WebRTC telephony, on NXP i.MX hardware. Alongside delivery I lead a small engineering sub-group at Innowise. Belarusian national, currently in Minsk, holding a Polish national D visa and returning to Warsaw - where I already worked for two years at EPAM Systems Poland.
 
 **Targeting:** senior C++ roles - Qt · Embedded Linux · Yocto · SIP/WebRTC · HMI.
 
@@ -15,14 +15,13 @@ C++ engineer with more than six years in the language, five of them in commercia
 | Citizenship | Belarus |
 | Current location | Minsk, Belarus |
 | Immigration status | Polish national D visa, valid 26 September 2026 - 25 September 2027 |
-| After the D visa | A temporary residence and work permit - karta pobytu - applied for from within Poland while employed |
+| After the D visa | A temporary residence and work permit (karta pobytu), applied for from within Poland while employed |
+| Education | Radiophysics, five-year specialist degree, Belarusian State University, 2007-2012; diploma and transcript apostilled in 2025 |
 | Notice period | One month |
 | Available on-site in Warsaw | One month from an accepted offer; the visa is valid from 26 September 2026 and does not constrain the start date |
 | Contract type sought | UoP - umowa o pracę, a standard Polish employment contract |
 | What the employer arranges | A registered oświadczenie - the employer declaration filed with the local labour office, which is the basis for the work permission - and a signed employment contract |
-| Prior work in Poland | EPAM Systems Poland, Warsaw, August 2022 - August 2024, on a Polish work permit |
-| Location preference | Warsaw, hybrid; open to roles elsewhere in Poland |
-| Remote | Open to remote, hybrid or fully on-site in Warsaw, on the availability above |
+| Location and work mode | Warsaw, hybrid preferred; open to fully remote or fully on-site, and to roles elsewhere in Poland |
 
 Worth stating early: this is a return to Warsaw rather than a first move. Two years of legal employment in Poland are already on the record, and the relocation logistics are familiar rather than new.
 
@@ -57,7 +56,7 @@ The full history back to 2007, including the university period and the month-by-
 
 ## 05 The 2020-2021 Transition
 
-Sixteen months between RIFTEK and joining EPAM, spent moving from MATLAB R&D into commercial C++. EPAM's C++ mentoring programme ran from May 2020 to September 2021 and their C++ laboratory from March to September 2021. Alongside those I built a desktop financial analytics application in C++17 with FLTK, SQLite, GoogleTest, plog and CMake, published at `github.com/aliaksei-ivanou-by/Home_Bookkeeping`, and worked through Stroustrup's *Programming: Principles and Practice*. EPAM hired me in September 2021 at the end of that programme.
+The sixteen months between RIFTEK and joining EPAM went into moving from MATLAB R&D into commercial C++. EPAM's C++ mentoring programme ran from May 2020 to September 2021 and their C++ laboratory from March to September 2021. Alongside those I built a desktop financial analytics application in C++17 with FLTK, SQLite, GoogleTest, plog and CMake, published at `github.com/aliaksei-ivanou-by/Home_Bookkeeping`, and worked through Stroustrup's *Programming: Principles and Practice*. EPAM hired me in September 2021 at the end of that programme.
 
 Full detail in `2020-2021. Independent C++ Engineering Projects.md`.
 
@@ -74,7 +73,7 @@ Full detail in `2020-2021. Independent C++ Engineering Projects.md`.
 - **"Where are you based?"** Minsk, relocating to Warsaw. My Polish national D visa is valid from 26 September 2026.
 - **"Have you worked in Poland before?"** Yes - two years at EPAM Systems Poland in Warsaw, from August 2022 to August 2024, on a Polish work permit.
 - **"When could you start?"** One month's notice at Innowise, so on-site in Warsaw a month after an accepted offer. The visa is valid from 26 September 2026, so it does not delay that.
-- **"What happens when the visa expires in September 2027?"** I apply for a temporary residence and work permit - karta pobytu - from within Poland while employed. That is the standard route: I file the application and the employer completes the standard employer annex, rather than running a separate permit process. Beyond that there is a route that does not depend on employment at all - my wife holds a Karta Polaka, which is the basis for permanent residence in Poland, and once she has that, family reunification and later citizenship become available to me.
+- **"What happens when the visa expires in September 2027?"** I apply from within Poland, while employed, for a temporary residence and work permit - the single permit that comes with a karta pobytu. That is the standard route: I file the application and the employer completes the standard employer annex, rather than running a separate permit process. Beyond that there is a route that does not depend on employment at all: my wife holds a Karta Polaka, which is the basis for permanent residence in Poland, and once she has that, family reunification and eventually citizenship are open to me.
 - **"What contract do you need?"** A standard Polish employment contract, umowa o pracę. The employer files an oświadczenie - the declaration registered with the local labour office - and provides the signed contract.
 - **"How many years of C++?"** More than six years of C++ practice, five of them in commercial employment - RIFTEK, EPAM and Innowise - with sixteen months of full-time independent work and EPAM's C++ programme in 2020-2021 making up the rest. Thirteen-plus years across software engineering and R&D in total; the earlier part was algorithm and image-processing R&D in MATLAB for satellite and UAV optical systems.
 - **"What are you working on now?"** The embedded SIP desk-phone platform ran to August 2026 - C++17 and Qt 5.15 on embedded Linux built with Yocto, running on NXP i.MX, with SIP and WebRTC telephony, plus a Windows provisioning tool in C#/.NET. Since September I have been between assignments at Innowise.
@@ -99,7 +98,7 @@ For the screening-call question "what have you worked on?", most recent first. F
 | Where | What is there |
 |---|---|
 | LinkedIn `in/aliaksei-ivanou-by` | Profile, credentials and recommendations |
-| GitHub `aliaksei-ivanou-by` | The `Summary` repository, including the `Certificates` folder my CV links to. Also `Home_Bookkeeping`, the C++17/FLTK/SQLite application from 2020-2021 and the only public code sample |
+| GitHub `aliaksei-ivanou-by` | The `Summary` repository, including the `Certificates` folder my CV links to. Also `Home_Bookkeeping`, the C++17/FLTK/SQLite application from 2020-2021 and the only public code sample - the commercial work has all been proprietary |
 | Credly | AWS Well-Architected Proficient and AWS Cloud Quest: Cloud Practitioner - digital training badges rather than certification exams, both issued May 2024 |
 
 ## 10 Outside Work
