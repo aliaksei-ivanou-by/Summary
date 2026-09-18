@@ -56,7 +56,7 @@ The full history back to 2007, including the university period and the month-by-
 
 ## 05 The 2020-2021 Transition
 
-The sixteen months between RIFTEK and joining EPAM went into moving from MATLAB R&D into commercial C++. EPAM's C++ mentoring programme ran from May 2020 to September 2021 and their C++ laboratory from March to September 2021. Alongside those I built a desktop financial analytics application in C++17 with FLTK, SQLite, GoogleTest, plog and CMake, published at `github.com/aliaksei-ivanou-by/Home_Accounting`, and worked through Stroustrup's *Programming: Principles and Practice*, published at `github.com/aliaksei-ivanou-by/Stroustrup_Programming`. EPAM hired me in September 2021 at the end of that programme.
+The sixteen months between RIFTEK and joining EPAM went into moving from MATLAB R&D into commercial C++. EPAM's C++ mentoring programme ran from May 2020 to September 2021 and their C++ laboratory from March to September 2021. Alongside those I built a desktop financial analytics application in C++20 with FLTK, SQLite, GoogleTest, plog and CMake, published at `github.com/aliaksei-ivanou-by/Home_Accounting`, and worked through Stroustrup's *Programming: Principles and Practice*, published at `github.com/aliaksei-ivanou-by/Stroustrup_Programming`. EPAM hired me in September 2021 at the end of that programme.
 
 Full detail in `2020-2021. Independent C++ Engineering Projects.md`.
 
@@ -98,7 +98,7 @@ For the screening-call question "what have you worked on?", most recent first. F
 | Where | What is there |
 |---|---|
 | LinkedIn `in/aliaksei-ivanou-by` | Profile, credentials and recommendations |
-| GitHub `aliaksei-ivanou-by` | The `Summary` repository, including the `Certificates` folder my CV links to. Also `Home_Accounting` (C++17/FLTK/SQLite, 2020-2021, 305 commits) and `Stroustrup_Programming` - the only public code samples, since the commercial work has all been proprietary |
+| GitHub `aliaksei-ivanou-by` | The `Summary` repository, including the `Certificates` folder my CV links to. Also `Home_Accounting` (C++20/FLTK/SQLite, 2020-2021, 305 commits) and `Stroustrup_Programming` - the only public code samples, since the commercial work has all been proprietary |
 | Credly | AWS Well-Architected Proficient and AWS Cloud Quest: Cloud Practitioner - digital training badges rather than certification exams, both issued May 2024 |
 
 ## 10 Outside Work
