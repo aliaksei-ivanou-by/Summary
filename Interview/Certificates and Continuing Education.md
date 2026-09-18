@@ -80,7 +80,7 @@ The two EPAM programs carry the real weight here and have no paperwork behind th
 | 19 Mar 2025 | Mastering C++: Exception Handling | LinkedIn Learning | 1 h 29 min |
 | 24 Apr 2025 | C++ Unit Testing: Google Test and Google Mock | Udemy (Serban Stoenescu) | 3 h 30 min |
 
-The 2022 entries are language depth taken while on the Sierra project. The December 2024 - April 2025 block is different in kind - a concentrated push into embedded, tooling and testing before the Innowise project, set out in section 04. Within it, "Master C++" is a *learning path* that aggregates several of the individual January 2025 courses, and it shares a completion timestamp with "Complete Guide to C++ Programming Foundations", so its hours overlap with the courses above it. Roughly 40 hours of distinct study is the defensible figure for that block.
+The 2022 entries are language depth taken while on the library platform. The December 2024 - April 2025 block is different in kind - a concentrated push into embedded, tooling and testing before the Innowise project, set out in section 04. Within it, "Master C++" is a *learning path* that aggregates several of the individual January 2025 courses, and it shares a completion timestamp with "Complete Guide to C++ Programming Foundations", so its hours overlap with the courses above it. Roughly 40 hours of distinct study is the defensible figure for that block.
 
 ## 04 The Pre-Project Preparation Story
 
@@ -148,7 +148,7 @@ Two of the filenames are actively misleading:
 
 **Never write:** "AWS Certified Cloud Practitioner", "AWS Certified", "AZ-900 certified", or anything a reader would take as a held certification exam. There are two real badges to show instead.
 
-The genuine cloud claim is the project one: the oil-and-gas system ran in Microsoft Azure and Sierra's production services ran on AWS EC2, where remote debugging over SSH with gdb and core dumps was part of the daily work. That is real experience and does not need a certificate behind it.
+The genuine cloud claim is the project one: the oil-and-gas system ran in Microsoft Azure and the library platform's production services ran on AWS EC2, where remote debugging over SSH with gdb and core dumps was part of the daily work. That is real experience and does not need a certificate behind it.
 
 ## 07 Languages
 
@@ -206,13 +206,13 @@ HelloNewJob is the one structured programme in this section - seven weeks with h
 | Skill claimed | Primary evidence | Supporting credential |
 |---|---|---|
 | C++ (C++11/14/17) | Five years commercial: Innowise SIP platform, EPAM oil & gas, RIFTEK 3D reconstruction | IT-Academy 108 h (2018); EPAM Mentoring Program and Laboratory; LinkedIn/Udemy C++ courses 2020-2025 |
-| C (C89) | Sierra integrated library system, two years as a core C developer | Debugging C Code (2024); C Programming for Embedded Applications (2025) |
+| C (C89) | Integrated library system, two years as a core C developer | Debugging C Code (2024); C Programming for Embedded Applications (2025) |
 | Qt | SIP desk-phone application; RIFTEK prototype | No course - project evidence only |
 | Embedded Linux / Yocto | SIP desk-phone platform | C Programming for Embedded Applications; Unix Essential Training |
 | Concurrency | QtConcurrent / QThread on the SIP platform | Parallel and Concurrent Programming with C++, Parts 1 and 2 (2025) |
 | Unit testing / TDD | QtTest coverage on the SIP platform; GoogleTest in independent projects | Test-Driven Development in C++; C++ Unit Testing: Google Test and Google Mock (2025) |
 | Design patterns | MVC/MVVM refactoring of the SIP call flow | C++ Design Patterns: Creational and Behavioral (2025) |
-| PostgreSQL / MySQL | Sierra, oil & gas system, PELENG satellite database | Learning SQL Programming; Using SQL with C++ |
+| PostgreSQL / MySQL | The library platform, the oil & gas system, the PELENG satellite database | Learning SQL Programming; Using SQL with C++ |
 | Docker | **No project evidence** | Learning Docker (2025) - describe as coursework |
 | Node.js | Initial mediasoup conferencing server on the SIP project | Learning Node.js; Node.js Essential Training (2025) |
 | bash / Unix | Remote debugging on AWS Linux at EPAM; on-target work at Innowise | Learning Bash Scripting; Unix Essential Training |
@@ -234,7 +234,7 @@ None of these are embarrassing, and a few are genuinely useful. They are exclude
 
 The line is length and structure, not subject. HelloNewJob in section 09 is also career training, and it is listed: seven weeks, a cohort, homework and reviewed work. The excluded career and productivity titles are recorded videos of an hour or two.
 
-For presentation and stakeholder-communication skills the real evidence is elsewhere anyway: bi-weekly sprint demos to customer department heads at EPAM, technical sessions with customer developers on Sierra, and onboarding, mentoring and interviewing as the Innowise team grew to six.
+For presentation and stakeholder-communication skills the real evidence is elsewhere anyway: bi-weekly sprint demos to customer department heads at EPAM, technical sessions with the customer's developers on the library platform, and onboarding, mentoring and interviewing as the Innowise team grew to six.
 
 The twelve school-age diplomas from 2005-2007 also sit outside this document by design - the research conference record, the Kangaroo mathematics competition and the school subject olympiads alike. They belong to a period of their own and are covered in `1996-2007. School Years and Pre-University Research.md`.
 
