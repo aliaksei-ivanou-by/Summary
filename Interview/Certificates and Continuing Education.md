@@ -4,7 +4,7 @@
 
 ## 01 What These Credentials Are Worth
 
-A course completion certificate is weak evidence. It records attendance, not competence, and almost all of these record between one and three hours of video. A project is stronger evidence for every skill that has a project behind it, so the certificates matter most where no project does - Docker, Node.js, bash, cloud - and as a record of a deliberate learning trajectory over time.
+A course completion certificate is weak evidence. It records attendance, not competence, and almost all of these record between one and three hours of video. A project is stronger evidence for every skill that has a project behind it, so the certificates matter most where project evidence is absent or shallow - especially Docker - and as supplementary context for Node.js, bash and cloud experience already grounded in projects. They also record a deliberate learning trajectory over time.
 
 The honest ordering of what is in this repository:
 
@@ -47,7 +47,7 @@ The 2018 course is the important one and predates leaving PELENG by nearly two y
 | Date | Credential | Issuer | Length |
 |---|---|---|---|
 | May 2020 - Sep 2021 | **EPAM C++ Mentoring Program** | EPAM Systems | 16 months; no certificate issued |
-| Mar 2021 - Sep 2021 | **EPAM C++ Laboratory** | EPAM Systems | 6 months; no certificate issued |
+| Mar 2021 - Sep 2021 | **EPAM C++ Laboratory** | EPAM Systems | No certificate issued |
 | 16 Jan 2021 | C++ Essential Training | LinkedIn Learning | 5 h 32 min |
 | 05 Aug 2021 | Learning C++ Pointers | LinkedIn Learning | 53 min |
 | 05 Aug 2021 | Nail Your C++ Interview | LinkedIn Learning | 1 h 02 min |
