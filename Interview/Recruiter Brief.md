@@ -50,7 +50,7 @@ English is the one that matters day to day: it has been the working language thr
 | Sep 2024 - Dec 2024 | Relocation to Minsk, tax residency arrangements and job search | N/A | Warsaw, then Minsk |
 | Dec 2024 - present | C++ Software Engineer; technical lead of an engineering sub-group, grown from 4 to 6 engineers | Innowise Group | Minsk |
 
-Two things in this table are worth pointing out before anyone asks. First, the promotion from Junior to middle grade in May 2022, eight months after joining. Second, the internal relocation from EPAM Belarus to EPAM Poland in August 2022: I stayed on Sierra throughout, with the same customer and the same codebase - only the employing entity and my location changed.
+Two things in this table are worth pointing out before anyone asks. First, the promotion from Junior to middle grade in May 2022, eight months after joining. Second, the internal relocation from EPAM Belarus to EPAM Poland in August 2022: I stayed on the same project throughout, with the same customer and the same codebase - only the employing entity and my location changed.
 
 The full history back to 2007, including the university period and the month-by-month breakdown of project assignments, is in `00. Career Overview.md`.
 
@@ -88,8 +88,8 @@ Full detail in `2020-2021. Independent C++ Engineering Projects.md`.
 For the screening-call question "what have you worked on?", most recent first. Full versions are in the project documents; ten-minute spoken versions are in `SelfIntro.md`.
 
 - **Embedded SIP desk-phone platform** (Innowise, May 2025 - Aug 2026) - C++17/Qt on embedded Linux with Yocto; SIP/WebRTC telephony, primary/backup server failover and a Windows provisioning tool.
-- **Sierra integrated library system** (EPAM for Innovative Interfaces, Mar 2022 - Apr 2024) - C89 developer on the core of a decades-old production platform spanning C, Java, Scala and PostgreSQL on AWS, serving 9,000+ libraries.
-- **Oil and gas corporate system** (EPAM for Schlumberger, Oct - Dec 2021) - C++17 industrial sensor-data processing with MySQL and JavaScript, hosted in Azure, for a Fortune 500 company operating in 120+ countries.
+- **Integrated library system** (EPAM for a US library-software vendor, Mar 2022 - Apr 2024) - C89 developer on the core of a decades-old production platform spanning C, Java, Scala and PostgreSQL on AWS, serving 9,000+ libraries.
+- **Oil and gas corporate system** (EPAM for a Fortune 500 oilfield-services company, Oct - Dec 2021) - C++17 industrial sensor-data processing with MySQL and JavaScript, hosted in Azure, for a Fortune 500 company operating in 120+ countries.
 - **Industrial 3D scanning** (RIFTEK, Mar - May 2020) - C++17/Qt prototype reconstructing 3D models from multiple 2D laser scanners using the Point Cloud Library.
 - **Satellite and UAV optical imaging** (PELENG, Aug 2012 - Jan 2020) - image-processing algorithms for Earth remote-sensing satellite payloads - onboard compression, frame stitching, resolution assessment - and imaging modules for a UAV optical system.
 
