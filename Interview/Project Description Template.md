@@ -27,7 +27,7 @@ Keep the concise answer first and detailed reference material later. Repetition 
 
 ### Two-Minute Overview
 
-[Approximately 180-300 words: context → responsibility → technical challenge → actions → result. Avoid reciting the full stack.]
+[Approximately 180-300 words: context -> responsibility -> technical challenge -> actions -> result. Avoid reciting the full stack.]
 
 ## 02 Context, Goals & Constraints
 

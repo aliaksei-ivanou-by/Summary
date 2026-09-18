@@ -6,7 +6,7 @@
 
 C++ engineer with more than six years of C and C++ practice, including five years in commercial C/C++ employment, out of 14 years in software engineering and R&D. Most recent work is an embedded SIP desk-phone platform: C++17 and Qt on embedded Linux with Yocto, SIP/WebRTC telephony, on NXP i.MX hardware. At Innowise I also lead a small engineering sub-group. Belarusian national, currently in Minsk, holding a Polish national D visa and returning to Warsaw - where I already worked for two years at EPAM Systems Poland.
 
-**Targeting:** senior C++ roles - Qt · Embedded Linux · Yocto · SIP/WebRTC · HMI.
+**Targeting:** senior C++ roles - Qt, Embedded Linux, Yocto, SIP/WebRTC and HMI.
 
 ## 02 Status and Availability
 
@@ -19,8 +19,8 @@ C++ engineer with more than six years of C and C++ practice, including five year
 | Education | Radiophysics, five-year specialist degree, Belarusian State University, 2007-2012; diploma and transcript apostilled in 2025 |
 | Notice period | One month |
 | Available on-site in Warsaw | One month from an accepted offer; the visa is valid from 26 September 2026 and does not constrain the start date |
-| Contract type sought | UoP - umowa o pracę, a standard Polish employment contract |
-| What the employer arranges | A registered oświadczenie - the employer declaration filed with the local labour office, which is the basis for the work permission - and a signed employment contract |
+| Contract type sought | A standard Polish employment contract |
+| What the employer arranges | A registered employer declaration filed with the local labour office, which is the basis for the work permission, and a signed employment contract |
 | Location and work mode | Warsaw, hybrid preferred; open to fully remote or fully on-site, and to roles elsewhere in Poland |
 
 Worth stating early: this is a return to Warsaw rather than a first move. Two years of legal employment in Poland are already on the record, and the relocation logistics are familiar rather than new.
@@ -74,7 +74,7 @@ Full detail in `2020-2021. Independent C++ Engineering Projects.md`.
 - **"Have you worked in Poland before?"** Yes - two years at EPAM Systems Poland in Warsaw, from August 2022 to August 2024, on a Polish work permit.
 - **"When could you start?"** One month's notice at Innowise, so on-site in Warsaw a month after an accepted offer. The visa is valid from 26 September 2026, so it does not delay that.
 - **"What happens when the visa expires in September 2027?"** I apply from within Poland, while employed, for a temporary residence and work permit - the single permit that comes with a karta pobytu. That is the standard route: I file the application and the employer completes the standard employer annex, rather than running a separate permit process. Beyond that there is a route that does not depend on employment at all: my wife holds a Karta Polaka, which is the basis for permanent residence in Poland, and once she has that, family reunification and eventually citizenship are open to me.
-- **"What contract do you need?"** A standard Polish employment contract, umowa o pracę. The employer files an oświadczenie - the declaration registered with the local labour office - and provides the signed contract.
+- **"What contract do you need?"** A standard Polish employment contract. The employer files the required declaration with the local labour office and provides the signed contract.
 - **"How many years of C++?"** More than six years of C and C++ practice, including five years in commercial C/C++ employment across RIFTEK, EPAM and Innowise. The commercial period includes both modern C++ projects and the long C89 library-platform assignment; sixteen months of full-time independent C++ work and EPAM's C++ programme in 2020-2021 make up the rest. Fourteen years across software engineering and R&D in total, counted from PELENG in August 2012; the earlier part was algorithm and image-processing R&D in MATLAB for satellite and UAV optical systems. Before that, two years of field and integration engineering on GNSS vehicle monitoring, which I count separately.
 - **"What are you working on now?"** The embedded SIP desk-phone platform ran to August 2026 - C++17 and Qt 5.15 on embedded Linux built with Yocto, running on NXP i.MX, with SIP and WebRTC telephony, plus a Windows provisioning tool in C#/.NET. Since September I have been between assignments at Innowise.
 - **"Why are you leaving Innowise?"** Two reasons, both plain. I have been without a project since September and there is no engagement lined up. And I would rather be hired on what I have actually done than presented through a profile shaped to fit a client's requisition. Product work and outsourcing project teams both suit me; it is staff augmentation specifically that I would like to move away from.

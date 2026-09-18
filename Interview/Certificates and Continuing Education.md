@@ -38,7 +38,7 @@ The dates form a continuous seven-year story, which carries more weight than any
 | Date | Credential | Issuer | Length |
 |---|---|---|---|
 | Mar - May 2018 | **C++ Fundamentals** | IT-Academy, Educational Center of High-Tech Park Belarus | **108 academic hours** |
-| 04 Mar 2020 | C++ Development Fundamentals: White Belt («Основы разработки на C++: белый пояс») | Coursera / Moscow Institute of Physics and Technology (non-credit) | - |
+| 04 Mar 2020 | C++ Development Fundamentals: White Belt | Coursera / Moscow Institute of Physics and Technology (non-credit) | - |
 
 The 2018 course is the important one and predates leaving PELENG by nearly two years. It is the evidence that the career change was planned rather than reactive.
 
@@ -175,7 +175,7 @@ These are worth keeping visible. They come from language schools rather than sel
 | Aug 2011 | International Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS; lectures in English, international lecturers and intake |
 | 2012 - 2020 | Conference talk, "Integrated space monitoring systems as an evolution of geographic information systems" | Conference programme of the TIBO exhibition, Minsk | Speaker; text in `Articles/2012-2020. Satellite and UAV Optical Imaging Software/` |
 | Aug 2013 | International Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS; attended while at PELENG |
-| 5 - 6 Apr 2024 | Warszawskie Dni Informatyki 2024 | Fundacja Academic Partners, Warsaw | Participant |
+| 5 - 6 Apr 2024 | Warsaw IT Days 2024 | Academic Partners Foundation, Warsaw | Participant |
 
 The two Samara schools carry ECTS credit, which makes them the only academic credit on this list outside the degree itself. They also support the aerospace specialization directly, and they were taught in English to an international intake - the earliest evidence here of working technically in English.
 
@@ -256,7 +256,7 @@ The twelve school-age diplomas from 2005-2007 also sit outside this document by 
 
 All credentials above were read directly from the PDF files in `Certificates/`. Issuers, dates and durations are taken from the certificate documents themselves, except where noted below.
 
-The folder follows one rule: every period document in `Interview/` has a folder of the same name, and the training that belongs to no single period is grouped by subject.
+The repository uses period-named folders in `Articles/` and `Certificates/` when material belongs to a specific career period. Training that belongs to no single period is grouped by subject, and periods without source artifacts do not have empty folders.
 
 | Folder | What is in it |
 |---|---|
@@ -275,8 +275,8 @@ The folder follows one rule: every period document in `Interview/` has a folder 
 
 - EPAM C++ Mentoring Program (May 2020 - September 2021) and EPAM C++ Laboratory (March - September 2021) have no certificate documents; none were issued.
 - `2018 C++ Programming.pdf` ("C++ Programming") reads "C++ Fundamentals (108 academic hours)", IT-Academy, Educational Center of High-Tech Park Belarus, signed by Vadim Zelenkov, General Manager.
-- `2020 C++ Development Fundamentals - White Belt.pdf` - C++ Development Fundamentals: White Belt - states «онлайн-курс без права на зачетные единицы», a non-credit Coursera course from Moscow Institute of Physics and Technology, 04.03.2020.
+- `2020 C++ Development Fundamentals - White Belt.pdf` - C++ Development Fundamentals: White Belt - states that it is an online course without academic credit, from Moscow Institute of Physics and Technology, 04.03.2020.
 - The AWS and Azure findings in section 06 were verified by opening each file; the two misleading filenames were confirmed to be Udemy and LinkedIn Learning course completions respectively.
 - The two Credly badges were supplied by the candidate and verified directly against Credly. Issue dates come from the Open Badges assertions: Well-Architected Proficient, issued 10 May 2024 ([assertion](https://api.credly.com/v1/obi/v2/badge_assertions/bae5e5fb-43ea-4e96-bd58-3a9fe036285f)); AWS Cloud Quest: Cloud Practitioner - Training Badge, issued 15 May 2024 ([assertion](https://api.credly.com/v1/obi/v2/badge_assertions/3ead96f6-dab3-4bfa-9f56-c6d91b8f4a89)). Earning criteria for Well-Architected Proficient - complete the course and pass the assessment - are from its [badge template](https://www.credly.com/org/amazon-web-services/badge/well-architected-proficient).
-- `Articles/2012-2020. Satellite and UAV Optical Imaging Software/2012-2020 Integrated Space Monitoring Systems as an Evolution of GIS (conference talk, RU).pdf` - "Integrated Space Monitoring Systems as an Evolution of Geographic Information Systems", two pages, signed "Алексей Иванов, Инженер-конструктор, НКУ «Космос» ОАО «Пеленг»". The text carries no date; the PDF metadata records a Word export on 5 May 2020, after the PELENG period ended, so the talk itself falls inside August 2012 - January 2020.
+- `Articles/2012-2020. Satellite and UAV Optical Imaging Software/2012-2020 Integrated Space Monitoring Systems as an Evolution of GIS (conference talk, RU).pdf` - "Integrated Space Monitoring Systems as an Evolution of Geographic Information Systems", two pages, signed "Aliaksei Ivanou, Design Engineer, Space Research and Design Division, PELENG JSC" (English translation). The text carries no date; the PDF metadata records a Word export on 5 May 2020, after the PELENG period ended, so the talk itself falls inside August 2012 - January 2020.
 - The training-badge versus certification-badge distinction, including the 80% assessment threshold and the "premiere badges" wording for certifications, is from [AWS's own digital badges page](https://aws.amazon.com/training/badges/).
