@@ -139,7 +139,7 @@ Two of the filenames are actively misleading:
 | `2024 [NEW] Ultimate AWS Certified Cloud Practitioner CLF-C02.pdf` | **Udemy** certificate of completion. Course by Stephane Maarek, 15 hours, 31 July 2024. The words "AWS Certified Cloud Practitioner" are the *course title*, not a credential held. |
 | `2021 Exam Prep - Microsoft Azure Fundamentals (AZ-900).pdf` | **LinkedIn Learning** exam-prep course, **1 hour 26 minutes**, 17 May 2021. Not the AZ-900 exam. |
 | `2024 AWS Cloud Practitioner Essentials.pdf` | AWS digital training course completion, 8 May 2024. |
-| `2024 AWS Fundamentals, April 2024.pdf` | The Rolling Scopes School, 23 May 2024. Verifiable: `app.rs.school/certificate/pvjalvrl` |
+| `2024 AWS Fundamentals, April 2024 (AWS).pdf` | The Rolling Scopes School, 23 May 2024. Verifiable: `app.rs.school/certificate/pvjalvrl` |
 | `2024 Tech Fundamentals.pdf` | learn.cantrill.io, ~8 hours, 21 April 2024. |
 | `2024 AWS Foundations`, `AWS Security Fundamentals`, `AWS Well-Architected Foundations`, `Getting Started with Cloud Acquisition`, `Introduction to AWS Certification` | AWS digital training course completions, 2024. |
 | `2021 Learning Cloud Computing Core Concepts` | LinkedIn Learning. |
@@ -205,7 +205,7 @@ HelloNewJob is the one structured programme in this section - seven weeks with h
 
 | Skill claimed | Primary evidence | Supporting credential |
 |---|---|---|
-| C++ (C++11/14/17) | Five years commercial: Innowise SIP platform, EPAM oil & gas, RIFTEK 3D reconstruction | IT-Academy 108 h (2018); EPAM Mentoring Program and Laboratory; LinkedIn/Udemy C++ courses 2020-2025 |
+| C/C++ (C89, C++11/14/17) | Five years commercial across Innowise, EPAM and RIFTEK, including the C89 library platform and modern C++ projects | IT-Academy 108 h (2018); EPAM Mentoring Program and Laboratory; LinkedIn/Udemy C++ courses 2020-2025 |
 | C (C89) | Integrated library system, two years as a core C developer | Debugging C Code (2024); C Programming for Embedded Applications (2025) |
 | Qt | SIP desk-phone application; RIFTEK prototype | No course - project evidence only |
 | Embedded Linux / Yocto | SIP desk-phone platform | C Programming for Embedded Applications; Unix Essential Training |

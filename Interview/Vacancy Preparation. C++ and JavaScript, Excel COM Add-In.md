@@ -56,7 +56,7 @@ Hi, my name is Aliaksei Ivanou. I am a C++ Software Engineer with more than six 
 
 At EPAM I worked on a system that parsed and analyzed industrial sensor data. The backend was C++17, results were stored in MySQL, and JavaScript provided user-facing functionality inside the product. My main work was C++ feature development, defect correction and safe simplification of inherited code. I also changed JavaScript when a complete feature or fix crossed the native and user-facing boundary.
 
-More recently, I developed a C++17/Qt application for an embedded SIP phone. That involved asynchronous SDK events, application and UI state, background work, tests and debugging on physical devices. I also contributed to early JavaScript/Node.js conferencing-server code and integrated the C++ client with the conferencing path. On the same product I substantially extended a Windows provisioning tool in C#/.NET, including explicit project save/load and installer packaging.
+More recently, I developed a C++17/Qt application for an embedded SIP phone and personally implemented the Linphone SDK registration watchdog and primary/backup failover/failback logic behind it. That involved asynchronous SDK events, application and UI state, background work, tests and debugging on physical devices. I also contributed to early JavaScript/Node.js conferencing-server code and integrated the C++ client with the conferencing path. On the same product I substantially extended a Windows provisioning tool in C#/.NET, including explicit project save/load and installer packaging.
 
 The direct gap is Excel COM Add-In development: I have not done it commercially. I would bring production C++, data-flow debugging, asynchronous application design and tested Windows delivery, while learning the Excel object model and COM-specific lifecycle rather than overstating adjacent experience.
 
@@ -68,7 +68,7 @@ Hi, thank you for meeting with me. My name is Aliaksei Ivanou. I am a C++ Softwa
 
 I worked at EPAM from September 2021 to August 2024. The assignment closest to this position was an industrial sensor-data system. C++17 parsed and analyzed incoming measurements, MySQL stored the results, and JavaScript provided user-facing functionality. I mainly developed C++ features, corrected defects and simplified inherited code. I also changed JavaScript when a task crossed the native and user-facing boundary. Debugging meant reproducing the problem and tracing the affected value through processing, persistence and presentation before deciding where the correction belonged.
 
-My most recent project was an embedded SIP desk-phone platform built with C++17, Qt and embedded Linux. I worked on application architecture, telephony behavior, account and call state, provisioning and physical-device debugging. One representative task was integrating primary and backup SIP-server behavior. The challenge was keeping SDK state, authentication data, persisted configuration and the UI consistent while asynchronous registration events arrived. I used Qt threads, background work, queued signals, focused Qt Test coverage and repeatable device scenarios.
+My most recent project was an embedded SIP desk-phone platform built with C++17, Qt and embedded Linux. I worked on application architecture, telephony behavior, account and call state, provisioning and physical-device debugging. One representative task was implementing the customized Linphone SDK registration watchdog and primary/backup failover/failback behavior, then integrating it into the Qt application. The challenge was keeping SDK state, authentication data, persisted configuration and the UI consistent while asynchronous registration events arrived. I used Qt threads, background work, queued signals, focused Qt Test coverage and repeatable device scenarios.
 
 My JavaScript and Node.js experience is a secondary area. At EPAM I made occasional JavaScript changes for complete C++ and user-facing workflows. On the phone project I contributed to the early Node.js conferencing-server implementation and integrated the C++ client with the WebRTC path. C++ remained my primary responsibility.
 
@@ -106,7 +106,7 @@ Use this table to choose evidence, not as a script to recite. `Adjacent` means t
 
 | Vacancy requirement | Fit | Evidence to discuss | Boundary of the claim | Best source/story |
 |---|---|---|---|---|
-| 5+ years of C++, particularly maintaining COM Add-Ins | Adjacent | C++17 sensor-data product; C++17/Qt phone application and targeted SDK changes; C++17/Qt/PCL prototype | More than six years of C/C++ practice and five in commercial employment, but none in a COM Add-In | Oil and gas cross-layer change; SIP server recovery |
+| 5+ years of C++, particularly maintaining COM Add-Ins | Adjacent | C++17 sensor-data product; C++17/Qt phone application; Linphone SDK watchdog/failover implementation; C++17/Qt/PCL prototype | More than six years of C/C++ practice and five in commercial employment, but none in a COM Add-In | Oil and gas cross-layer change; SIP server recovery |
 | JavaScript for client-side Excel interaction; Node.js in the responsibility | Adjacent | Occasional JavaScript at EPAM; contribution to early Node.js conferencing-server code; C++ client integration | No JavaScript inside Excel, no Office.js and no ownership of the later server rewrite | Sensor-data workflow; early conferencing path |
 | Microsoft Office APIs and Excel COM Add-In architecture | Gap | Transferable C++, Windows, concurrency and integration background; current technical study | No direct production evidence | Direct gap answer plus learning exercise |
 | Large datasets, 50k+ formulas and/or real-time processing | Adjacent | Industrial sensor processing, image algorithms and point-cloud reconstruction | No supported claim for formula-heavy workbooks, high-frequency financial streams, update rate or dataset size | Sensor data; PELENG; RIFTEK |
@@ -134,10 +134,10 @@ Each story should take two minutes and follow context, personal responsibility, 
 ### Story 2 - Asynchronous State and Recovery
 
 - **Context:** SIP registration state depended on a customized SDK, primary and backup servers, authentication context, Qt models, provisioning and the real network.
-- **Responsibility:** integrate the SDK's primary/backup behavior into the application and provisioning paths and add the targeted backup-domain authentication change.
-- **Action to explain:** which component owned the state, what event sequence exposed the problem, how application and SDK responsibilities were separated, and how stale UI or configuration was avoided.
-- **Result to prepare:** the merged application integration and the repeatable physical-device recovery scenario.
-- **Boundary:** the broader SDK watchdog/failback state machine was shared or inherited functionality.
+- **Responsibility:** implement the customized Linphone SDK registration watchdog and primary/backup failover/failback state machine, integrate it into the application and provisioning paths, and add the backup-domain authentication change.
+- **Action to explain:** why the state machine belonged in the SDK, what event sequence exposed the problem, how the Qt application consumed SDK-owned state, and how stale UI or configuration was avoided.
+- **Result to prepare:** the implemented SDK behavior, merged application integration and repeatable physical-device recovery scenario.
+- **Boundary:** the project-specific SDK state machine and its integration were my work; unrelated upstream Linphone code and the rest of the project fork were outside my ownership.
 
 ### Story 3 - Durable Windows Application State
 
