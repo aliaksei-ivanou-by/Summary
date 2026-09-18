@@ -254,10 +254,8 @@ The school-age diplomas from 2005-2007 also sit outside this document by design.
 
 ## 13 Sources
 
-All credentials above were read directly from the PDF files in `Certificates/`. Issuers, dates and durations are taken from the certificate documents themselves, not from CV summaries, except where noted below.
+All credentials above were read directly from the PDF files in `Certificates/`. Issuers, dates and durations are taken from the certificate documents themselves, except where noted below.
 
-- Course periods for IT-Academy C++ (Mar - May 2018), Java JD1 (Oct 2012 - Dec 2013), Ruby on Rails (Feb - Jun 2015), LaTeX (May - Jun 2016), LabVIEW (Dec 2010, Jan 2011) and the language-school levels come from `Summary/different/Aliaksei Ivanou_CV.pdf` and `Summary/different/CV_Scand.doc`.
-- English exam scores come from `Summary/different/Aliaksei Ivanou_CV.pdf`.
 - EPAM C++ Mentoring Program (May 2020 - September 2021) and EPAM C++ Laboratory (March - September 2021) have no certificate documents; none were issued.
 - `2018 Программирование на C++.pdf` ("C++ Programming") reads "C++ Fundamentals (108 academic hours)", IT-Academy, Educational Center of High-Tech Park Belarus, signed by Vadim Zelenkov, General Manager.
 - `2020 Основы разработки на C++ (белый пояс).pdf` - C++ Development Fundamentals: White Belt - states «онлайн-курс без права на зачетные единицы», a non-credit Coursera course from Moscow Institute of Physics and Technology, 04.03.2020.
