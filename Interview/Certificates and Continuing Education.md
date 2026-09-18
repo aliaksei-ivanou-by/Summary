@@ -170,16 +170,16 @@ These are worth keeping visible. They come from language schools rather than sel
 | Date | Item | Issuer | Note |
 |---|---|---|---|
 | Oct 2009 | Youth Scientific School | Kostroma | |
-| Nov - Dec 2009 | Short practice | Moscow State University | |
-| Mar - Apr 2011 | Youth conference with elements of scientific school | Moscow State University | |
-| Aug 2011 | Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS |
-| 2012 - 2020 | Conference talk, "Integrated space monitoring systems as an evolution of geographic information systems" | Conference programme of the TIBO exhibition, Minsk | Speaker; text in `Articles/` |
-| Aug 2013 | Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS; attended while at PELENG |
+| Dec 2009 | Short research placement | Skobeltsyn Institute of Nuclear Physics, Moscow State University | One to two weeks, by specialization |
+| Mar - Apr 2011 | Youth conference with elements of a scientific school | Skobeltsyn Institute of Nuclear Physics, Moscow State University | Space specialization |
+| Aug 2011 | International Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS; lectures in English, international lecturers and intake |
+| 2012 - 2020 | Conference talk, "Integrated space monitoring systems as an evolution of geographic information systems" | Conference programme of the TIBO exhibition, Minsk | Speaker; text in `Articles/2012-2020. Satellite and UAV Optical Imaging Software/` |
+| Aug 2013 | International Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS; attended while at PELENG |
 | 5 - 6 Apr 2024 | Warszawskie Dni Informatyki 2024 | Fundacja Academic Partners, Warsaw | Participant |
 
-The two Samara schools carry ECTS credit, which makes them the only academic credit on this list outside the degree itself. They also support the aerospace specialization directly.
+The two Samara schools carry ECTS credit, which makes them the only academic credit on this list outside the degree itself. They also support the aerospace specialization directly, and they were taught in English to an international intake - the earliest evidence here of working technically in English.
 
-The TIBO talk does a second job: its text is signed "Алексей Иванов, Инженер-конструктор, НКУ «Космос» ОАО «Пеленг»", which makes it the only document in the repository outside a CV that states the PELENG job title and unit.
+The TIBO talk does a second job.
 
 ## 09 Other Training
 
@@ -228,7 +228,7 @@ Roughly forty files in `Certificates/` are not represented above, and that is in
 - **Presentation, communication and soft skills** (2021-2023): Keynote, PowerPoint, public speaking, impromptu speaking, first impressions, speaker credibility, sales presentations, plain English, culturally sensitive communication, critical-thinking questions.
 - **Productivity and personal development**: time management, Getting Things Done, morning-habit and personal-finance titles, well-being programmes, career development planning, decision making under stress, preparing for change.
 - **Consumer and office tooling**: Microsoft Teams, Office 365, iCloud, What Is a PMO.
-- **Unrelated**: anti-doping course for athletes (2025), Kangaroo mathematics competition (2006), school Russian-language olympiad (2006).
+- **Unrelated**: anti-doping course for athletes (2025).
 
 None of these are embarrassing, and a few are genuinely useful. They are excluded because listing them next to "Parallel and Concurrent Programming with C++" drags the technical credentials down to their level. A reader who sees forty entries stops reading and concludes the list is padding.
 
@@ -236,7 +236,7 @@ The line is length and structure, not subject. HelloNewJob in section 09 is also
 
 For presentation and stakeholder-communication skills the real evidence is elsewhere anyway: bi-weekly sprint demos to customer department heads at EPAM, technical sessions with customer developers on Sierra, and onboarding, mentoring and interviewing as the Innowise team grew to six.
 
-The school-age diplomas from 2005-2007 also sit outside this document by design. They belong to the research narrative and are covered in `2007-2012. University Research in Radiophysics and Aerospace Technologies.md`.
+The twelve school-age diplomas from 2005-2007 also sit outside this document by design - the research conference record, the Kangaroo mathematics competition and the school subject olympiads alike. They belong to a period of their own and are covered in `1996-2007. School Years and Pre-University Research.md`.
 
 ## 12 Answers to Expect
 
@@ -256,10 +256,27 @@ The school-age diplomas from 2005-2007 also sit outside this document by design.
 
 All credentials above were read directly from the PDF files in `Certificates/`. Issuers, dates and durations are taken from the certificate documents themselves, except where noted below.
 
+The folder follows one rule: every period document in `Interview/` has a folder of the same name, and the training that belongs to no single period is grouped by subject.
+
+| Folder | What is in it |
+|---|---|
+| `1996-2007. School Years and Pre-University Research/` | The twelve school-age diplomas, 2005-2007 |
+| `2007-2012. Radiophysics Degree and University Research/` | LabVIEW at BSUIR, the smart-home course, the 2011 Samara Summer Space School |
+| `2012-2020. Satellite and UAV Optical Imaging Software/` | The 2013 Samara Summer Space School, attended while at PELENG |
+| `C++ and Programming/` | C++, C, Java and embedded courses, 2013 onward |
+| `Cloud/` | The AWS badge source courses and the rest of the AWS and Azure coursework |
+| `Tools and Practices/` | SQL, REST, JSON, HTTP, Docker, bash, Unix, Node.js, Jira, LaTeX, Office |
+| `Languages/` | English, Polish and Swedish course certificates |
+| `Professional and Soft Skills/` | Presentation, communication, time management, personal development |
+| `Events/` | Conference and event participation |
+| `Other/` | Items outside professional scope |
+
+`Articles/` follows the same rule, with three folders named after the documents that cite their contents.
+
 - EPAM C++ Mentoring Program (May 2020 - September 2021) and EPAM C++ Laboratory (March - September 2021) have no certificate documents; none were issued.
-- `2018 Программирование на C++.pdf` ("C++ Programming") reads "C++ Fundamentals (108 academic hours)", IT-Academy, Educational Center of High-Tech Park Belarus, signed by Vadim Zelenkov, General Manager.
-- `2020 Основы разработки на C++ (белый пояс).pdf` - C++ Development Fundamentals: White Belt - states «онлайн-курс без права на зачетные единицы», a non-credit Coursera course from Moscow Institute of Physics and Technology, 04.03.2020.
+- `2018 C++ Programming.pdf` ("C++ Programming") reads "C++ Fundamentals (108 academic hours)", IT-Academy, Educational Center of High-Tech Park Belarus, signed by Vadim Zelenkov, General Manager.
+- `2020 C++ Development Fundamentals - White Belt.pdf` - C++ Development Fundamentals: White Belt - states «онлайн-курс без права на зачетные единицы», a non-credit Coursera course from Moscow Institute of Physics and Technology, 04.03.2020.
 - The AWS and Azure findings in section 06 were verified by opening each file; the two misleading filenames were confirmed to be Udemy and LinkedIn Learning course completions respectively.
 - The two Credly badges were supplied by the candidate and verified directly against Credly. Issue dates come from the Open Badges assertions: Well-Architected Proficient, issued 10 May 2024 ([assertion](https://api.credly.com/v1/obi/v2/badge_assertions/bae5e5fb-43ea-4e96-bd58-3a9fe036285f)); AWS Cloud Quest: Cloud Practitioner - Training Badge, issued 15 May 2024 ([assertion](https://api.credly.com/v1/obi/v2/badge_assertions/3ead96f6-dab3-4bfa-9f56-c6d91b8f4a89)). Earning criteria for Well-Architected Proficient - complete the course and pass the assessment - are from its [badge template](https://www.credly.com/org/amazon-web-services/badge/well-architected-proficient).
-- `Articles/Системы комплексного космического мониторинга как развитие ГИС.pdf` - "Integrated Space Monitoring Systems as an Evolution of Geographic Information Systems", two pages, signed "Алексей Иванов, Инженер-конструктор, НКУ «Космос» ОАО «Пеленг»". The text carries no date; the PDF metadata records a Word export on 5 May 2020, after the PELENG period ended, so the talk itself falls inside August 2012 - January 2020.
+- `Articles/2012-2020. Satellite and UAV Optical Imaging Software/2012-2020 Integrated Space Monitoring Systems as an Evolution of GIS (conference talk, RU).pdf` - "Integrated Space Monitoring Systems as an Evolution of Geographic Information Systems", two pages, signed "Алексей Иванов, Инженер-конструктор, НКУ «Космос» ОАО «Пеленг»". The text carries no date; the PDF metadata records a Word export on 5 May 2020, after the PELENG period ended, so the talk itself falls inside August 2012 - January 2020.
 - The training-badge versus certification-badge distinction, including the 80% assessment threshold and the "premiere badges" wording for certifications, is from [AWS's own digital badges page](https://aws.amazon.com/training/badges/).
