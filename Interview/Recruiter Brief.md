@@ -4,9 +4,9 @@
 
 ## 01 The Short Version
 
-C++ engineer with more than six years of C and C++ practice, including five years in commercial C/C++ employment, out of 14 years in software engineering and R&D. Most recent work is an embedded SIP desk-phone platform: C++17 and Qt on embedded Linux with Yocto, SIP/WebRTC telephony, on NXP i.MX hardware. At Innowise I also lead a small engineering sub-group. Belarusian national, currently in Minsk, holding a Polish national D visa and returning to Warsaw - where I already worked for two years at EPAM Systems Poland.
+C++ engineer with more than six years in the language, five of them in commercial employment, out of 14 years in software engineering and R&D. Most recent work is an embedded SIP desk-phone platform: C++17 and Qt on embedded Linux with Yocto, SIP/WebRTC telephony, on NXP i.MX hardware. At Innowise I also lead a small engineering sub-group. Belarusian national, currently in Minsk, holding a Polish national D visa and returning to Warsaw - where I already worked for two years at EPAM Systems Poland.
 
-**Targeting:** senior C++ roles - Qt, Embedded Linux, Yocto, SIP/WebRTC and HMI.
+**Targeting:** senior C++ roles - Qt · Embedded Linux · Yocto · SIP/WebRTC · HMI.
 
 ## 02 Status and Availability
 
@@ -19,8 +19,8 @@ C++ engineer with more than six years of C and C++ practice, including five year
 | Education | Radiophysics, five-year specialist degree, Belarusian State University, 2007-2012; diploma and transcript apostilled in 2025 |
 | Notice period | One month |
 | Available on-site in Warsaw | One month from an accepted offer; the visa is valid from 26 September 2026 and does not constrain the start date |
-| Contract type sought | A standard Polish employment contract |
-| What the employer arranges | A registered employer declaration filed with the local labour office, which is the basis for the work permission, and a signed employment contract |
+| Contract type sought | UoP - umowa o pracę, a standard Polish employment contract |
+| What the employer arranges | A registered oświadczenie - the employer declaration filed with the local labour office, which is the basis for the work permission - and a signed employment contract |
 | Location and work mode | Warsaw, hybrid preferred; open to fully remote or fully on-site, and to roles elsewhere in Poland |
 
 Worth stating early: this is a return to Warsaw rather than a first move. Two years of legal employment in Poland are already on the record, and the relocation logistics are familiar rather than new.
@@ -33,9 +33,9 @@ Worth stating early: this is a return to Warsaw rather than a first move. Two ye
 | Belarusian | Native | |
 | English | B2 | Streamline language school, 2015-2017; graded exams |
 | Polish | B1+ | Accent School of Polish, 2023-2024 |
-| Swedish | B2 | The Centre for Swedish Studies, 2022-2023 |
+| Swedish | A2 | Courses to B2 at The Centre for Swedish Studies, 2022-2023; unpractised since |
 
-English is the one that matters day to day: it has been the working language throughout EPAM and Innowise, across distributed teams in the US, India and Europe. Polish at B1+ is conversational rather than a working technical level. The Swedish is from courses that ended in 2023 and has faded without use since - worth listing, not worth relying on.
+English is the one that matters day to day: it has been the working language throughout EPAM and Innowise, across distributed teams in the US, India and Europe. Polish at B1+ is conversational rather than a working technical level. Swedish is the one place where the certificate and the current level differ: the courses reached B2 in 2023, but nothing has been practised in the two years since, so A2 is the level I would stand behind today, and A2 is what the CV states.
 
 ## 04 Career Timeline
 
@@ -66,30 +66,31 @@ Full detail in `2020-2021. Independent C++ Engineering Projects.md`.
 - **Domains that fit:** embedded products, telecom and VoIP, industrial and measurement systems, aerospace-adjacent R&D, long-lived production systems.
 - **What I want from the work:** systems where behavior depends on several layers at once - application code, protocols, configuration, runtime environment and real hardware. That is consistently where I have been most useful.
 - **Company model:** product companies and outsourcing project teams both fit. Staff augmentation is the one model I would rather move on from.
-- **Team:** currently technical lead of an internal engineering sub-group that has grown from four to six engineers, alongside roughly 80% hands-on delivery as an individual contributor. This is an organizational group, separate from the SIP project delivery team, which grew from three to four C++ engineers. Comfortable either as a senior IC or with a lead component.
+- **Team:** currently technical lead of an engineering sub-group that has grown from four to six engineers and is still growing, alongside roughly 80% hands-on delivery as an individual contributor. Comfortable either as a senior IC or with a lead component.
 
 ## 07 Frequently Asked, Answered
 
 - **"Where are you based?"** Minsk, relocating to Warsaw. My Polish national D visa is valid from 26 September 2026.
 - **"Have you worked in Poland before?"** Yes - two years at EPAM Systems Poland in Warsaw, from August 2022 to August 2024, on a Polish work permit.
 - **"When could you start?"** One month's notice at Innowise, so on-site in Warsaw a month after an accepted offer. The visa is valid from 26 September 2026, so it does not delay that.
-- **"What happens when the visa expires in September 2027?"** While legally resident and employed in Poland, I can apply for a temporary residence and work permit - the single permit associated with a karta pobytu - with the employer completing the standard annex. Separately, my wife's Karta Polaka may support her own route to permanent residence and could create a potential long-term family-reunification route for me. Any later permanent-residence or citizenship application would depend on my own eligibility, residence history and the legal requirements in force; it is not automatic.
-- **"What contract do you need?"** A standard Polish employment contract. The employer files the required declaration with the local labour office and provides the signed contract.
-- **"How many years of C++?"** More than six years of C and C++ practice, including five years in commercial C/C++ employment across RIFTEK, EPAM and Innowise. The commercial period includes both modern C++ projects and the long C89 library-platform assignment; sixteen months of full-time independent C++ work and EPAM's C++ programme in 2020-2021 make up the rest. Fourteen years across software engineering and R&D in total, counted from PELENG in August 2012; the earlier part was algorithm and image-processing R&D in MATLAB for satellite and UAV optical systems. Before that, two years of field and integration engineering on GNSS vehicle monitoring, which I count separately.
+- **"What happens when the visa expires in September 2027?"** I apply from within Poland, while employed, for a temporary residence and work permit - the single permit that comes with a karta pobytu. That is the standard route: I file the application and the employer completes the standard employer annex, rather than running a separate permit process. Beyond that there is a route that does not depend on employment at all: my wife holds a Karta Polaka, which is the basis for permanent residence in Poland, and once she has that, family reunification and eventually citizenship are open to me.
+- **"What contract do you need?"** A standard Polish employment contract, umowa o pracę. The employer files an oświadczenie - the declaration registered with the local labour office - and provides the signed contract.
+- **"How many years of C++?"** More than six years of C++ practice, five of them in commercial employment - RIFTEK, EPAM and Innowise - with sixteen months of full-time independent work and EPAM's C++ programme in 2020-2021 making up the rest. Fourteen years across software engineering and R&D in total, counted from PELENG in August 2012; the earlier part was algorithm and image-processing R&D in MATLAB for satellite and UAV optical systems. Before that, two years of field and integration engineering on GNSS vehicle monitoring, which I count separately.
 - **"What are you working on now?"** The embedded SIP desk-phone platform ran to August 2026 - C++17 and Qt 5.15 on embedded Linux built with Yocto, running on NXP i.MX, with SIP and WebRTC telephony, plus a Windows provisioning tool in C#/.NET. Since September I have been between assignments at Innowise.
 - **"Why are you leaving Innowise?"** Two reasons, both plain. I have been without a project since September and there is no engagement lined up. And I would rather be hired on what I have actually done than presented through a profile shaped to fit a client's requisition. Product work and outsourcing project teams both suit me; it is staff augmentation specifically that I would like to move away from.
 - **"What was the gap in 2020-2021?"** A planned transition into commercial C++ - EPAM's mentoring programme and laboratory, plus my own C++ projects. Section 05.
 - **"What about the gap in late 2024?"** The EPAM Poland contract ended in August 2024. I moved back from Warsaw to Minsk, settled the tax residency that came with the move, and looked for the next role. Innowise started in December 2024.
-- **"Are you a senior by title?"** No - my grade is middle, and senior was never formally awarded. The scope is senior-level, though: technical lead of a separate internal engineering sub-group grown from four to six, design decisions on an embedded product, code review, onboarding, mentoring and interview support, alongside roughly 80% hands-on delivery. I would rather state that plainly than let a title do the work.
+- **"Are you a senior by title?"** No - my grade is middle, and senior was never formally awarded. The scope is senior-level, though: technical lead of an engineering sub-group grown from four to six, design decisions on an embedded product, code review, onboarding, mentoring and interview support, alongside roughly 80% hands-on delivery. I would rather state that plainly than let a title do the work.
+- **"Your former employer PELENG is under sanctions - is that a problem?"** It is public and I would rather raise it than have it found. I worked there from August 2012 to January 2020 as an image-processing R&D engineer in the civil Earth-observation part of the enterprise - satellite imaging payloads and an airborne optical system. The designations by the US, EU, UK, Canada, Switzerland, Ukraine and others date from April 2023 onward, more than three years after I left, and rest on defense-related production that was outside my department and outside my role. I have had no relationship with the enterprise since January 2020. If a role carries export-control or clearance obligations, I would rather put this on the table in the first conversation. Details in `2012-2020. Satellite and UAV Optical Imaging Software.md`, section 12.
 - **"Do you have certifications?"** No certification exams. What I do have: two AWS digital training badges from 2024, verifiable on Credly, and a 108-academic-hour classroom C++ course at the High-Tech Park educational centre in Minsk. Details in `Certificates and Continuing Education.md`.
 
 ## 08 One-Line Project Summaries
 
 For the screening-call question "what have you worked on?", most recent first. Full versions are in the project documents; ten-minute spoken versions are in `SelfIntro.md`.
 
-- **Embedded SIP desk-phone platform** (Innowise, May 2025 - Aug 2026) - C++17/Qt on embedded Linux with Yocto; personally implemented the customized Linphone SDK watchdog and primary/backup failover/failback logic; also worked on SIP/WebRTC telephony and a Windows provisioning tool.
-- **Integrated library system** (EPAM for a library-software vendor, Mar 2022 - Apr 2024) - C89 developer on a long-running production platform spanning C, Java, Scala and PostgreSQL on AWS; the customer served libraries internationally.
-- **Oil and gas corporate system** (EPAM for an energy-technology company, Oct - Dec 2021) - C++17 industrial sensor-data processing with MySQL and JavaScript, hosted in Azure.
+- **Embedded SIP desk-phone platform** (Innowise, May 2025 - Aug 2026) - C++17/Qt on embedded Linux with Yocto; SIP/WebRTC telephony, primary/backup server failover and a Windows provisioning tool.
+- **Integrated library system** (EPAM for a US library-software vendor, Mar 2022 - Apr 2024) - C89 developer on the core of a decades-old production platform spanning C, Java, Scala and PostgreSQL on AWS, serving 9,000+ libraries.
+- **Oil and gas corporate system** (EPAM for a Fortune 500 oilfield-services company operating in 120+ countries, Oct - Dec 2021) - C++17 industrial sensor-data processing with MySQL and JavaScript, hosted in Azure.
 - **Industrial 3D scanning** (RIFTEK, Mar - May 2020) - C++17/Qt prototype reconstructing 3D models from multiple 2D laser scanners using the Point Cloud Library.
 - **Satellite and UAV optical imaging** (PELENG, Aug 2012 - Jan 2020) - image-processing algorithms for Earth remote-sensing satellite payloads - onboard compression, frame stitching, resolution assessment - and imaging modules for a UAV optical system.
 
