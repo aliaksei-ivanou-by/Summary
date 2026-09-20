@@ -173,13 +173,13 @@ These are worth keeping visible. They come from language schools rather than sel
 | Dec 2009 | Short research placement | Skobeltsyn Institute of Nuclear Physics, Moscow State University | One to two weeks, by specialization |
 | Mar - Apr 2011 | Youth conference with elements of a scientific school | Skobeltsyn Institute of Nuclear Physics, Moscow State University | Space specialization |
 | Aug 2011 | International Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS; lectures in English, international lecturers and intake |
-| 2012 - 2020 | Conference talk, "Integrated Space Monitoring Systems as an Evolution of Geographic Information Systems" (RU) | Conference programme of the TIBO exhibition, Minsk | Speaker; text in `Articles/2012-2020. Satellite and UAV Optical Imaging Software/` |
+| 2012 - 2020 | Conference talk, "Integrated Space Monitoring Systems as an Evolution of Geographic Information Systems" (RU) | TIBO exhibition, Minsk | Speaker; signed two-page text in `Articles/2012-2020. Satellite and UAV Optical Imaging Software/` |
 | Aug 2013 | International Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS; attended while at PELENG |
 | 5 - 6 Apr 2024 | Warsaw IT Days 2024 | Academic Partners Foundation, Warsaw | Participant |
 
 The two Samara schools carry ECTS credit, which makes them the only academic credit on this list outside the degree itself. They also support the aerospace specialization directly, and they were taught in English to an international intake - the earliest evidence here of working technically in English.
 
-The TIBO talk does a second job.
+The signed text of the TIBO talk also records my job title and unit at PELENG.
 
 ## 09 Other Training
 
