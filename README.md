@@ -38,7 +38,7 @@ Four conventions run through all of them, and they are worth stating because the
 
 **Evidence sits beside the document that cites it.** A paper, a certificate or a diploma is referenced by its exact path, and the folder structure keeps it next to the period it belongs to. Where the evidence is a printed publication I do not hold, the document gives the ISBN and the library shelf mark instead.
 
-**Customers are not named outside the project documents.** In the index, the brief and the spoken material, a client appears as its industry and scale - a library-software vendor, an energy-technology company, a telecom hardware manufacturer. The full name appears only inside the document for that project, where the confidentiality boundary is also written down.
+**Customers are not named outside the project documents.** In the index, the brief and the spoken material, a client appears as its industry and scale - a library-software vendor serving 9,000+ libraries, a Fortune 500 oilfield-services company, a network-connectivity equipment manufacturer. The full name appears only inside the document for that project, where the confidentiality boundary is also written down.
 
 **Nothing is padded.** Training that amounts to an hour of video is excluded and the exclusion is explained. Badges are called badges and not certifications. A grade is stated as the grade that was awarded, with the scope described separately rather than folded into a better-sounding title.
 
