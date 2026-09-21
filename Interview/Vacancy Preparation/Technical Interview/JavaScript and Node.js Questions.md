@@ -17,7 +17,8 @@ Questions use stable topic-specific IDs. Every answer begins with a short bullet
 - [JS-007. What is a Promise?](#question-js-007)
 - [JS-008. How does `async/await` work?](#question-js-008)
 - [JS-009. What is the JavaScript event loop?](#question-js-009)
-- [JS-010. What does this print?](#question-js-010)
+- [JS-010. What does this print?
+](#question-js-010)
 - [JS-011. Is JavaScript really single-threaded?](#question-js-011)
 
 ## Node.js (JS-012–JS-016)
@@ -29,6 +30,8 @@ Questions use stable topic-specific IDs. Every answer begins with a short bullet
 - [JS-016. What are Node.js streams?](#question-js-016)
 
 ---
+
+> JavaScript **inside Excel** is a different API surface and lives in the COM and Excel bank: [COM-037](<./COM and Excel Questions.md#question-com-037>) Office.js and where it runs, [COM-038](<./COM and Excel Questions.md#question-com-038>) `load()` and `context.sync()`, [COM-039](<./COM and Excel Questions.md#question-com-039>) Office.js against COM Automation, [COM-040](<./COM and Excel Questions.md#question-com-040>) custom functions and streaming. This bank covers the language and the Node.js runtime only.
 
 # 1. JavaScript Fundamentals
 

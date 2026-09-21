@@ -43,6 +43,27 @@ Questions use stable topic-specific IDs. Every answer begins with a short bullet
 - [COM-027. How would you efficiently read a large Excel range?](#question-com-027)
 - [COM-028. How would you update many Excel cells efficiently?](#question-com-028)
 
+## Add-In Technologies (COM-029–COM-032)
+
+- [COM-029. COM Add-In, XLL, VSTO and Office.js: how do they differ and when is each used?](#question-com-029)
+- [COM-030. What is an XLL, and what does the Excel C API give you that Automation does not?](#question-com-030)
+- [COM-031. What is VSTO, and what does it add and require?](#question-com-031)
+- [COM-032. How is a COM Add-In registered and loaded, and what does `LoadBehavior` control?](#question-com-032)
+
+## Excel Performance Controls and Real-Time Data (COM-033–COM-036)
+
+- [COM-033. Which `Application` settings speed up bulk Excel work, and why must they be restored?](#question-com-033)
+- [COM-034. `Value` vs `Value2` vs `Text`?](#question-com-034)
+- [COM-035. What is an RTD server, and how does Excel drive it?](#question-com-035)
+- [COM-036. What is an asynchronous UDF, and how does it differ from RTD?](#question-com-036)
+
+## Office.js and Client-Side Scripting (COM-037–COM-040)
+
+- [COM-037. What is Office.js, and where does it run?](#question-com-037)
+- [COM-038. How do `load()` and `context.sync()` work, and why is batching essential?](#question-com-038)
+- [COM-039. How does Office.js differ from COM Automation for the same task?](#question-com-039)
+- [COM-040. What are Office.js custom functions, and how does streaming work?](#question-com-040)
+
 ---
 
 # 1. COM Fundamentals
@@ -920,5 +941,384 @@ Use:
 - avoid unnecessary recalculation/redraw when possible
 
 For real-time feeds, intermediate values often do not need to be displayed individually.
+
+[↑ Back to question index](#question-index)
+
+---
+
+# 4. Add-In Technologies
+
+## Question COM-029
+
+[↑ Back to question index](#question-index)
+
+### Question COM-029 — COM Add-In, XLL, VSTO and Office.js: how do they differ and when is each used?
+
+**Short answer**
+
+- A **COM Add-In** implements `IDTExtensibility2`, is registered in the registry and drives Excel through the Automation object model; a native **XLL** links against the Excel C API and is the fastest path for worksheet functions; **VSTO** is a managed .NET add-in with designer support and a runtime dependency; **Office.js** is a sandboxed JavaScript add-in described by a manifest.
+- The first three are Windows-desktop-only and bitness-specific; Office.js is the only one that also runs on Excel for the web, Mac and iPad.
+- Pick by the primary job: worksheet-function throughput → XLL; deep native desktop integration → COM Add-In; managed, UI-heavy desktop → VSTO; cross-platform reach or store distribution → Office.js.
+
+**Details and nuances**
+
+| | COM Add-In | XLL | VSTO | Office.js |
+|---|---|---|---|---|
+| Interface | `IDTExtensibility2` + Automation | Excel C API (`xlcall.h`) | .NET + Automation interop | JavaScript API + manifest |
+| Language | C++/ATL, C#, any COM-capable | C/C++ | .NET | JavaScript/TypeScript |
+| Primary strength | Full object-model access from native code | Worksheet functions with lowest overhead | Ribbon/task-pane tooling, managed code | Reach and sandboxing |
+| Worksheet functions | Automation UDFs, single-threaded | Native UDFs, can be registered thread-safe and asynchronous | Managed UDFs, awkward | Custom functions, asynchronous |
+| Platforms | Windows desktop | Windows desktop | Windows desktop | Windows, Mac, web, iPad |
+| Deployment | Registry + installer | File + installer | ClickOnce / MSI + VSTO runtime | Manifest: sideload, central deployment, AppSource |
+| Bitness | Must match Excel | Must match Excel | Must match Excel | Not applicable |
+
+They are not exclusive. A common shape is an XLL for the calculation-critical functions plus a COM Add-In or task pane for the UI, sharing one native core.
+
+**Example or evidence boundary**
+
+Prepared knowledge. I have not shipped any of the four; this is the comparison I would use to place a product before discussing its design.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question COM-030
+
+[↑ Back to question index](#question-index)
+
+### Question COM-030 — What is an XLL, and what does the Excel C API give you that Automation does not?
+
+**Short answer**
+
+- An XLL is a native DLL that Excel loads directly; it exports `xlAutoOpen`/`xlAutoClose`, registers its functions with `xlfRegister` and exchanges data as `XLOPER12` rather than through `IDispatch`.
+- It removes the Automation dispatch layer, so it is the lowest-overhead way to add worksheet functions, and it can register functions as thread-safe so Excel's multithreaded recalculation may call them on several worker threads.
+- The cost is a raw C interface: manual memory conventions, no type safety and a straightforward path to crashing the host process, plus a build that must match Excel's bitness.
+
+**Details and nuances**
+
+The registration string passed to `xlfRegister` carries type markers that change what Excel may do with the function, including a marker for thread safety and, since Excel 2010, one for asynchronous execution. Getting those markers wrong is a classic source of instability: a function declared thread-safe that touches shared mutable state will fail intermittently under multithreaded recalculation and look like a data bug rather than a concurrency bug.
+
+Memory ownership is explicit. Excel and the XLL both allocate `XLOPER12` values, and the side that allocated is the side that frees; `xlFree` and the `xlbitDLLFree` flag exist for exactly that handover.
+
+**Example or evidence boundary**
+
+Prepared knowledge, not production experience. The transferable part is real: a C ABI with explicit ownership rules and a host process that dies on a mistake is the same discipline as the C89 work on the library platform.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question COM-031
+
+[↑ Back to question index](#question-index)
+
+### Question COM-031 — What is VSTO, and what does it add and require?
+
+**Short answer**
+
+- VSTO is the managed .NET model for Office extensions: application-level add-ins that live with Excel, or document-level customizations bound to one workbook.
+- It gives designer-based Ribbon customization, custom task panes and the .NET library surface, at the cost of the VSTO runtime on every client and a trust/deployment story through ClickOnce or an installer.
+- Underneath it still goes through COM interop, so every object-model batching rule applies unchanged, plus garbage-collection and interop-lifetime concerns of its own.
+
+**Details and nuances**
+
+The managed layer hides `AddRef`/`Release` but does not remove them: interop wrappers hold COM references, and objects released only at collection time can keep Excel alive after the user closes it. That is the well-known "Excel stays in Task Manager" symptom, and the fix is the same discipline as in native code - do not build long chains of temporary object-model references, and release deliberately.
+
+**Example or evidence boundary**
+
+Prepared knowledge. My managed Windows experience is the C#/.NET 8 WinForms provisioning tool, which is desktop delivery rather than Office integration.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question COM-032
+
+[↑ Back to question index](#question-index)
+
+### Question COM-032 — How is a COM Add-In registered and loaded, and what does `LoadBehavior` control?
+
+**Short answer**
+
+- The class is registered as an ordinary COM server (CLSID and ProgID under `HKCR`), and Excel discovers it from `Software\Microsoft\Office\Excel\Addins\<ProgID>` under `HKCU` or `HKLM`.
+- That key carries `FriendlyName`, `Description` and `LoadBehavior`, which decides whether the add-in loads at startup or on demand.
+- Bitness must match: a 32-bit in-process server cannot load into 64-bit Excel, and per-machine registration on a 64-bit system involves the `Wow6432Node` view.
+
+**Details and nuances**
+
+The detail worth knowing is the failure mode. If the add-in throws during `OnConnection`, Excel demotes `LoadBehavior` and moves the add-in to its disabled list. The visible symptom is "it worked yesterday and today it is simply not there", with no error. Diagnosis is to read the current `LoadBehavior` value and check the disabled items, then fix the startup path - not to reinstall.
+
+`HKCU` registration is per-user and needs no elevation; `HKLM` is per-machine and does. For an add-in that must be present for every user of a machine, that choice is made at packaging time, not at development time.
+
+**Example or evidence boundary**
+
+Prepared knowledge. The adjacent real experience is installer packaging and per-user versus per-machine state in the Windows provisioning tool.
+
+[↑ Back to question index](#question-index)
+
+---
+
+# 5. Excel Performance Controls and Real-Time Data
+
+## Question COM-033
+
+[↑ Back to question index](#question-index)
+
+### Question COM-033 — Which `Application` settings speed up bulk Excel work, and why must they be restored?
+
+**Short answer**
+
+- `Application.Calculation = xlCalculationManual`, `Application.ScreenUpdating = False` and `Application.EnableEvents = False` remove the three costs that dominate a large write: recalculation per change, redraw per change and event handlers per change.
+- These are global application state, not scoped to your add-in, so leaving them set breaks Excel for the user and silently disables every other add-in's event handlers.
+- Save the previous values, restore them in a destructor or `finally`, and restore what was there rather than assuming the defaults - another add-in may already have changed them.
+
+**Details and nuances**
+
+`Application.DisplayAlerts` and the worksheet's `DisplayPageBreaks` belong to the same family. The order matters: switch calculation to manual before writing, write, then calculate explicitly and restore.
+
+The interview point is not the list, it is the guarantee. An exception between "set" and "restore" leaves the user with an Excel that looks frozen and stops reacting to events, and no message explaining why. In C++ this is a plain RAII guard whose destructor restores the captured values; in managed or scripted code it is `try`/`finally`. Relying on Excel to reset `ScreenUpdating` when a macro ends is not a substitute, because an add-in is not a macro.
+
+```cpp
+class ExcelStateGuard {           // sketch, not production code
+public:
+    explicit ExcelStateGuard(ExcelApp& app) : app_(app),
+        calc_(app.Calculation()), screen_(app.ScreenUpdating()), events_(app.EnableEvents()) {
+        app_.SetCalculation(xlCalculationManual);
+        app_.SetScreenUpdating(false);
+        app_.SetEnableEvents(false);
+    }
+    ~ExcelStateGuard() {           // restores what was there, not the defaults
+        app_.SetEnableEvents(events_);
+        app_.SetScreenUpdating(screen_);
+        app_.SetCalculation(calc_);
+    }
+private:
+    ExcelApp& app_;
+    long calc_; bool screen_; bool events_;
+};
+```
+
+**Example or evidence boundary**
+
+Prepared knowledge for the Excel specifics. The pattern itself is one I use: scoped restoration of state captured on entry, so an early return or a thrown exception cannot leave a subsystem in a mode the user did not choose.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question COM-034
+
+[↑ Back to question index](#question-index)
+
+### Question COM-034 — `Value` vs `Value2` vs `Text`?
+
+**Short answer**
+
+- `Value2` is the fastest and the right default for data: it does not use the Currency or Date variant types, so a date arrives as the underlying serial number.
+- `Value` may return Currency and Date variants, which costs conversion on every element and is only worth it when you actually want those types.
+- `Text` returns the formatted string as displayed, so it depends on column width and can come back as `#####`; it is for reading what the user sees, never for reading data.
+
+**Details and nuances**
+
+For a multi-cell range, `Value2` returns a `VARIANT` holding a two-dimensional `SAFEARRAY` of `VARIANT`, indexed from 1. A single-cell range returns a scalar rather than a 1×1 array, which is the shape bug that appears the first time a user selects one cell - check the shape before indexing.
+
+If dates matter, convert the serial number yourself rather than paying for `Value` across the whole block: the conversion is cheap in native code and expensive across the Automation boundary.
+
+**Example or evidence boundary**
+
+Prepared knowledge.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question COM-035
+
+[↑ Back to question index](#question-index)
+
+### Question COM-035 — What is an RTD server, and how does Excel drive it?
+
+**Short answer**
+
+- An RTD server is a COM object implementing `IRtdServer` that feeds continuously changing values into cells through the worksheet function `=RTD("ProgID", server, topic...)`; it is Excel's built-in mechanism for live data.
+- The direction is the important part: your feed thread updates internal state and calls `IRTDUpdateEvent::UpdateNotify()` to signal that something changed; **Excel then pulls** by calling `RefreshData` on its own thread, at its own pace, and you return only the topics that actually changed.
+- `Application.RTD.ThrottleInterval` sets how often Excel is willing to pull, in milliseconds, so the display rate is decoupled from the feed rate by design rather than by your own timer.
+
+**Details and nuances**
+
+The interface is small: `ServerStart`, `ConnectData`, `RefreshData`, `DisconnectData`, `Heartbeat`, `ServerTerminate`. `ConnectData` is where a cell subscribes to a topic and `DisconnectData` where it unsubscribes, so topic lifetime is driven by the workbook, not by you.
+
+This is the canonical answer to "20,000 updates per second and Excel needs ten refreshes per second": you do not push 20,000 times, you coalesce into a latest-value-per-topic store, call `UpdateNotify` when the store changes, and let the throttle interval decide the refresh rate. The architectural reasoning - bounded state, coalescing, one batched handover to the Excel thread - is the same as any other producer/consumer rate mismatch; RTD is the platform's name for it.
+
+Limits worth knowing: `RefreshData` runs on Excel's thread and must return quickly, so all work belongs on your side of the boundary; scaling is per topic, so tens of thousands of distinct topics is its own problem; and because it is COM, the apartment and bitness rules of every other answer apply.
+
+**Example or evidence boundary**
+
+Prepared knowledge for RTD itself. The pattern is one I have implemented: on the phone platform, asynchronous SDK events arrived faster than the UI needed, and the fix was the same shape - coalesce into owned state, signal, and let the consumer take a consistent snapshot rather than pushing every event through to the interface.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question COM-036
+
+[↑ Back to question index](#question-index)
+
+### Question COM-036 — What is an asynchronous UDF, and how does it differ from RTD?
+
+**Short answer**
+
+- An asynchronous UDF is a worksheet function that returns immediately with a handle instead of a value; Excel leaves the cell pending, your code computes off Excel's thread and delivers the result through that handle when it is ready.
+- The difference from RTD is what drives it: an asynchronous UDF is **pull-driven by recalculation** and produces one result per recalculation, while RTD is **signal-driven** and keeps updating a cell without any recalculation at all.
+- Use an asynchronous UDF for a single slow computation - a remote call, a heavy model - and RTD for a value that changes continuously on its own.
+
+**Details and nuances**
+
+There is a third, separate mechanism that is easy to conflate: a **thread-safe** UDF. Registering a function as thread-safe lets Excel call it on several worker threads during multithreaded recalculation. That is parallelism within one recalculation, not asynchrony, and it carries the usual requirement - no shared mutable state, no object-model access.
+
+So the three are orthogonal answers to three different problems: thread-safe for CPU-bound functions that can run in parallel, asynchronous for long latency, RTD for continuous change.
+
+**Example or evidence boundary**
+
+Prepared knowledge.
+
+[↑ Back to question index](#question-index)
+
+---
+
+# 6. Office.js and Client-Side Scripting
+
+## Question COM-037
+
+[↑ Back to question index](#question-index)
+
+### Question COM-037 — What is Office.js, and where does it run?
+
+**Short answer**
+
+- Office.js is the JavaScript/TypeScript API for Office Add-ins: the add-in is described by a manifest and its code runs inside an embedded browser view hosted by Excel, not in Excel's own process space.
+- Because it is a sandboxed web application, it runs on Excel for Windows, Mac, the web and iPad - it is the only extension model that reaches all of them.
+- The sandbox is also the limitation: no registry, no arbitrary native libraries, no synchronous object-model access, and an API surface narrower than COM Automation.
+
+**Details and nuances**
+
+Distribution is by manifest rather than by registry: sideloading for development, centralized deployment through the Microsoft 365 admin centre for an organization, or AppSource for public listing. For an engineer coming from COM, that is the change with the largest practical consequence - there is no per-machine install step and no bitness question.
+
+When a vacancy says "JavaScript, particularly for client-side scripting" next to Excel, this is almost certainly what it means, and it is worth confirming early, because the answer decides whether the JavaScript in question is Office.js inside a task pane, a Node.js service behind the add-in, or both.
+
+**Example or evidence boundary**
+
+Prepared knowledge, plus a small hands-on exercise done during preparation. My JavaScript production work is backend and web-facing integration, not Office.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question COM-038
+
+[↑ Back to question index](#question-index)
+
+### Question COM-038 — How do `load()` and `context.sync()` work, and why is batching essential?
+
+**Short answer**
+
+- Office.js hands you proxy objects, not data. `load()` queues a request for named properties and queued writes go into the same batch; nothing crosses to Excel until `await context.sync()` performs one round-trip and populates the proxies.
+- The whole performance model is therefore the number of `sync()` calls, not the number of statements: queue every read and write you need, then synchronize once.
+- A `sync()` inside a loop is the exact Office.js equivalent of per-cell COM access, and it is the single most common mistake in this API.
+
+**Details and nuances**
+
+```javascript
+await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getActiveWorksheet();
+    const range = sheet.getRange("A1:D10000");
+    range.load("values");              // queued, nothing has happened yet
+    await context.sync();              // one round-trip
+
+    const rows = range.values;         // now populated
+    const out = rows.map(r => [r[0] * 2]);
+
+    sheet.getRange("F1:F10000").values = out;  // queued
+    await context.sync();              // one more round-trip
+});
+```
+
+Two syncs for ten thousand rows. The naive version calls `getCell(i, j)` and `sync()` per cell and is slower by orders of magnitude, for the same reason per-cell `Value2` access is slow in COM: the cost is the boundary crossing, not the arithmetic.
+
+Load only the properties you need - `load("values")`, not `load()` - because loading everything on a large range transfers formatting and formula metadata you are about to discard. Objects that must survive across syncs need `context.trackedObjects.add`, and releasing them with `untrack` matters in long-running task panes.
+
+**Example or evidence boundary**
+
+Prepared knowledge, verified in a Script Lab exercise during preparation: I wrote the batched and the per-cell versions of the same read and compared them. That is a study artifact, not production experience.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question COM-039
+
+[↑ Back to question index](#question-index)
+
+### Question COM-039 — How does Office.js differ from COM Automation for the same task?
+
+**Short answer**
+
+- COM is synchronous, in-process and Windows-desktop-only, with apartment and bitness rules and the full object model; Office.js is asynchronous, sandboxed and cross-platform, with a narrower API and a per-`sync()` round-trip cost.
+- The optimization discipline is identical under both: minimize boundary crossings. In COM you batch to reduce interop calls; in Office.js you batch to reduce `sync()` calls.
+- For raw throughput the order is XLL, then COM Add-In, then Office.js; for reach and deployment simplicity the order reverses.
+
+**Details and nuances**
+
+The differences that change a design rather than a line of code:
+
+| | COM Automation | Office.js |
+|---|---|---|
+| Call model | Synchronous, immediate | Queued, flushed by `sync()` |
+| Threading | STA/apartment rules, marshaling | Single JavaScript runtime, promises |
+| Failure isolation | A crash takes Excel with it | Sandboxed; the add-in fails alone |
+| Long work | Worker thread, marshal back to the STA | Web worker or a backend service |
+| Install | Registry, bitness, elevation | Manifest, no bitness |
+
+**Example or evidence boundary**
+
+Prepared knowledge.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question COM-040
+
+[↑ Back to question index](#question-index)
+
+### Question COM-040 — What are Office.js custom functions, and how does streaming work?
+
+**Short answer**
+
+- Custom functions are worksheet functions written in JavaScript, declared with a `@customfunction` annotation and run in their own JavaScript runtime rather than in the task pane.
+- A streaming custom function receives an invocation object and calls `setResult` repeatedly, so one cell keeps receiving new values without any recalculation - the Office.js counterpart of an RTD server.
+- Cancellation is explicit: `invocation.onCanceled` fires when the cell no longer needs the value, and a streaming function that ignores it leaks a subscription for the life of the session.
+
+**Details and nuances**
+
+```javascript
+/**
+ * Streams a live value into the cell.
+ * @customfunction
+ * @streaming
+ */
+function liveValue(symbol, invocation) {
+    const timer = setInterval(() => invocation.setResult(read(symbol)), 1000);
+    invocation.onCanceled = () => clearInterval(timer);
+}
+```
+
+The design question is the same one RTD answers: the source may change far faster than the cell needs to display, so coalesce on your side and emit at a chosen rate rather than on every change.
+
+Streaming custom functions work on the web and Mac, where RTD does not, which is usually the reason to choose them over RTD when a product is not Windows-only.
+
+**Example or evidence boundary**
+
+Prepared knowledge.
 
 [↑ Back to question index](#question-index)
