@@ -2,13 +2,13 @@
 
 > Purpose: the repository behind my CV - the documents I prepare interviews from, and the evidence they rest on.
 
-I am Aliaksei Ivanou, a C++ engineer working on embedded Linux, Qt and telephony systems, with an earlier background in satellite image-processing R&D. The condensed version of who I am and what I am looking for is in `Interview/Recruiter Brief.md`. This file explains what the repository is and how to move around it.
+I am Aliaksei Ivanou, a C++ engineer whose recent work is in embedded Linux, Qt and telephony systems, with an earlier background in satellite image-processing R&D. The condensed version of who I am and what I am looking for is in `Interview/Recruiter Brief.md`. This file explains what the repository is and how to move around it.
 
 ## 01 What This Is
 
 This is a working set, not a portfolio. It exists because a CV has room for one line per job, and almost everything worth discussing in an interview is in what that line leaves out: why a decision went the way it did, what the constraint actually was, and which parts of a claim I can defend under questioning.
 
-So each period of my career has a document, each document follows the same structure, and each keeps the honest scope of every claim next to the claim itself. Where something is not established, the document says so rather than rounding it up. That is the point of the whole exercise: I would rather walk into a conversation knowing exactly where the edges of my experience are than discover them in front of an interviewer.
+So each period of my career has a document, each period document follows the same structure, and each keeps the honest scope of every claim next to the claim itself. Where something is not established, the document says so rather than rounding it up. That is the point of the whole exercise: I would rather walk into a conversation knowing exactly where the edges of my experience are than discover them in front of an interviewer.
 
 ## 02 What Is Here
 
