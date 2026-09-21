@@ -14,7 +14,7 @@
 |---|---|
 | Company | EPAM Systems |
 | Position | Senior C++ Developer |
-| Location / mode | Remote in Poland on the current careers page; the vacancy text also describes a hybrid-by-design model with remote work within Poland |
+| Location / mode | Remote within Poland; the vacancy text also describes a hybrid-by-design model |
 | Product focus | High-performance Microsoft Office COM Add-In for Excel |
 | Official vacancy | [EPAM Careers](https://careers.epam.com/en/vacancy/senior-c-developer-blt5iuooygrtf5anb25_en) |
 | Original LinkedIn posting | [Job 4461911643](https://www.linkedin.com/jobs/view/4461911643) |

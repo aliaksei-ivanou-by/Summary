@@ -1,6 +1,6 @@
 # Vacancy Preparation Template
 
-> Purpose: the main interview-preparation document for one named vacancy. It preserves the vacancy, maps every important requirement to evidence or a declared gap, prepares a small set of stories and finishes with questions for the employer. Detailed technical questions and answers belong in the companion technical-interview file. Keep the result evergreen: do not add application status, interview dates or round-by-round logs. Delete prompts that do not apply.
+> Purpose: the main interview-preparation document for one named vacancy. It preserves the vacancy, maps every important requirement to evidence or a declared gap, prepares a small set of stories and finishes with questions for the employer. Reusable technical answers belong in the shared subject banks; only cross-topic and vacancy-specific answers belong in the companion technical-interview file. Keep the result evergreen: do not add application status, interview dates or round-by-round logs. Delete prompts that do not apply.
 
 ## 01 Preparation Folder and Workflow
 
@@ -156,16 +156,17 @@ Prepare three primary stories and one backup. Each primary story should cover se
 
 ## 06 Technical Preparation
 
-Keep the role-specific priorities and study plan here. Put complete answers in `Vacancy Preparation. [Company] [Role] - Technical Interview.md` and add a relative link to it after creating the vacancy folder.
+Keep the role-specific priorities and study plan here. Link reusable answers from the shared subject banks. Put only cross-topic, product-specific, integration and role-specific system-design answers in `Vacancy Preparation. [Company] [Role] - Technical Interview.md`, and add a relative link to it after creating the vacancy folder.
 
-- **Technical questions and answers:** [Add the relative link to the companion file.]
-- **Boundary:** this file says what to prepare and why; the companion file contains how to answer it.
+- **Shared question banks:** [Add relative links to the relevant C++, JavaScript/Node.js, COM/Excel or other subject banks.]
+- **Role-specific technical questions and answers:** [Add the relative link to the companion file.]
+- **Boundary:** this file says what to prepare and why; shared banks contain reusable answers, while the companion contains only vacancy-specific answers.
 
 ### Topic Matrix
 
 | Topic | Why the role needs it | Current depth | What to review | Technical question IDs | Proof of readiness |
 |---|---|---|---|---|---|
-| [Topic] | [Vacancy signal or likely task] | [Strong / refresh / learn / unknown] | [Specific concepts] | [TQ-01, TQ-02] | [Story, explanation, code or exercise] |
+| [Topic] | [Vacancy signal or likely task] | [Strong / refresh / learn / unknown] | [Specific concepts] | [CPP-001, JS-001, COM-001, ROLE-001] | [Story, explanation, code or exercise] |
 
 ### Architecture to Clarify
 
@@ -182,12 +183,12 @@ Keep the role-specific priorities and study plan here. Put complete answers in `
 
 ### Likely Technical Questions
 
-- **TQ-01:** [Question derived directly from a must-have requirement; answer it in the companion file.]
-- **TQ-02:** [Question about debugging or failure behavior.]
-- **TQ-03:** [Question about performance and measurement.]
-- **TQ-04:** [Question about concurrency, lifetime or state.]
-- **TQ-05:** [Question about testing and delivery.]
-- **TQ-06:** [Question about a technology gap.]
+- **ROLE-001:** [Cross-topic or vacancy-specific question derived directly from a must-have requirement.]
+- **ROLE-002:** [Question about debugging or failure behavior across the product's actual boundaries.]
+- **ROLE-003:** [Question about role-specific performance constraints and measurement.]
+- **ROLE-004:** [Question about concurrency, lifetime or state across relevant components.]
+- **ROLE-005:** [Question about the product's testing, compatibility or delivery constraints.]
+- **ROLE-006:** [Question that closes a vacancy-specific technology gap.]
 
 ### System-Design Prompt
 
@@ -244,7 +245,7 @@ The completed preparation should satisfy these stable conditions; do not turn th
 - Results are observable; unsupported numbers have been removed.
 - The introduction is relevant to this role, not a full career chronology.
 - Three stories cover most likely behavioral and technical follow-ups.
-- The technical companion is linked, prioritized and contains spoken answers rather than copied reference material.
+- The relevant shared banks are linked, and the technical companion contains only prioritized cross-topic and vacancy-specific spoken answers rather than duplicated reference material.
 - Questions test the assumptions that could change the decision.
 - Confidential names, code, credentials, endpoints and customer data stay private.
 
