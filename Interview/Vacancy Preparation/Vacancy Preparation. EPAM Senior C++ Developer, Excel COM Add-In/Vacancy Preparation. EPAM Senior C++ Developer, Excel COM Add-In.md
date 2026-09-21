@@ -40,7 +40,7 @@ I am a C++ engineer who has worked on data-processing and asynchronous products 
 - An experienced Excel, COM, VBA or Office.js developer.
 - A JavaScript specialist: JavaScript was a secondary contribution area.
 - A finance-domain engineer.
-- An expert in CPU or memory profiling unless a specific, defensible example is prepared.
+- An expert in CPU or memory profiling. The prepared example and the sentence that states the boundary are in section 05; use them instead of improvising.
 - The owner of the later mediasoup server implementation.
 
 ## 02 Spoken Answer Kit
@@ -110,7 +110,7 @@ Use this table to choose evidence, not as a script to recite. `Adjacent` means t
 | Microsoft Office APIs and Excel COM Add-In architecture | Gap | Transferable C++, Windows, concurrency and integration background; current technical study | No direct production evidence | Direct gap answer plus learning exercise |
 | Large datasets, 50k+ formulas and/or real-time processing | Adjacent | Industrial sensor processing, image algorithms and point-cloud reconstruction | No supported claim for formula-heavy workbooks, high-frequency financial streams, update rate or dataset size | Sensor data; PELENG; RIFTEK |
 | Performance, scalability and responsiveness under substantial workloads | Adjacent | Resource-constrained image processing, point-cloud pipeline work, embedded UI/runtime behavior and measurement-first debugging approach | No prepared production metric proving a specific speedup or Excel bottleneck analysis | PELENG/RIFTEK decision; performance investigation answer |
-| Profiling, debugging and performance tuning | Partial | Logs, gdb/gdbserver, core dumps, Valgrind in the project toolchain, Qt Test, MSTest and physical-device scenarios | Strong debugging; a detailed CPU/memory profiling case still needs to be selected before claiming profiling depth | Library crash; phone regression scenario |
+| Profiling, debugging and performance tuning | Partial | Logs, gdb/gdbserver, core dumps, Valgrind in the project toolchain, Qt Test, MSTest and physical-device scenarios; onboard compression designed against a fixed computation budget | Strong debugging and measurement-first optimization against a stated budget; no production case of running a sampling profiler against a live application - say so | Onboard compression budget; library crash; phone regression scenario |
 | Asynchronous programming and multithreading for real-time updates | Strong transferable | Qt threads, Qt Concurrent/background work, queued signals, SIP/WebRTC callbacks and async Windows operations | Demonstrates concurrency and state consistency, not Excel-specific threading or market-data rates | SIP registration or conference-state sequence |
 | Testing and quality assurance | Strong transferable | Qt Test, MSTest, developer scenarios, separate QA teams and validation on physical devices | Full on-device regression was not automated | Phone regression scenario |
 | Stakeholder communication and distributed delivery | Strong | QA/customer reports, international EPAM teams, code review, task planning, mentoring and technical-lead responsibilities | Frequent external-client presentation or business ownership is not established | Incomplete report to reproducible scenario |
@@ -163,6 +163,18 @@ This section sets the role-specific priorities. Reusable answers live in the [C+
 | Excel object model and calculation | No production evidence | Highest |
 | Performance analysis | Transferable debugging/data experience; avoid claiming unsupported profiling depth | High |
 
+### The Performance and Profiling Answer
+
+The vacancy names profiling, debugging and performance tuning as a requirement, so this needs one chosen example and one honest boundary, decided before the interview rather than improvised in it.
+
+**The example to use: onboard image compression at PELENG.** The constraint was not "make it faster", it was a fixed computation budget on hardware that could not be updated after launch, with image quality as the thing being traded. I implemented lossy compression reaching a 3-4x ratio inside that budget, then improved delivered image quality at the same ratio and the same budget by predicting image type and adapting quantization to it. The measurement was against the budget and against a resolution criterion that I later automated, because "how well can you resolve detail in this image" was an expert judgement until it was turned into a defined, repeatable measurement.
+
+Why this one rather than a debugging story: it is the only example where the constraint was numeric and stated in advance, the tradeoff was explicit, and the improvement is expressed as "same cost, better result" rather than as an unverifiable speedup.
+
+**The boundary to state, in one sentence.** My performance work has been measurement-first optimization against a stated budget, plus native debugging with gdb, core dumps and Valgrind in the project toolchain. I have not run a sampling profiler against a live production application, and I would not describe myself as a profiling specialist.
+
+**Then turn it into method, which is what the question is really testing.** For an Excel add-in I would not start by optimizing anything. I would separate the latency into its parts - data arrival, native processing, the COM transfer itself, workbook recalculation and rendering - measure each, and only then decide where the work belongs. That order matters here specifically, because the intuitive answer ("the calculation is slow") and the usual real answer ("we are making fifty thousand boundary crossings") point at different code.
+
 ### First Clarify the Product Architecture
 
 "Excel add-in" can mean several materially different technologies. Ask which one the product actually uses.
@@ -173,6 +185,8 @@ This section sets the role-specific priorities. Reusable answers live in the [C+
 | VSTO Add-In | Managed .NET Framework solution layered over Office COM integration; related to COM but not the same as a native C++ add-in |
 | Office Add-in / Office.js | Web application plus a manifest, running in a browser/webview sandbox and using asynchronous JavaScript APIs; designed for multiple Office platforms |
 | XLL | Native C/C++ Excel extension mainly used for high-performance worksheet functions through the Excel C API; it has a different lifecycle and call constraints from a COM Add-In |
+
+Prepared answers for all four, and for the mechanisms each one offers for live data, are in the COM/Excel bank: [COM-029](<../Technical Interview/COM and Excel Questions.md#question-com-029>) compares the technologies, [COM-030](<../Technical Interview/COM and Excel Questions.md#question-com-030>) to [COM-032](<../Technical Interview/COM and Excel Questions.md#question-com-032>) cover XLL, VSTO and registration/`LoadBehavior`, [COM-033](<../Technical Interview/COM and Excel Questions.md#question-com-033>) to [COM-036](<../Technical Interview/COM and Excel Questions.md#question-com-036>) cover the calculation/events/screen-updating controls, `Value2`, RTD and asynchronous UDFs, and [COM-037](<../Technical Interview/COM and Excel Questions.md#question-com-037>) to [COM-040](<../Technical Interview/COM and Excel Questions.md#question-com-040>) cover Office.js, `context.sync()` and streaming custom functions.
 
 Do not assume the JavaScript part is Office.js. It could be an embedded web UI, a browser task pane, a Node.js service, build tooling or a separate application component.
 
@@ -250,6 +264,8 @@ Cover these points in order:
 
 Build a small learning prototype if the interview schedule allows. It is a study artifact, not commercial experience.
 
+**With only a few days, do the Office.js version first and treat the native add-in as optional.** Script Lab installs into Excel from AppSource in minutes and runs Office.js snippets without any project setup, so ninety minutes is enough to read a range with `range.load` and `context.sync()`, write a block back, then build a deliberately naive version that synchronizes inside the loop and compare the two on the same sheet. That is a real, honest observation to bring, it maps directly onto the vacancy's "JavaScript for client-side scripting" requirement, and it cannot fail to produce something. A native COM Add-In built from scratch - project setup, registration, bitness, debugging into a host process - is the more impressive artifact and a realistic way to spend an entire weekend and arrive with nothing; attempt it only after the Office.js exercise is done. Write down what surprised you either way: the observations are the deliverable, not the demo.
+
 1. Confirm whether the vacancy uses a native COM Add-In, XLL, VSTO or Office.js.
 2. For native COM, create the smallest loadable add-in supported by the chosen project setup, log connect/disconnect, and verify x86/x64 registration behavior.
 3. Add one command that reads a rectangular range in one operation, copies it to native structures, performs a simple calculation and writes one result block back.
@@ -268,6 +284,8 @@ If the product actually uses Office.js, replace the native prototype with a Scri
 | 3. Excel and performance | Explain the object model, bulk range access, calculation modes and a measurement plan |
 | 4. JavaScript and design | Review async ordering, cancellation/backpressure and rehearse the update-pipeline design |
 | 5. Evidence and mock interview | Deliver three stories, answer the gap directly and record weak follow-up questions for one final review |
+
+**Compressed to three evenings when the interview is days away, not weeks.** Evening one is the Script Lab exercise above, because it is the only item that converts a gap into something sayable and it is the one thing that cannot be done from reading. Evening two is the technology comparison, the Excel performance controls, RTD and asynchronous UDFs, and Office.js - sessions 2 to 4 collapsed onto the bank questions rather than onto sources. Evening three is spoken delivery only: the three-minute introduction, the three stories and the gap answer, aloud, in English, against a timer, plus two decisions that take fifteen minutes each - the salary range to state, and confirming with the recruiter which stage this is and whether it includes live coding. The morning of the interview is for the readiness check and the questions list, not for new material.
 
 ### Ready-for-Interview Check
 

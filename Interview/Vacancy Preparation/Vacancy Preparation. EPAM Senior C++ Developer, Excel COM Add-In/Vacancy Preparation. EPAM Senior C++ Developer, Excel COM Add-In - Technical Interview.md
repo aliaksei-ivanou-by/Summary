@@ -180,7 +180,7 @@ The JS-facing call should ideally start work and return quickly.
 
 - Measure whether time is calculation, COM traffic, volatile/dependency-heavy formulas, UI redraw/events or add-in callbacks; capture timing before redesigning.
 - Replace per-cell calls with bulk `Value2`, reduce volatile/repeated formulas, calculate only necessary ranges and move pure computation to C++ on copied data.
-- Temporarily changing calculation/events/screen updating requires guaranteed restoration; keep the UI responsive and validate workbook semantics after optimization.
+- Temporarily changing calculation, events and screen updating requires guaranteed restoration of the *previous* values through RAII or `finally`, because they are global application state and an exception in between leaves the user's Excel frozen and event-deaf. See [COM-033](<../Technical Interview/COM and Excel Questions.md#question-com-033>).
 
 **Details and nuances**
 
@@ -226,9 +226,9 @@ measure again
 
 **Short answer**
 
-- Decouple ingestion from display: normalize updates into a bounded latest-value-per-key store instead of queueing every obsolete tick.
-- A 10 Hz scheduler snapshots changed keys, builds range-shaped batches and posts one UI/STA task that performs minimal Excel COM writes.
-- Define backpressure/drop policy, ordering and stale-data indicators; instrument ingress, coalescing ratio, queue age, refresh latency and shutdown.
+- Name the mechanism first: in Excel this is what an **RTD server** exists for. The feed thread coalesces into a latest-value-per-topic store and calls `UpdateNotify`; Excel then pulls through `RefreshData` at `Application.RTD.ThrottleInterval`, so the display rate is decoupled from the feed rate by the platform rather than by my own timer.
+- If the product does not use RTD, the same shape by hand: a bounded latest-value-per-key store instead of a queue of obsolete ticks, a ~10 Hz scheduler that snapshots changed keys, builds range-shaped batches and posts one task to the Excel/STA thread. On Office.js the equivalent is a streaming custom function emitting at a chosen rate.
+- Either way, define backpressure and drop policy, ordering and stale-data indication; instrument ingress rate, coalescing ratio, queue age, refresh latency and shutdown.
 
 **Details and nuances**
 
@@ -256,6 +256,10 @@ Key ideas:
 - separate ingestion rate from UI refresh rate
 - use backpressure
 - keep COM calls on the correct apartment/thread
+
+The reason to name RTD out loud is that it changes what the question is about. Described generically, this is a producer/consumer rate-mismatch answer that could apply to any UI. Named, it says I know which Excel mechanism owns the problem, and the conversation moves to its limits - `RefreshData` runs on Excel's thread and must return quickly, topic count is the scaling dimension, and the throttle interval is a user-visible application setting rather than something the add-in owns. See [COM-035](<../Technical Interview/COM and Excel Questions.md#question-com-035>) and [COM-036](<../Technical Interview/COM and Excel Questions.md#question-com-036>).
+
+If the interviewer says the product is Office.js rather than native, the answer maps across without changing shape: a streaming custom function with `setResult`, coalescing on my side, and `onCanceled` handled so a removed cell does not leak a subscription. See [COM-040](<../Technical Interview/COM and Excel Questions.md#question-com-040>).
 
 [↑ Back to question index](#question-index)
 
