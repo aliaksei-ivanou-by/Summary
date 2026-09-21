@@ -14,7 +14,8 @@ So each period of my career has a document, each period document follows the sam
 
 | Folder or file | What it holds |
 |---|---|
-| `Interview/` | The documents. One per period or project, plus a career index, a recruiter brief, spoken material and preparation templates. Start at `Interview/Career Overview.md` |
+| `Interview/` | The documents. One per period or project, plus a career index, a recruiter brief and spoken material. Start at `Interview/Career Overview.md` |
+| `Interview/Vacancy Preparation/` | Reusable preparation templates and one folder per vacancy. Each vacancy folder keeps the main preparation beside a separate technical-interview question-and-answer file |
 | `Articles/` | Written work: the diploma thesis and two term projects, school-age research papers, a conference talk, and scans of the proceedings that published the school work |
 | `Certificates/` | Course certificates, diplomas, conference and school awards, grouped by the period or subject they belong to |
 | `Aliaksei_Ivanou.pdf` | The CV itself |
