@@ -25,7 +25,7 @@ By cluster and total hours the light ones hold up: "roughly 40 hours of focused 
 | Testing | TDD in C++, Google Test / Google Mock | Udemy C++ Unit Testing, 3.5 h | Studied formally, then applied with QtTest on the SIP project |
 | Cloud | Two verifiable AWS digital training badges, plus course completions. No certification exam | **AWS Well-Architected Proficient** badge - assessed, May 2024 | Two AWS training badges, cloud coursework, and production use of AWS/Azure. **Never "AWS Certified"** - see section 06 |
 | Databases / web | SQL, Ruby on Rails, REST, JSON, HTTP | Ruby on Rails, course.by 2015 | Working familiarity, backed by the PELENG satellite database project |
-| Languages | English with graded exams; Swedish and Polish course completions | English B2, exam-graded | Polish B1+, Swedish B2 in 2023; school-taught rather than self-reported |
+| Languages | English with graded exams; Swedish and Polish course completions | English B2, exam-graded | Course records: Polish through B1+ in 2024 and Swedish through B2 in 2023; current self-assessment A2 for both after lack of practice |
 | Aerospace | Two Samara space schools, 3.5 ECTS each | Summer Space School 2011 / 2013 | University-credited aerospace specialization |
 | Instrumentation | LabVIEW Basics I, Data Acquisition | BSUIR, 2010-2011 | Measurement and data-acquisition foundations |
 
@@ -163,7 +163,7 @@ The genuine cloud claim is the project one: the oil-and-gas system ran in Micros
 | Polish | A1.1 - A2.2 | Accent School of Polish | 2023 | - |
 | Polish | A2.3, B1.1, B1.2 | Accent School of Polish | 2024 | - |
 
-These are worth keeping visible. They come from language schools rather than self-assessment, and they show sustained effort over a decade. Accent School names its courses by sub-level, so A2.3, B1.1 and B1.2 are course titles rather than CEFR levels; completing them puts Polish at CEFR B1+, which is directly relevant while working in Warsaw. Swedish stopped at the 2023 courses and has faded without use. Russian and Belarusian are native.
+These are worth keeping visible. They come from language schools rather than self-assessment, and they show sustained effort over a decade. Accent School names its courses by sub-level, so A2.3, B1.1 and B1.2 are course titles that document study progression rather than a permanent current CEFR claim. Polish has not been used regularly since September 2024, so the current self-assessed level is A2. Swedish stopped at the 2023 courses and has also faded to a current self-assessed A2 without use. Russian and Belarusian are native.
 
 ## 08 Aerospace, Academic and Professional Events
 
