@@ -14,7 +14,7 @@ So each period of my career has a document, each period document follows the sam
 
 | Folder or file | What it holds |
 |---|---|
-| `Interview/` | The documents. One per period or project, plus a career index, a recruiter brief, spoken material and preparation templates. Start at `Interview/00. Career Overview.md` |
+| `Interview/` | The documents. One per period or project, plus a career index, a recruiter brief, spoken material and preparation templates. Start at `Interview/Career Overview.md` |
 | `Articles/` | Written work: the diploma thesis and two term projects, school-age research papers, a conference talk, and scans of the proceedings that published the school work |
 | `Certificates/` | Course certificates, diplomas, conference and school awards, grouped by the period or subject they belong to |
 | `Aliaksei_Ivanou.pdf` | The CV itself |
@@ -26,7 +26,7 @@ So each period of my career has a document, each period document follows the sam
 | If you are | Start with |
 |---|---|
 | A recruiter or hiring manager | `Interview/Recruiter Brief.md` - visa, location, availability, contract, and the answers to the questions that come up in a screening call |
-| A technical interviewer | `Interview/00. Career Overview.md` for the timeline, then the document for whichever period the role is closest to |
+| A technical interviewer | `Interview/Career Overview.md` for the timeline, then the document for whichever period the role is closest to |
 | Interested in one project in depth | The project document. Each has the same thirteen sections: context and constraints, architecture, decisions and their tradeoffs, contributions, engineering challenges, outcomes, lessons, and the sources behind every claim |
 | Looking for code | `github.com/aliaksei-ivanou-by/Home_Accounting` and `github.com/aliaksei-ivanou-by/Stroustrup_Programming`. The commercial work is all proprietary, so these are the only code samples |
 
