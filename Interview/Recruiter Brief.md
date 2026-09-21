@@ -35,7 +35,7 @@ Worth stating early: this is a return to Warsaw rather than a first move. Two ye
 | Polish | B1+ | Accent School of Polish, 2023-2024 |
 | Swedish | A2 | Courses to B2 at The Centre for Swedish Studies, 2022-2023; unpractised since |
 
-English is the one that matters day to day: it has been the working language throughout EPAM and Innowise, across distributed teams in the US, India and Europe. Polish at B1+ is conversational rather than a working technical level. Swedish is the one place where the certificate and the current level differ: the courses reached B2 in 2023, but nothing has been practised in the two years since, so A2 is the level I would stand behind today, and A2 is what the CV states.
+English is the one that matters day to day: it has been the working language throughout EPAM and Innowise, across distributed teams in the US, India and Europe. Polish at B1+ is conversational rather than a working technical level. Swedish is the one place where the certificate and the current level differ: the courses reached B2 in 2023, but the language has not been practised since, so A2 is the level I would stand behind today, and A2 is what the CV states.
 
 ## 04 Career Timeline
 
@@ -81,7 +81,7 @@ Full detail in `2020-2021. Independent C++ Engineering Projects.md`.
 - **"What was the gap in 2020-2021?"** A planned transition into commercial C++ - EPAM's mentoring programme and laboratory, plus my own C++ projects. Section 05.
 - **"What about the gap in late 2024?"** The EPAM Poland contract ended in August 2024. I moved back from Warsaw to Minsk, settled the tax residency that came with the move, and looked for the next role. Innowise started in December 2024.
 - **"Are you a senior by title?"** No - my grade is middle, and senior was never formally awarded. The scope is senior-level, though: technical lead of an engineering sub-group grown from four to six, design decisions on an embedded product, code review, onboarding, mentoring and interview support, alongside roughly 80% hands-on delivery. I would rather state that plainly than let a title do the work.
-- **"Your former employer PELENG is under sanctions - is that a problem?"** It is public and I would rather raise it than have it found. I worked there from August 2012 to January 2020 as an image-processing R&D engineer in the civil Earth-observation part of the enterprise - satellite imaging payloads and an airborne optical system. No designation existed against the enterprise at any point while I worked there: the designations by the US, EU, UK, Canada, Switzerland, Ukraine and others date from April 2023 onward, three years and three months after I left, and rest on defense-related production that was outside my department and outside my role. I have had no relationship with the enterprise since January 2020. If a role carries export-control or clearance obligations, I would rather put this on the table in the first conversation. Details in `2012-2020. Satellite and UAV Optical Imaging Software.md`, section 12.
+- **"Your former employer PELENG is under sanctions - is that a problem?"** It is public, so I am prepared to answer directly if asked. I worked there from August 2012 to January 2020 as an image-processing R&D engineer in the civil Earth-observation part of the enterprise - satellite imaging payloads and an airborne optical system. No designation existed against the enterprise while I worked there. The first confirmed designations were imposed by the United States and Canada on 2 December 2021, nearly two years after I left; later listings include the United Kingdom on 8 August 2023 and the European Union on 23 February 2024. Their published grounds concern defense- and security-sector activity that was outside my department and outside my role. I have had no relationship with the enterprise since January 2020. If a role carries export-control or clearance obligations, I would disclose the history and let the employer's compliance function assess it. Details and official sources are in `2012-2020. Satellite and UAV Optical Imaging Software.md`, section 12.
 - **"Do you have certifications?"** No certification exams. What I do have: two AWS digital training badges from 2024, verifiable on Credly, and a 108-academic-hour classroom C++ course at the High-Tech Park educational centre in Minsk. Details in `Certificates and Continuing Education.md`.
 
 ## 08 One-Line Project Summaries
@@ -99,9 +99,18 @@ For the screening-call question "what have you worked on?", most recent first. F
 | Where | What is there |
 |---|---|
 | LinkedIn `in/aliaksei-ivanou-by` | Profile, credentials and recommendations |
-| GitHub `aliaksei-ivanou-by` | The `Summary` repository, including the `Certificates` folder my CV links to. Also `Home_Accounting` (C++20/FLTK/SQLite, 2020-2021, 305 commits) and `Stroustrup_Programming` - the only public code samples, since the commercial work has all been proprietary |
+| GitHub `aliaksei-ivanou-by` | The `Summary` repository, including the `Certificates` folder. Also `Home_Accounting` (C++20/FLTK/SQLite, 2020-2021, 305 commits) and `Stroustrup_Programming` - the only public code samples, since the commercial work has all been proprietary |
 | Credly | AWS Well-Architected Proficient and AWS Cloud Quest: Cloud Practitioner - digital training badges rather than certification exams, both issued May 2024 |
 
 ## 10 Outside Work
 
 Cycling, reading, squash and technical conferences.
+
+## 11 Official Immigration References
+
+These sources confirm the general routes described above; they are not a substitute for checking the purpose code and conditions of the actual visa before employment starts.
+
+- Warsaw Labour Office: a registered [oświadczenie](https://warszawa.praca.gov.pl/oswiadczenie-o-powierzeniu-wykonywania-pracy-cudzoziemcowi1) may cover a Belarusian citizen for non-seasonal work for up to 24 months; the employer files it electronically, and the worker must also hold a stay basis that permits work.
+- Office for Foreigners: the [temporary residence and work permit](https://mos.cudzoziemcy.gov.pl/baza-pytan-i-odpowiedzi/zezwolenia-pobyt-i-praca/) is the foreigner's application, with Annex 1 completed and signed by the employer.
+- Office for Foreigners: a valid [Karta Polaka can support an application for permanent residence](https://www.mos.cudzoziemcy.gov.pl/opcje/pobyt-w-pl/polska-karta-pobytu/zamiar-kontynuacji-pobytu/na-podstawie-zezwolenia/zamiar-osiedlenia/polskie-pochodzenie-lub-karta-polaka/), and a spouse of a foreign national with permanent residence may use the [family-reunification route](https://mos.cudzoziemcy.gov.pl/kategorie-informacji/mozliwosci-legalizacji/spoza-ue-kontynuacja-pobytu/zezwolenie-czasowy/pobyt-z-rodzina/malzonek-spoza-ue/).
+- Ministry of the Interior and Administration: [current conditions for recognition as a Polish citizen](https://www.gov.pl/web/mswia/popros-o-uznanie-za-polskiego-obywatela).
