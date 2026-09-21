@@ -1,6 +1,6 @@
 # Technical Interview Template
 
-> Purpose: the technical companion for one named vacancy. It contains likely technical questions, concise ready-to-say answers, deeper follow-ups, examples and system-design practice. Keep vacancy analysis, career evidence, behavioral stories and the interview log in the main vacancy-preparation file.
+> Purpose: the technical companion for one named vacancy. Keep only cross-topic integration, product-specific APIs and architecture scenarios here. Link reusable C++, JavaScript/Node.js, COM/Excel or other general question banks instead of copying their answers. Keep vacancy analysis, career evidence and behavioral stories in the main vacancy-preparation file.
 
 ## 01 File Record and Use
 
@@ -10,26 +10,58 @@
 | Role | [Exact title] |
 | Main preparation | [Add a relative link to the main vacancy-preparation file.] |
 | Interview format | [Discussion, live coding, system design, take-home or unknown] |
-| Interview date | [YYYY-MM-DD or unknown] |
-| Last reviewed | [YYYY-MM-DD] |
 
-Use the question IDs from the main file so priorities stay synchronized. Answers should normally begin with a direct 30-90 second response; add depth only for likely follow-ups. Material learned specifically for this interview must not be presented as production experience.
+Use the question IDs from the main file so priorities stay synchronized. Every answer should begin with a direct 30-60 second bullet summary and then provide the detail needed for likely follow-ups. Material learned specifically for this interview must not be presented as production experience.
 
-## 02 Coverage and Priority
+A short answer should normally contain two to four self-contained bullets:
 
-| ID | Topic | Why likely | Priority | Confidence | Rehearsed |
-|---|---|---|---|---|---|
-| TQ-01 | [Topic or question] | [Vacancy requirement, recruiter signal or likely task] | [High / medium / low] | [Strong / refresh / learn / unknown] | [ ] |
+- **Definition/conclusion** — answer the exact question in the first bullet.
+- **Mechanism or decision rule** — explain how it works or when to choose it.
+- **Important nuance** — state the main exception, failure mode or tradeoff.
+- **Practical action** — include only when the question implies a design or diagnostic decision.
 
-## 03 Questions and Answers
+Keep these bullets concise enough to say naturally, but do not omit a correctness-changing caveat. Put code, detailed mechanics, alternatives and secondary edge cases under `Details and nuances` so the spoken answer stays short without making the written answer superficial.
 
-### TQ-01 - [Question]
+For the link to the main preparation, use the exact relative filename inside angle brackets, as in [Vacancy Preparation Template](<./Vacancy Preparation Template.md>). This keeps spaces, `+` and punctuation compatible with the repository preview.
+
+## 02 Shared Question Banks
+
+| Bank | Relative link | Relevant sections / IDs |
+|---|---|---|
+| C++ | [C++ Core Questions](<./Technical Interview/C++ Core Questions.md>) | [Select stable IDs instead of copying answers.] |
+| JavaScript / Node.js | [JavaScript and Node.js Questions](<./Technical Interview/JavaScript and Node.js Questions.md>) | [Select stable IDs.] |
+| COM / Excel | [COM and Excel Questions](<./Technical Interview/COM and Excel Questions.md>) | [Select stable IDs.] |
+
+These links are correct for the reusable template at `Vacancy Preparation/`. After copying the template one level deeper into a named vacancy folder, use `../Technical Interview/...`. Keep exact relative paths inside angle brackets.
+
+## Question Index
+
+- [ROLE-001 - Question](#question-role-001)
+- [ROLE-002 - Question](#question-role-002)
+
+Use native Markdown headings such as `Question ROLE-001` as jump targets; do not use raw HTML anchors. Keep the return link between that heading and the question text so the question remains visible below the preview's fixed header after a jump.
+
+## 03 Coverage and Priority
+
+| ID | Topic | Why likely | Priority | Confidence |
+|---|---|---|---|---|
+| ROLE-001 | [Topic or question] | [Vacancy requirement, recruiter signal or likely task] | [High / medium / low] | [Strong / refresh / learn / unknown] |
+
+## 04 Questions and Answers
+
+### Question ROLE-001
+
+[↑ Back to question index](#question-index)
+
+#### Question ROLE-001 — [Question]
 
 **Short answer**
 
-[Give the conclusion first. Keep this version short enough to say naturally without notes.]
+- [Definition or direct conclusion.]
+- [Mechanism or selection rule.]
+- [Important caveat, failure mode or tradeoff.]
 
-**Deeper explanation**
+**Details and nuances**
 
 [Explain the mechanism, tradeoff and relevant failure mode.]
 
@@ -42,17 +74,25 @@ Use the question IDs from the main file so priorities stay synchronized. Answers
 - [Follow-up question and the point it tests.]
 - [Alternative or edge case the interviewer may introduce.]
 
-**Needs verification**
+**Reference / version boundary**
 
-- [Fact, API detail or version-specific behavior to verify in a primary source.]
+- [Primary source and the standard/product version to which the claim applies.]
 
-### TQ-02 - [Question]
+[↑ Back to question index](#question-index)
+
+### Question ROLE-002
+
+[↑ Back to question index](#question-index)
+
+#### Question ROLE-002 — [Question]
 
 **Short answer**
 
-[Answer.]
+- [Definition or direct conclusion.]
+- [Mechanism or selection rule.]
+- [Important caveat, failure mode or tradeoff.]
 
-**Deeper explanation**
+**Details and nuances**
 
 [Explanation, tradeoff and failure mode.]
 
@@ -64,11 +104,13 @@ Use the question IDs from the main file so priorities stay synchronized. Answers
 
 - [Follow-up.]
 
-**Needs verification**
+**Reference / version boundary**
 
 - [Item or none.]
 
-## 04 Live-Coding and Diagnostic Exercises
+[↑ Back to question index](#question-index)
+
+## 05 Live-Coding and Diagnostic Exercises
 
 ### Exercise 1 - [Title]
 
@@ -77,9 +119,9 @@ Use the question IDs from the main file so priorities stay synchronized. Answers
 - **Approach:** [Data structures, algorithm and complexity.]
 - **Implementation risks:** [Lifetime, overflow, invalidation, concurrency or API misuse.]
 - **Tests:** [Normal, boundary and failure cases.]
-- **Retrospective:** [What was slow, unclear or incorrect during rehearsal.]
+- **Verification:** [Complexity, correctness invariant and test evidence.]
 
-## 05 System-Design Answers
+## 06 System-Design Answers
 
 ### SD-01 - [Prompt]
 
@@ -99,7 +141,7 @@ Cover:
 |---|---|---|---|---|
 | [Decision] | [Choice] | [Alternative] | [Reason] | [What would invalidate it] |
 
-## 06 Rapid Review
+## 07 Rapid Review
 
 - [Concept that must be explained without notes.]
 - [Common trap or misconception.]
@@ -108,19 +150,10 @@ Cover:
 - [One performance answer that begins with measurement.]
 - [One honest answer about the largest technical gap.]
 
-## 07 Sources
+## 08 Sources
 
 Prefer standards, official documentation and primary vendor material. Record sources for version-specific or unfamiliar claims; do not turn the answer file into copied documentation.
 
-| Question | Claim checked | Source | Checked |
+| Question | Claim | Primary source | Standard / product scope |
 |---|---|---|---|
-| TQ-01 | [Claim] | [Primary source] | [YYYY-MM-DD] |
-
-## 08 Review Notes
-
-### [YYYY-MM-DD] - [Practice session or interview round]
-
-- **Questions practiced or asked:** [IDs and new questions.]
-- **Answers that were weak:** [IDs and why.]
-- **Corrections made:** [What changed.]
-- **Add to main interview log:** [New role facts, follow-up or decision only.]
+| ROLE-001 | [Claim] | [Primary source] | [Version or stable contract] |

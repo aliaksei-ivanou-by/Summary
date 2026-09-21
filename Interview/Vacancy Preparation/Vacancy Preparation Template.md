@@ -1,30 +1,37 @@
 # Vacancy Preparation Template
 
-> Purpose: the main interview-preparation document for one named vacancy. It preserves the vacancy, maps every important requirement to evidence or a declared gap, prepares a small set of stories and finishes with questions for the employer. Detailed technical questions and answers belong in the companion technical-interview file. Delete prompts that do not apply.
+> Purpose: the main interview-preparation document for one named vacancy. It preserves the vacancy, maps every important requirement to evidence or a declared gap, prepares a small set of stories and finishes with questions for the employer. Detailed technical questions and answers belong in the companion technical-interview file. Keep the result evergreen: do not add application status, interview dates or round-by-round logs. Delete prompts that do not apply.
 
 ## 01 Preparation Folder and Workflow
 
-Create one folder per vacancy. Keep the reusable templates at the root of `Vacancy Preparation/`, and copy both templates into the vacancy folder before adding role-specific material.
+Create one folder per vacancy. Keep general technical banks outside vacancy folders and link them from the role-specific technical file. Keep the reusable templates at the root of `Vacancy Preparation/`, and copy both templates into the vacancy folder before adding role-specific material.
 
 ```text
-Vacancy Preparation/
-|-- Vacancy Preparation Template.md
-|-- Technical Interview Template.md
-`-- Vacancy Preparation. [Company] [Role]/
-    |-- Vacancy Preparation. [Company] [Role].md
-    `-- Vacancy Preparation. [Company] [Role] - Technical Interview.md
+Interview/
+`-- Vacancy Preparation/
+    |-- Technical Interview/
+    |   |-- C++ Core Questions.md
+    |   |-- JavaScript and Node.js Questions.md
+    |   `-- COM and Excel Questions.md
+    |-- Vacancy Preparation Template.md
+    |-- Technical Interview Template.md
+    `-- Vacancy Preparation. [Company] [Role]/
+        |-- Vacancy Preparation. [Company] [Role].md
+        `-- Vacancy Preparation. [Company] [Role] - Technical Interview.md
 ```
 
-The main file owns the vacancy record, positioning, evidence map, stories, preparation priorities, employer questions and interview log. The technical-interview file owns the detailed questions, ready-to-say answers, follow-up questions, code examples and system-design answers. Link the two files, but do not maintain full technical answers in both.
+The main file owns the stable vacancy record, positioning, evidence map, stories, preparation priorities and employer questions. Shared banks own reusable topic answers. The vacancy technical file links those banks and owns only role-specific integration questions, product APIs and system-design scenarios. Do not maintain the same answer in more than one file.
+
+For repository-local links whose filenames contain spaces or characters such as `+` and `,`, keep the exact relative path inside angle brackets, as in [Technical Interview Template](<./Technical Interview Template.md>). Do not percent-encode the filename; the repository preview may treat escapes such as `%2B` as literal filename text.
 
 1. Create and name the vacancy folder, then copy and rename both templates.
-2. Preserve the vacancy text, URL, capture date and recruiter context before the posting changes or disappears.
+2. Preserve the vacancy text, URL and relevant recruiter context before the posting changes or disappears.
 3. Separate explicit requirements from your interpretation of what the team probably needs.
 4. Classify each important requirement as strong evidence, adjacent evidence, refresh needed, learning gap or unknown.
 5. Select three stories that cover most of the role; do not retell the entire career history.
-6. Prepare short spoken answers in the main file, then expand technical answers in the companion file.
+6. Link the relevant stable IDs from shared banks, then prepare only cross-topic and vacancy-specific answers in the companion file.
 7. Close the highest-risk knowledge gap with official reading and one small practical exercise.
-8. Rehearse follow-up questions, record weak answers and revise both files after each interview round.
+8. Perform one consistency pass so the copied files are ready to use without maintaining a status timeline.
 
 The document is ready when every important requirement has either evidence with an ownership boundary or a direct gap answer.
 
@@ -38,11 +45,8 @@ The document is ready when every important requirement has either evidence with 
 | Location / work mode | [Location, remote/hybrid/on-site] |
 | Employment / rate | [Contract type or range, when known] |
 | Vacancy URL | [URL] |
-| Captured | [YYYY-MM-DD] |
 | Recruiter / source | [Name and channel] |
-| Current stage | [Applied, recruiter, technical, manager, offer] |
-| Interview format | [Stages, duration, language, live coding/system design] |
-| Decision date | [Known deadline] |
+| Interview format | [Stable format information relevant to preparation, or unknown] |
 
 ### Exact Vacancy Text
 
@@ -230,18 +234,9 @@ Cover:
 - [What is automated, and what still requires manual validation?]
 - [Why is the position open?]
 
-## 08 Rehearsal Plan
+## 08 Production-Ready Standard
 
-| Session | Output | Status |
-|---|---|---|
-| Vacancy and evidence | Exact requirements classified; gaps visible | [ ] |
-| Spoken answers | 30- and 90-second versions recorded and timed | [ ] |
-| Stories | Three stories delivered without notes | [ ] |
-| Technical review | Companion Q&A covers must-have concepts and failure cases | [ ] |
-| Practical exercise | Largest gap tested in a small artifact | [ ] |
-| Mock interview | Weak answers recorded and corrected | [ ] |
-
-### Final Check
+The completed preparation should satisfy these stable conditions; do not turn this section into a progress tracker or interview timeline.
 
 - Every must-have has evidence or a direct gap answer.
 - Every claim has a project source or a clearly labeled preparation source.
@@ -253,18 +248,7 @@ Cover:
 - Questions test the assumptions that could change the decision.
 - Confidential names, code, credentials, endpoints and customer data stay private.
 
-## 09 Interview Log
-
-### [YYYY-MM-DD] - [Stage / Interviewer]
-
-- **Questions asked:** [List.]
-- **Answers that worked:** [List.]
-- **Answers to improve:** [List.]
-- **New facts about the role:** [List.]
-- **Follow-up promised:** [List.]
-- **Decision / next step:** [List.]
-
-## 10 Sources
+## 09 Sources
 
 ### Repository Sources
 
