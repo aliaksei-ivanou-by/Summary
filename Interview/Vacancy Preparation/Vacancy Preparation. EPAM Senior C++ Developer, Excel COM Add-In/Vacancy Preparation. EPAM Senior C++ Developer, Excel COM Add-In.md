@@ -2,7 +2,9 @@
 
 > Purpose: preparation for EPAM's Senior C++ Developer opening involving C++, JavaScript/Node.js and an Excel COM Add-In. It contains ready-to-say introductions, the exact role signals, an evidence map, technical preparation, interview stories and questions for the team. Career claims must remain consistent with the project documents in `Interview/`.
 
-> Technical interview questions and prepared answers: [Technical Interview Q&A](./Vacancy%20Preparation.%20EPAM%20Senior%20C%2B%2B%20Developer%2C%20Excel%20COM%20Add-In%20-%20Technical%20Interview.md).
+> Technical interview questions and prepared answers: [Technical Interview Q&A](<./Vacancy Preparation. EPAM Senior C++ Developer, Excel COM Add-In - Technical Interview.md>).
+
+> Reusable topic banks: [C++ Core](<../Technical Interview/C++ Core Questions.md>) · [JavaScript and Node.js](<../Technical Interview/JavaScript and Node.js Questions.md>) · [COM and Excel](<../Technical Interview/COM and Excel Questions.md>).
 
 ## 01 Role Snapshot and Positioning
 
@@ -16,11 +18,6 @@
 | Product focus | High-performance Microsoft Office COM Add-In for Excel |
 | Official vacancy | [EPAM Careers](https://careers.epam.com/en/vacancy/senior-c-developer-blt5iuooygrtf5anb25_en) |
 | Original LinkedIn posting | [Job 4461911643](https://www.linkedin.com/jobs/view/4461911643) |
-| Request received / CV sent | 31 August 2026 |
-| Additional CV details sent | 1 September 2026 |
-| Initial interview | 10 September 2026 |
-| Technical interview | 24 September 2026 |
-| Status | In process |
 
 The vacancy is not a generic C++ role. Its center is existing Excel integration: Windows COM Add-In development, JavaScript for user interaction, Office APIs, 50k+ formulas or real-time streams, profiling, performance tuning and high-frequency updates. Direct Excel/COM experience is therefore the largest selection risk, not a minor nice-to-have.
 
@@ -155,7 +152,7 @@ Use the integrated library platform when the interviewer wants legacy C, Linux, 
 
 ## 05 Technical Preparation
 
-This section sets the role-specific priorities and practice plan. Full prepared answers live in the [technical interview companion](./Vacancy%20Preparation.%20EPAM%20Senior%20C%2B%2B%20Developer%2C%20Excel%20COM%20Add-In%20-%20Technical%20Interview.md). The material in both files is knowledge to refresh or learn and must not be described as past production experience.
+This section sets the role-specific priorities. Reusable answers live in the [C++](<../Technical Interview/C++ Core Questions.md>), [JavaScript/Node.js](<../Technical Interview/JavaScript and Node.js Questions.md>) and [COM/Excel](<../Technical Interview/COM and Excel Questions.md>) banks; cross-stack and architecture answers live in the [vacancy-specific technical companion](<./Vacancy Preparation. EPAM Senior C++ Developer, Excel COM Add-In - Technical Interview.md>). Prepared knowledge must not be described as past production experience.
 
 | Topic | Current position | Preparation priority |
 |---|---|---|
@@ -305,10 +302,10 @@ If the product actually uses Office.js, replace the native prototype with a Scri
 
 ### Repository Sources
 
-- [2021. Oil and Gas Corporate System](../../2021.%20Oil%20and%20Gas%20Corporate%20System.md) - primary C++/JavaScript evidence.
-- [2025-2026. Embedded SIP Desk Phone Platform](../../2025-2026.%20Embedded%20SIP%20Desk%20Phone%20Platform.md) - asynchronous C++/Qt, Windows tooling, testing and ownership boundaries.
-- [2022-2024. Integrated Library System](../../2022-2024.%20Integrated%20Library%20System.md) - legacy C and cross-component debugging.
-- [2020. Industrial 3D Scanning and Metrology Software](../../2020.%20Industrial%203D%20Scanning%20and%20Metrology%20Software.md) and [2012-2020. Satellite and UAV Optical Imaging Software](../../2012-2020.%20Satellite%20and%20UAV%20Optical%20Imaging%20Software.md) - numerical and data-processing background.
+- [2021. Oil and Gas Corporate System](<../../2021. Oil and Gas Corporate System.md>) - primary C++/JavaScript evidence.
+- [2025-2026. Embedded SIP Desk Phone Platform](<../../2025-2026. Embedded SIP Desk Phone Platform.md>) - asynchronous C++/Qt, Windows tooling, testing and ownership boundaries.
+- [2022-2024. Integrated Library System](<../../2022-2024. Integrated Library System.md>) - legacy C and cross-component debugging.
+- [2020. Industrial 3D Scanning and Metrology Software](<../../2020. Industrial 3D Scanning and Metrology Software.md>) and [2012-2020. Satellite and UAV Optical Imaging Software](<../../2012-2020. Satellite and UAV Optical Imaging Software.md>) - numerical and data-processing background.
 
 ### Official Technical Reading
 
