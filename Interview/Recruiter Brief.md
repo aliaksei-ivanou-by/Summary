@@ -52,7 +52,7 @@ English is the one that matters day to day: it has been the working language thr
 
 Two things in this table are worth pointing out before anyone asks. First, the promotion from Junior to middle grade in May 2022, eight months after joining. Second, the internal relocation from EPAM Belarus to EPAM Poland in August 2022: I stayed on the same project throughout, with the same customer and the same codebase - only the employing entity and my location changed.
 
-The full history back to 2007, including the university period and the month-by-month breakdown of project assignments, is in `00. Career Overview.md`.
+The full history back to 2007, including the university period and the month-by-month breakdown of project assignments, is in `Career Overview.md`.
 
 ## 05 The 2020-2021 Transition
 
