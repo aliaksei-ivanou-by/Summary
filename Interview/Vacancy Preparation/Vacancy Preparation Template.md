@@ -1,16 +1,30 @@
 # Vacancy Preparation Template
 
-> Purpose: a reusable interview-preparation document for one named vacancy. Start from the exact vacancy, map every important requirement to evidence or a declared gap, prepare a small set of stories and technical topics, and finish with questions for the employer. Delete prompts that do not apply.
+> Purpose: the main interview-preparation document for one named vacancy. It preserves the vacancy, maps every important requirement to evidence or a declared gap, prepares a small set of stories and finishes with questions for the employer. Detailed technical questions and answers belong in the companion technical-interview file. Delete prompts that do not apply.
 
-## 01 Preparation Workflow
+## 01 Preparation Folder and Workflow
 
-1. Preserve the vacancy text, URL, capture date and recruiter context before the posting changes or disappears.
-2. Separate explicit requirements from your interpretation of what the team probably needs.
-3. Classify each important requirement as strong evidence, adjacent evidence, refresh needed, learning gap or unknown.
-4. Select three stories that cover most of the role; do not retell the entire career history.
-5. Prepare short spoken answers before adding deep technical notes.
-6. Close the highest-risk knowledge gap with official reading and one small practical exercise.
-7. Rehearse follow-up questions, record weak answers and revise this document after each interview round.
+Create one folder per vacancy. Keep the reusable templates at the root of `Vacancy Preparation/`, and copy both templates into the vacancy folder before adding role-specific material.
+
+```text
+Vacancy Preparation/
+|-- Vacancy Preparation Template.md
+|-- Technical Interview Template.md
+`-- Vacancy Preparation. [Company] [Role]/
+    |-- Vacancy Preparation. [Company] [Role].md
+    `-- Vacancy Preparation. [Company] [Role] - Technical Interview.md
+```
+
+The main file owns the vacancy record, positioning, evidence map, stories, preparation priorities, employer questions and interview log. The technical-interview file owns the detailed questions, ready-to-say answers, follow-up questions, code examples and system-design answers. Link the two files, but do not maintain full technical answers in both.
+
+1. Create and name the vacancy folder, then copy and rename both templates.
+2. Preserve the vacancy text, URL, capture date and recruiter context before the posting changes or disappears.
+3. Separate explicit requirements from your interpretation of what the team probably needs.
+4. Classify each important requirement as strong evidence, adjacent evidence, refresh needed, learning gap or unknown.
+5. Select three stories that cover most of the role; do not retell the entire career history.
+6. Prepare short spoken answers in the main file, then expand technical answers in the companion file.
+7. Close the highest-risk knowledge gap with official reading and one small practical exercise.
+8. Rehearse follow-up questions, record weak answers and revise both files after each interview round.
 
 The document is ready when every important requirement has either evidence with an ownership boundary or a direct gap answer.
 
@@ -138,11 +152,16 @@ Prepare three primary stories and one backup. Each primary story should cover se
 
 ## 06 Technical Preparation
 
+Keep the role-specific priorities and study plan here. Put complete answers in `Vacancy Preparation. [Company] [Role] - Technical Interview.md` and add a relative link to it after creating the vacancy folder.
+
+- **Technical questions and answers:** [Add the relative link to the companion file.]
+- **Boundary:** this file says what to prepare and why; the companion file contains how to answer it.
+
 ### Topic Matrix
 
-| Topic | Why the role needs it | Current depth | What to review | Proof of readiness |
-|---|---|---|---|---|
-| [Topic] | [Vacancy signal or likely task] | [Strong / refresh / learn / unknown] | [Specific concepts] | [Story, explanation, code or exercise] |
+| Topic | Why the role needs it | Current depth | What to review | Technical question IDs | Proof of readiness |
+|---|---|---|---|---|---|
+| [Topic] | [Vacancy signal or likely task] | [Strong / refresh / learn / unknown] | [Specific concepts] | [TQ-01, TQ-02] | [Story, explanation, code or exercise] |
 
 ### Architecture to Clarify
 
@@ -159,12 +178,12 @@ Prepare three primary stories and one backup. Each primary story should cover se
 
 ### Likely Technical Questions
 
-- [Question derived directly from a must-have requirement.]
-- [Question about debugging or failure behavior.]
-- [Question about performance and measurement.]
-- [Question about concurrency, lifetime or state.]
-- [Question about testing and delivery.]
-- [Question about a technology gap.]
+- **TQ-01:** [Question derived directly from a must-have requirement; answer it in the companion file.]
+- **TQ-02:** [Question about debugging or failure behavior.]
+- **TQ-03:** [Question about performance and measurement.]
+- **TQ-04:** [Question about concurrency, lifetime or state.]
+- **TQ-05:** [Question about testing and delivery.]
+- **TQ-06:** [Question about a technology gap.]
 
 ### System-Design Prompt
 
@@ -218,7 +237,7 @@ Cover:
 | Vacancy and evidence | Exact requirements classified; gaps visible | [ ] |
 | Spoken answers | 30- and 90-second versions recorded and timed | [ ] |
 | Stories | Three stories delivered without notes | [ ] |
-| Technical review | Must-have concepts explained with failure cases | [ ] |
+| Technical review | Companion Q&A covers must-have concepts and failure cases | [ ] |
 | Practical exercise | Largest gap tested in a small artifact | [ ] |
 | Mock interview | Weak answers recorded and corrected | [ ] |
 
@@ -230,6 +249,7 @@ Cover:
 - Results are observable; unsupported numbers have been removed.
 - The introduction is relevant to this role, not a full career chronology.
 - Three stories cover most likely behavioral and technical follow-ups.
+- The technical companion is linked, prioritized and contains spoken answers rather than copied reference material.
 - Questions test the assumptions that could change the decision.
 - Confidential names, code, credentials, endpoints and customer data stay private.
 
@@ -257,4 +277,3 @@ Cover:
 | Claim | Source | Disclosure |
 |---|---|---|
 | [Vacancy or project fact] | [Stable source] | [Public / safe internal / confidential] |
-
