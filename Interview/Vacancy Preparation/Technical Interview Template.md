@@ -31,6 +31,7 @@ For the link to the main preparation, use the exact relative filename inside ang
 | C++ | [C++ Core Questions](<./Technical Interview/C++ Core Questions.md>) | [Select stable IDs instead of copying answers.] |
 | JavaScript / Node.js | [JavaScript and Node.js Questions](<./Technical Interview/JavaScript and Node.js Questions.md>) | [Select stable IDs.] |
 | COM / Excel | [COM and Excel Questions](<./Technical Interview/COM and Excel Questions.md>) | [Select stable IDs.] |
+| Live coding | [Live Coding Scaffold](<./Technical Interview/Live Coding Scaffold.md>) | Build-and-test scaffold, the clarifying questions to ask first, and two worked exercises |
 
 These links are correct for the reusable template at `Vacancy Preparation/`. After copying the template one level deeper into a named vacancy folder, use `../Technical Interview/...`. Keep exact relative paths inside angle brackets.
 
@@ -111,6 +112,8 @@ Use native Markdown headings such as `Question ROLE-001` as jump targets; do not
 [↑ Back to question index](#question-index)
 
 ## 05 Live-Coding and Diagnostic Exercises
+
+The reusable scaffold, the sixty seconds of clarifying questions to ask before typing, and two worked exercises are in [Live Coding Scaffold](<./Technical Interview/Live Coding Scaffold.md>). Keep only vacancy-specific prompts here.
 
 ### Exercise 1 - [Title]
 

@@ -156,7 +156,7 @@ Prepare three primary stories and one backup. Each primary story should cover se
 
 ## 06 Technical Preparation
 
-Keep the role-specific priorities and study plan here. Link reusable answers from the shared subject banks. Put only cross-topic, product-specific, integration and role-specific system-design answers in `Vacancy Preparation. [Company] [Role] - Technical Interview.md`, and add a relative link to it after creating the vacancy folder.
+Keep the role-specific priorities and study plan here. If any stage may include live coding, work through [Live Coding Scaffold](<./Technical Interview/Live Coding Scaffold.md>) once so the build system is muscle memory rather than something to remember under observation. Link reusable answers from the shared subject banks. Put only cross-topic, product-specific, integration and role-specific system-design answers in `Vacancy Preparation. [Company] [Role] - Technical Interview.md`, and add a relative link to it after creating the vacancy folder.
 
 - **Shared question banks:** [Add relative links to the relevant C++, JavaScript/Node.js, COM/Excel or other subject banks.]
 - **Role-specific technical questions and answers:** [Add the relative link to the companion file.]
