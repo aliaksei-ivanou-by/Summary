@@ -32,6 +32,7 @@ For the link to the main preparation, use the exact relative filename inside ang
 | JavaScript / Node.js | [JavaScript and Node.js Questions](<./Technical Interview/JavaScript and Node.js Questions.md>) | [Select stable IDs.] |
 | COM / Excel | [COM and Excel Questions](<./Technical Interview/COM and Excel Questions.md>) | [Select stable IDs.] |
 | Live coding | [Live Coding Scaffold](<./Technical Interview/Live Coding Scaffold.md>) | Build-and-test scaffold, the clarifying questions to ask first, and two worked exercises |
+| Behavioral | [Behavioral Questions](<./Behavioral Questions.md>) | Decision defended, being wrong, disagreement, hardest bug, time zones, mentoring, weakness, deadlines, why you, salary |
 
 These links are correct for the reusable template at `Vacancy Preparation/`. After copying the template one level deeper into a named vacancy folder, use `../Technical Interview/...`. Keep exact relative paths inside angle brackets.
 
