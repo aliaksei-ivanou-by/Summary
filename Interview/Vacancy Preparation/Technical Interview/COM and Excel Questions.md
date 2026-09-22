@@ -64,6 +64,11 @@ Questions use stable topic-specific IDs. Every answer begins with a short bullet
 - [COM-039. How does Office.js differ from COM Automation for the same task?](#question-com-039)
 - [COM-040. What are Office.js custom functions, and how does streaming work?](#question-com-040)
 
+## Staleness, Teardown and Testing (COM-041–COM-042)
+
+- [COM-041. How do you keep a background computation from using stale workbook state?](#question-com-041)
+- [COM-042. How would you test update bursts, workbook closure and shutdown races?](#question-com-042)
+
 ---
 
 # 1. COM Fundamentals
@@ -1322,3 +1327,95 @@ Streaming custom functions work on the web and Mac, where RTD does not, which is
 Prepared knowledge.
 
 [↑ Back to question index](#question-index)
+
+---
+
+# 7. Staleness, Teardown and Testing
+
+## Question COM-041
+
+[↑ Back to question index](#question-index)
+
+### Question COM-041 — How do you keep a background computation from using stale workbook state?
+
+**Short answer**
+
+- A background job works from a snapshot. By the time it finishes the user may have edited cells, inserted rows, switched workbooks or closed the book, so a completed result is a *claim about a past state* and must be validated before it is applied.
+- Attach a monotonically increasing generation counter to the input state, bump it on every change that invalidates the snapshot, carry it with the job, and discard any result whose generation no longer matches.
+- Never hold a COM interface pointer across the wait: capture plain data, and re-resolve the target `Range` on the Excel thread when applying, because an insert or delete can move or invalidate it.
+
+**Details and nuances**
+
+"Stale" hides three different failures, and they need three different answers:
+
+| What went stale | How it shows | What handles it |
+|---|---|---|
+| The input data changed | The result is arithmetically correct for data nobody has any more | Generation counter compared at apply time |
+| The target moved | Rows were inserted; the saved `Range` now points at the wrong cells | Re-resolve on the Excel thread, or address by named range rather than by a held pointer |
+| The host is gone | Workbook closed, or the add-in is shutting down, while a job is in flight | The completion path must be harmless, not merely unlikely |
+
+The generation check is small and does the most work:
+
+```cpp
+// Bumped on Worksheet_Change, on workbook switch, on explicit invalidation.
+std::atomic<std::uint64_t> generation_{0};
+
+struct Job {
+    std::uint64_t generation;   // captured when the job was created
+    Input         data;         // a copy, never a live COM pointer
+};
+
+// On the Excel thread, when a result comes back:
+void apply(const Result& r) {
+    if (r.generation != generation_.load()) return;   // computed for a past world
+    writeBack(r);
+}
+```
+
+Two nuances worth saying out loud. **Cancellation and staleness are not the same thing**: cancellation is proactive, when we already know the work is pointless, and staleness is detected at the end, when we could not have known. Do both - cancel what you can, validate always - because cancellation is an optimization and validation is the correctness guarantee.
+
+And **out-of-order completion is free to handle** once the generation exists: with a worker pool, results arrive in an order nobody controls, so applying only results whose generation is at least the last applied one gives last-writer-wins without any extra machinery.
+
+For shutdown specifically, the completion callback has to remain safe after the thing it would update is gone. The usual shapes are a weak reference to the applier, or a shutdown flag set under the same lock the applier checks - so that "the result arrived after teardown" is an ordinary early return rather than a crash in a destructor.
+
+**Example or evidence boundary**
+
+The Excel specifics are prepared knowledge. The pattern is production experience: on the phone platform, asynchronous SDK registration and call events routinely completed against state the application had already moved past, and the fix was the same - the application owned the current state, the event carried what it was computed from, and anything that no longer matched was dropped rather than applied.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question COM-042
+
+[↑ Back to question index](#question-index)
+
+### Question COM-042 — How would you test update bursts, workbook closure and shutdown races?
+
+**Short answer**
+
+- Put an interface at the Excel boundary so almost everything is testable without Office: a fake sink records the batches it was given, and burst behavior, coalescing, ordering and staleness become ordinary unit tests that run in CI.
+- Drive time yourself. A scheduler that takes a clock as a dependency lets a test advance time deterministically; a test that calls `sleep` is flaky, and a flaky test is one everybody learns to ignore.
+- Keep a small, slow, Office-hosted suite for what only Excel can prove - registration and load, apartment behavior, real recalculation, and close-while-busy - and say plainly that it is small on purpose.
+
+**Details and nuances**
+
+The layering is what makes this answerable at all:
+
+```text
+feed  →  coalescing store  →  scheduler (injected clock)  →  ISink  →  real Excel sink
+                         everything left of ISink is testable in a plain binary
+```
+
+**Bursts become properties, not timings.** Push 20,000 updates across 50 keys, advance the clock by one tick, and assert the fake sink received at most one write per key and each carries the last value pushed. That is deterministic and says something true about the design; measuring wall-clock throughput in a unit test says almost nothing.
+
+**Closure and shutdown are the ones that actually find bugs.** The shape that works: start a job, trigger workbook close or add-in teardown while it is in flight, then assert that no callback touches a destroyed object and no COM pointer is used after its final release. Run it in a loop under a sanitizer, or under Application Verifier on Windows, because a single pass usually passes by luck. The same loop with a generation bump instead of a close covers [COM-041](#question-com-041).
+
+**Be explicit about what cannot be unit tested**, because claiming otherwise is the answer that gets caught: registration and bitness, the real recalculation engine, and genuine reentrancy where Excel calls back into the add-in during a call. Those need a hosted suite. It runs on a schedule rather than per commit, it is a handful of scenarios rather than a matrix, and one of them should be the add-in throwing during load so the disabled-add-in path is seen at least once by someone rather than first by a user.
+
+**Example or evidence boundary**
+
+The Excel-hosted part is prepared knowledge. What is production experience is the shape of the argument: on the phone platform the unit and integration tests ran headless on the target device precisely because hardware-dependent behavior cannot be proven anywhere else, and everything that did not need the device was tested where it was fast to run.
+
+[↑ Back to question index](#question-index)
+
