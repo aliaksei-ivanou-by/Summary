@@ -10,7 +10,8 @@
 |---|---|
 | [C++ Core Questions](<../Technical Interview/C++ Core Questions.md>) | Language, build/link model, STL, ownership, concurrency, algorithms, systems, performance and design |
 | [JavaScript and Node.js Questions](<../Technical Interview/JavaScript and Node.js Questions.md>) | JavaScript semantics, promises, event loop, Node.js, libuv, workers and streams |
-| [COM and Excel Questions](<../Technical Interview/COM and Excel Questions.md>) | COM fundamentals, apartments/marshaling, add-in lifecycle and Excel object-model performance |
+| [COM and Excel Questions](<../Technical Interview/COM and Excel Questions.md>) | COM fundamentals, apartments/marshaling, add-in lifecycle, Excel object-model performance, add-in technologies, RTD and Office.js |
+| [Live Coding Scaffold](<../Technical Interview/Live Coding Scaffold.md>) | CMake/GoogleTest scaffold, clarifying questions, and two exercises: a range block into native data, and coalescing a fast feed for a slow consumer |
 
 # Question Index
 

@@ -243,20 +243,30 @@ Cover these points in order:
 6. Measure queue delay, C++ processing, boundary transfer, Excel recalculation and visible latency separately.
 7. Test correctness under rapid updates, errors, cancellation, workbook close/reopen and add-in shutdown.
 
-### Likely Technical Questions
+### Likely Technical Questions and Where the Answer Is
 
-- What happens when `AddRef`/`Release` ownership is wrong, and how would RAII prevent it?
-- Why can an STA deadlock when its thread blocks without pumping messages?
-- How would an exception inside native code be translated to a stable COM error?
-- How would you move a large two-dimensional dataset between C++ and Excel efficiently?
-- Why is per-cell automation slow, and how would you prove where the time goes?
-- How would you keep background computation from using stale workbook state?
-- What is the difference between a COM Add-In, an XLL and an Office.js add-in?
-- How would you investigate an add-in that loads on one machine but not another?
-- How do promise microtasks and timer/I/O callbacks differ in JavaScript ordering?
-- When would Node.js worker threads help, and when would batching be the better fix?
-- What contract would you put between a C++ calculation engine and a JavaScript UI?
-- How would you test update bursts, workbook closure and shutdown races?
+Every question below has a prepared answer. The point of the table is that nothing on this list has to be improvised, and that the review before the interview is a list of IDs rather than a re-read of everything.
+
+`C` = [C++ Core](<../Technical Interview/C++ Core Questions.md>), `COM` = [COM and Excel](<../Technical Interview/COM and Excel Questions.md>), `JS` = [JavaScript and Node.js](<../Technical Interview/JavaScript and Node.js Questions.md>), `ROLE` = [the technical companion](<./Vacancy Preparation. EPAM Senior C++ Developer, Excel COM Add-In - Technical Interview.md>).
+
+| Likely question | Prepared answer |
+|---|---|
+| What happens when `AddRef`/`Release` ownership is wrong, and how would RAII prevent it? | COM-004, with the `ComPtr` sketch; CPP-029 to CPP-038 for ownership generally |
+| Why can an STA deadlock when its thread blocks without pumping messages? | COM-022, COM-021, COM-019; ROLE-009 for the worker/UI variant |
+| How would an exception inside native code be translated to a stable COM error? | COM-009, including the `catch` at the ABI boundary; ROLE-003 for the C++/JS direction |
+| How would you move a large two-dimensional dataset between C++ and Excel efficiently? | COM-027, COM-028, COM-034 |
+| Why is per-cell automation slow, and how would you prove where the time goes? | COM-026 for why; "The Performance and Profiling Answer" above for how to prove it, naming the five latency components |
+| How would you keep background computation from using stale workbook state? | COM-041 - generation counter, the three kinds of staleness, out-of-order completion |
+| What is the difference between a COM Add-In, an XLL and an Office.js add-in? | COM-029 for the comparison; COM-030, COM-031, COM-037 for each one |
+| How would you investigate an add-in that loads on one machine but not another? | COM-032 - `LoadBehavior`, demotion on a failing `OnConnection`, `HKCU` vs `HKLM`, bitness |
+| How do promise microtasks and timer/I/O callbacks differ in JavaScript ordering? | JS-007, JS-008, JS-009, JS-010; JS-012 for the Node.js phases |
+| When would Node.js worker threads help, and when would batching be the better fix? | JS-014, JS-015; ROLE-004 and ROLE-008 for the C++ side of the same decision |
+| What contract would you put between a C++ calculation engine and a JavaScript UI? | ROLE-001, ROLE-002, ROLE-003 |
+| How would you test update bursts, workbook closure and shutdown races? | COM-042 - fake sink, injected clock, what cannot be unit tested and needs a hosted suite |
+
+Three more that are likely for this vacancy specifically and are also covered: how twenty thousand updates per second reach a ten-hertz display (ROLE-006, naming RTD, then COM-035 and COM-036); which `Application` settings speed up a bulk write and why they must be restored (COM-033); and what `context.sync()` does and why one call per loop iteration is the Office.js version of per-cell COM (COM-038).
+
+If a live-coding stage is confirmed, the coded forms of two of these are in [Live Coding Scaffold](<../Technical Interview/Live Coding Scaffold.md>).
 
 ## 06 Practical Preparation Plan
 
@@ -285,7 +295,7 @@ If the product actually uses Office.js, replace the native prototype with a Scri
 | 4. JavaScript and design | Review async ordering, cancellation/backpressure and rehearse the update-pipeline design |
 | 5. Evidence and mock interview | Deliver three stories, answer the gap directly and record weak follow-up questions for one final review |
 
-**Compressed to three evenings when the interview is days away, not weeks.** Evening one is the Script Lab exercise above, because it is the only item that converts a gap into something sayable and it is the one thing that cannot be done from reading. Evening two is the technology comparison, the Excel performance controls, RTD and asynchronous UDFs, and Office.js - sessions 2 to 4 collapsed onto the bank questions rather than onto sources. Evening three is spoken delivery only: the three-minute introduction, the three stories and the gap answer, aloud, in English, against a timer, plus two decisions that take fifteen minutes each - the salary range to state, and confirming with the recruiter which stage this is and whether it includes live coding. The morning of the interview is for the readiness check and the questions list, not for new material.
+**Compressed to three evenings when the interview is days away, not weeks.** Evening one is the Script Lab exercise above, because it is the only item that converts a gap into something sayable and it is the one thing that cannot be done from reading. Evening two is the technology comparison, the Excel performance controls, RTD and asynchronous UDFs, and Office.js - sessions 2 to 4 collapsed onto the bank questions rather than onto sources. If the recruiter confirms a live-coding stage, add one pass through [Live Coding Scaffold](<../Technical Interview/Live Coding Scaffold.md>) on evening two: type the project once so the build system is not something to recall while being watched, and rehearse exercise two aloud, since it is the coded form of ROLE-006. Evening three is spoken delivery only: the three-minute introduction, the three stories and the gap answer, aloud, in English, against a timer, plus two decisions that take fifteen minutes each - the salary range to state, and confirming with the recruiter which stage this is and whether it includes live coding. The morning of the interview is for the readiness check and the questions list, not for new material.
 
 ### Ready-for-Interview Check
 
