@@ -118,37 +118,63 @@ Use this table to choose evidence, not as a script to recite. `Adjacent` means t
 | English B2+ | Match | B2 graded at Streamline; working language throughout EPAM and Innowise | Keep the stated level at B2 and demonstrate it in the interview | Interview itself |
 | Finance, VBA, real-time trading integration and Office.js | Gap / nice-to-have | Numerical and industrial data-processing background only | No demonstrated professional experience in these named areas | State plainly |
 
-## 04 Three Stories to Prepare
+## 04 Three Stories, Written Out
 
-Each story should take two minutes and follow context, personal responsibility, action, result and lesson. Add exact numbers only when a project document supports them.
+Non-technical questions outside these three - a decision you would defend, a time you were wrong, a disagreement, the hardest bug, mentoring, weakness, deadlines, why you, and salary - are answered in [Behavioral Questions](<../Behavioral Questions.md>).
+
+Each is about two minutes spoken. They are written to be said, not read - the wording is the deliverable, because a story assembled live from bullet points arrives as a list of facts instead of as a story. Rehearse aloud; adjust the wording to sound like you, but keep the ownership boundaries exactly as they are.
 
 ### Story 1 - C++ and JavaScript Across One Data Flow
 
-- **Context:** an established EPAM product processed industrial sensor measurements in C++17, stored results in MySQL and exposed them through JavaScript-based workflows.
-- **Responsibility:** implement a feature or correct a defect that crossed the native and user-facing layers.
-- **Action to explain:** reproduce with representative input, trace one value through parsing, calculation, persistence and JavaScript presentation, then change the layer that owned the incorrect behavior.
-- **Result to prepare:** the exact behavior restored and how developer and QA validation covered the whole path.
-- **Boundary:** JavaScript was occasional work; do not invent a framework, dataset size or performance number.
+*Use for: cross-language integration, debugging across layers, working in inherited code, joining a codebase quickly.*
+
+"At EPAM, from October to December 2021, I worked on a system that processed industrial sensor data for an oilfield-services company. C++17 parsed and analysed incoming measurements, results went into MySQL, and JavaScript inside the product exposed them through the user-facing workflows. The whole thing ran in Azure. Five C++ engineers at EPAM, a separate QA organisation in India, and the customer in the United States.
+
+The thing that shaped the engineering is that one measurement existed in five forms at once: raw input, parsed C++ state, a calculated value, a database record, and something a user looked at. A defect could originate at any of those points and surface far from its cause.
+
+So a typical task started as 'this number is wrong'. My first job was getting representative input that reproduced it. Then I followed the value: what the parser built, what the calculation did with it, what was actually written to MySQL, what the JavaScript layer displayed. Each stage looks innocent in isolation. The fix goes at the layer that actually owned the wrong behaviour, which is regularly not the layer where it was noticed.
+
+I also changed JavaScript when a defect genuinely crossed that boundary, because fixing one side and leaving the other gives you a system that's partially fixed and harder to reason about than before.
+
+In three months I delivered at least four customer-requested features plus defect fixes and cleanup. I'd joined EPAM at junior grade that September, so this was also where I stopped being someone who had learned C++ and became someone who worked in it."
+
+**Boundary if pressed:** JavaScript was occasional work, not a primary responsibility. The MySQL work was application-level integration, not schema design or tuning. Do not invent a dataset size or a performance number.
 
 ### Story 2 - Asynchronous State and Recovery
 
-- **Context:** SIP registration state depended on a customized SDK, primary and backup servers, authentication context, Qt models, provisioning and the real network.
-- **Responsibility:** implement the customized Linphone SDK registration watchdog and primary/backup failover/failback state machine, integrate it into the application and provisioning paths, and add the backup-domain authentication change.
-- **Action to explain:** why the state machine belonged in the SDK, what event sequence exposed the problem, how the Qt application consumed SDK-owned state, and how stale UI or configuration was avoided.
-- **Result to prepare:** the implemented SDK behavior, merged application integration and repeatable physical-device recovery scenario.
-- **Boundary:** the project-specific SDK state machine and its integration were my work; unrelated upstream Linphone code and the rest of the project fork were outside my ownership.
+*Use for: concurrency, asynchronous state, reliability, and for 'tell me about something hard you built'.*
+
+"On the embedded SIP desk-phone platform I implemented the registration watchdog and the primary/backup failover and failback logic in the customised Linphone SDK, then integrated it through the Qt application and the provisioning path.
+
+The requirement sounds small - support a backup SIP server - and it isn't. Storing two addresses is the easy part. The system has to know which server is currently active, keep registration and authentication context coherent across a switch, update the Qt models so the UI isn't showing a server the phone is no longer registered to, and persist and generate configuration that stays compatible with what's already deployed.
+
+My first approach was to do the switching at application level. That was wrong, and I reverted it. The state belonged in the SDK, because the SDK owns registration and it was the only place that could see the transitions in order - at application level I was reconstructing state I could only observe second-hand and always slightly late.
+
+So I implemented the watchdog and the failover/failback state machine in the SDK, added a backup-domain field to the SDK's AuthInfo so authentication survived the switch, and had the application consume SDK-owned state rather than maintain its own copy. That last rule is what stopped the UI and the persisted configuration drifting apart.
+
+The result is that a deployed phone keeps working when the primary server becomes unavailable and returns to it automatically once it recovers, and the recovery is reproducible as a scenario on a physical device rather than something we hoped about. The application integration was merged."
+
+**Boundary if pressed:** the watchdog, the failover/failback logic and the AuthInfo change were mine; unrelated upstream Linphone code and the rest of the project fork were not.
 
 ### Story 3 - Durable Windows Application State
 
-- **Context:** administrators needed to save a provisioning project, reopen it, adjust it and generate phone configuration again.
-- **Responsibility:** make project save/load explicit and consistent in the C#/.NET WinForms tool.
-- **Action to explain:** gather UI state into a structured model, serialize deliberately, restore defaults and fields predictably, and keep format evolution reviewable.
-- **Result to prepare:** a saved setup could be reopened and reused rather than reconstructed manually.
-- **Boundary:** this is Windows desktop delivery, not Office integration.
+*Use for: Windows delivery, API and format evolution, deliberate design tradeoffs, and 'a decision you'd defend'.*
+
+"On the same product I extended the Windows provisioning tool - C# and WinForms - that administrators use to configure phones in bulk. One thing it couldn't do was save a project: you set up a configuration, and next time you reconstructed it by hand.
+
+The obvious implementation is to serialise the control tree generically. It's about twenty lines and it works on the first day. I deliberately didn't do that, and this is the decision I'd defend: a generic dump makes the file format an accident of the UI layout. Rename a control, reorder a panel, and old files break in ways nobody can review, because the format was never written down anywhere.
+
+Instead I built explicit project-state objects - gather the state into them deliberately, restore from them deliberately. The cost is real and I'd state it up front: every new field needs mapping work, so the cheap path is genuinely cheaper on day one. What you buy is that fields, defaults and schema growth are all visible in a diff, so adding a field is a reviewable change rather than a hope.
+
+The save/load flow shipped in the tool's 2.x line. I also migrated the project from .NET Framework 4.8 to .NET 8 while I was in there.
+
+The reason I bring this up for an Office add-in role is that it's the same problem shape: a persisted format that outlives the code that wrote it, and the choice between convenient serialisation now and reviewable evolution later."
+
+**Boundary if pressed:** this is Windows desktop delivery, not Office integration.
 
 ### Backup Story - Cross-Component Production Debugging
 
-Use the integrated library platform when the interviewer wants legacy C, Linux, gdb/core dumps or a failure whose visible component was not the component at fault.
+Use the integrated library platform when the interviewer wants legacy C, Linux, gdb and core dumps, or a failure whose visible component was not the component at fault: C89 modules inside a decades-old platform whose vendor serves 9,000+ libraries, with Java and Scala services calling into the C core, diagnosed over SSH on AWS EC2 Linux hosts. The ten-minute version is in `SelfIntro.md`.
 
 ## 05 Technical Preparation
 
