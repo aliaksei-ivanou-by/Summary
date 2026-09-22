@@ -10,7 +10,7 @@
 | `SelfIntro.md` | All periods | Spoken self-introductions, bridges and a deep dive for each project and for the 2020-2021 transition |
 | `Certificates and Continuing Education.md` | All periods | What each credential is, and what may and may not be claimed |
 | `Vacancy Preparation/` | N/A | Preparation for named openings: the two templates, the shared question banks, and one folder per vacancy. The worked example is `Vacancy Preparation. EPAM Senior C++ Developer, Excel COM Add-In/` - opening answer, requirement-to-evidence table, honest scope of each claim, and a separate technical-interview file |
-| `Vacancy Preparation/Technical Interview/` | N/A | Question banks reused across vacancies, referenced by stable ID rather than copied: C++ core (CPP-001-163), COM and Excel (COM-001-028), JavaScript and Node.js (JS-001-016) |
+| `Vacancy Preparation/Technical Interview/` | N/A | Question banks reused across vacancies, referenced by stable ID rather than copied: C++ core (CPP-001-163), COM and Excel (COM-001-040), JavaScript and Node.js (JS-001-016), plus a live-coding scaffold with a CMake/GoogleTest project and two worked exercises |
 | `Project Description Template.md` | N/A | The structure every project document follows |
 | `1996-2007. School Years and Pre-University Research.md` | Sep 1996 - Jun 2007 | School, and the analytical chemistry research in 2005-2007 that preceded the degree |
 | `2007-2012. Radiophysics Degree and University Research.md` | Sep 2007 - Jun 2012 | The degree and its record, research background, statistics and clustering, atmospheric physics |
