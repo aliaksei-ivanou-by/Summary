@@ -9,6 +9,7 @@
 | Bank | Coverage |
 |---|---|
 | [C++ Core Questions](<../Technical Interview/C++ Core Questions.md>) | Language, build/link model, STL, ownership, concurrency, algorithms, systems, performance and design |
+| [C Language Questions](<../Technical Interview/C Language Questions.md>) | C89 and later standards, undefined behaviour, memory sections, alignment and packing, strings, function pointers, opaque structs, static and shared libraries, core dumps and sanitizers |
 | [JavaScript and Node.js Questions](<../Technical Interview/JavaScript and Node.js Questions.md>) | JavaScript semantics, promises, event loop, Node.js, libuv, workers and streams |
 | [COM and Excel Questions](<../Technical Interview/COM and Excel Questions.md>) | COM fundamentals, apartments/marshaling, add-in lifecycle, Excel object-model performance, add-in technologies, RTD and Office.js |
 | [Live Coding Scaffold](<../Technical Interview/Live Coding Scaffold.md>) | CMake/GoogleTest scaffold, clarifying questions, and two exercises: a range block into native data, and coalescing a fast feed for a slow consumer |
