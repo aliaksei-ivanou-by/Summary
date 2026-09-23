@@ -29,6 +29,7 @@ For the link to the main preparation, use the exact relative filename inside ang
 | Bank | Relative link | Relevant sections / IDs |
 |---|---|---|
 | C++ | [C++ Core Questions](<./Technical Interview/C++ Core Questions.md>) | [Select stable IDs instead of copying answers.] |
+| C | [C Language Questions](<./Technical Interview/C Language Questions.md>) | [Select stable IDs.] |
 | JavaScript / Node.js | [JavaScript and Node.js Questions](<./Technical Interview/JavaScript and Node.js Questions.md>) | [Select stable IDs.] |
 | COM / Excel | [COM and Excel Questions](<./Technical Interview/COM and Excel Questions.md>) | [Select stable IDs.] |
 | Live coding | [Live Coding Scaffold](<./Technical Interview/Live Coding Scaffold.md>) | Build-and-test scaffold, the clarifying questions to ask first, and two worked exercises |
