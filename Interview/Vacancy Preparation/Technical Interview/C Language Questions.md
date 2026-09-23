@@ -8,40 +8,36 @@ Answers follow the same shape as the other banks: a short answer that can be sai
 
 ## Language and Standards (C-001–C-005)
 
-- [C-001. What does "C89" actually mean, and what did C99, C11 and C17 add?](#question-c-001)
-- [C-002. What is undefined behaviour in C, and which cases must you know?](#question-c-002)
-- [C-003. `struct` vs `typedef struct`?](#question-c-003)
-- [C-004. What do `static`, `extern`, `const`, `volatile` and `restrict` mean in C?](#question-c-004)
-- [C-005. How does C handle errors without exceptions?](#question-c-005)
+|  |  |  |
+|---|---|---|
+| [C-001. What does "C89" actually mean, and what did C99, C11 and C17 add?](#question-c-001) | [C-002. What is undefined behaviour in C, and which cases must you know?](#question-c-002) | [C-003. `struct` vs `typedef struct`?](#question-c-003) |
+| [C-004. What do `static`, `extern`, `const`, `volatile` and `restrict` mean in C?](#question-c-004) | [C-005. How does C handle errors without exceptions?](#question-c-005) |  |
 
 ## Memory and Data Layout (C-006–C-011)
 
-- [C-006. What are a program's memory sections?](#question-c-006)
-- [C-007. `malloc`, `calloc`, `realloc`, `free` - what are the traps?](#question-c-007)
-- [C-008. How do alignment and padding work in a struct?](#question-c-008)
-- [C-009. What is a packed struct, and what does it cost?](#question-c-009)
-- [C-010. What is a flexible array member?](#question-c-010)
-- [C-011. What do you need to know about C strings?](#question-c-011)
+|  |  |  |
+|---|---|---|
+| [C-006. What are a program's memory sections?](#question-c-006) | [C-007. `malloc`, `calloc`, `realloc`, `free` - what are the traps?](#question-c-007) | [C-008. How do alignment and padding work in a struct?](#question-c-008) |
+| [C-009. What is a packed struct, and what does it cost?](#question-c-009) | [C-010. What is a flexible array member?](#question-c-010) | [C-011. What do you need to know about C strings?](#question-c-011) |
 
 ## Interfaces and Modularity (C-012–C-015)
 
-- [C-012. What are function pointers used for in C?](#question-c-012)
-- [C-013. What is an opaque struct, and why is it the main encapsulation tool in C?](#question-c-013)
-- [C-014. What belongs in a header, and when do you forward-declare?](#question-c-014)
-- [C-015. What are the traps of the C preprocessor?](#question-c-015)
+|  |  |  |
+|---|---|---|
+| [C-012. What are function pointers used for in C?](#question-c-012) | [C-013. What is an opaque struct, and why is it the main encapsulation tool in C?](#question-c-013) | [C-014. What belongs in a header, and when do you forward-declare?](#question-c-014) |
+| [C-015. What are the traps of the C preprocessor?](#question-c-015) |  |  |
 
 ## Build, Link and Load (C-016–C-018)
 
-- [C-016. What are the stages from C source to a running program?](#question-c-016)
-- [C-017. Static vs shared libraries in C?](#question-c-017)
-- [C-018. How does a shared library get found and loaded, and how do you override one?](#question-c-018)
+|  |  |  |
+|---|---|---|
+| [C-016. What are the stages from C source to a running program?](#question-c-016) | [C-017. Static vs shared libraries in C?](#question-c-017) | [C-018. How does a shared library get found and loaded, and how do you override one?](#question-c-018) |
 
 ## Debugging (C-019–C-020)
 
-- [C-019. How do you debug a C crash from a core dump?](#question-c-019)
-- [C-020. Valgrind or sanitizers?](#question-c-020)
-
----
+|  |  |  |
+|---|---|---|
+| [C-019. How do you debug a C crash from a core dump?](#question-c-019) | [C-020. Valgrind or sanitizers?](#question-c-020) |  |
 
 # 1. Language and Standards
 
