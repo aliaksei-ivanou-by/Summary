@@ -10,214 +10,133 @@ Questions use stable topic-specific IDs. Every answer begins with a short bullet
 
 ## Modern C++ (CPP-001–CPP-020)
 
-- [CPP-001. What are the Rule of Zero, Three, Five, and the so-called Seven/Ten variants?](#question-cpp-001)
-- [CPP-002. What does `std::move` actually do?](#question-cpp-002)
-- [CPP-003. What is the difference between lvalue and rvalue?](#question-cpp-003)
-- [CPP-004. What are prvalue, xvalue and glvalue?](#question-cpp-004)
-- [CPP-005. What is a forwarding reference?](#question-cpp-005)
-- [CPP-006. What is `std::forward` used for?](#question-cpp-006)
-- [CPP-007. Why should move constructors often be `noexcept`?](#question-cpp-007)
-- [CPP-008. When does the compiler generate a move constructor?](#question-cpp-008)
-- [CPP-009. What is copy elision?](#question-cpp-009)
-- [CPP-010. Why can `const T&` bind to a temporary?](#question-cpp-010)
-- [CPP-011. When does lifetime extension not work?](#question-cpp-011)
-- [CPP-012. What is the difference between `auto` and `decltype(auto)`?](#question-cpp-012)
-- [CPP-013. What is `decltype`?](#question-cpp-013)
-- [CPP-014. What is `explicit` used for?](#question-cpp-014)
-- [CPP-015. What do `= default` and `= delete` mean?](#question-cpp-015)
-- [CPP-016. What is undefined behavior?](#question-cpp-016)
-- [CPP-017. Undefined vs unspecified vs implementation-defined behavior?](#question-cpp-017)
-- [CPP-018. What is the as-if rule?](#question-cpp-018)
-- [CPP-019. What is `volatile` for?](#question-cpp-019)
-- [CPP-020. Can you add things to namespace `std`?](#question-cpp-020)
+|  |  |  |
+|---|---|---|
+| [CPP-001. What are the Rule of Zero, Three, Five, and the so-called Seven/Ten variants?](#question-cpp-001) | [CPP-002. What does `std::move` actually do?](#question-cpp-002) | [CPP-003. What is the difference between lvalue and rvalue?](#question-cpp-003) |
+| [CPP-004. What are prvalue, xvalue and glvalue?](#question-cpp-004) | [CPP-005. What is a forwarding reference?](#question-cpp-005) | [CPP-006. What is `std::forward` used for?](#question-cpp-006) |
+| [CPP-007. Why should move constructors often be `noexcept`?](#question-cpp-007) | [CPP-008. When does the compiler generate a move constructor?](#question-cpp-008) | [CPP-009. What is copy elision?](#question-cpp-009) |
+| [CPP-010. Why can `const T&` bind to a temporary?](#question-cpp-010) | [CPP-011. When does lifetime extension not work?](#question-cpp-011) | [CPP-012. What is the difference between `auto` and `decltype(auto)`?](#question-cpp-012) |
+| [CPP-013. What is `decltype`?](#question-cpp-013) | [CPP-014. What is `explicit` used for?](#question-cpp-014) | [CPP-015. What do `= default` and `= delete` mean?](#question-cpp-015) |
+| [CPP-016. What is undefined behavior?](#question-cpp-016) | [CPP-017. Undefined vs unspecified vs implementation-defined behavior?](#question-cpp-017) | [CPP-018. What is the as-if rule?](#question-cpp-018) |
+| [CPP-019. What is `volatile` for?](#question-cpp-019) | [CPP-020. Can you add things to namespace `std`?](#question-cpp-020) |  |
 
 ## Object Model and OOP (CPP-021–CPP-028)
 
-- [CPP-021. Why does a base class often need a virtual destructor?](#question-cpp-021)
-- [CPP-022. How do virtual functions usually work?](#question-cpp-022)
-- [CPP-023. Is there a vtable per object?](#question-cpp-023)
-- [CPP-024. What happens when calling a virtual function from a constructor or destructor?](#question-cpp-024)
-- [CPP-025. What is object slicing?](#question-cpp-025)
-- [CPP-026. Overloading vs overriding?](#question-cpp-026)
-- [CPP-027. What is virtual inheritance?](#question-cpp-027)
-- [CPP-028. What determines the size of a C++ class?](#question-cpp-028)
+|  |  |  |
+|---|---|---|
+| [CPP-021. Why does a base class often need a virtual destructor?](#question-cpp-021) | [CPP-022. How do virtual functions usually work?](#question-cpp-022) | [CPP-023. Is there a vtable per object?](#question-cpp-023) |
+| [CPP-024. What happens when calling a virtual function from a constructor or destructor?](#question-cpp-024) | [CPP-025. What is object slicing?](#question-cpp-025) | [CPP-026. Overloading vs overriding?](#question-cpp-026) |
+| [CPP-027. What is virtual inheritance?](#question-cpp-027) | [CPP-028. What determines the size of a C++ class?](#question-cpp-028) |  |
 
 ## RAII and Smart Pointers (CPP-029–CPP-038)
 
-- [CPP-029. What is RAII?](#question-cpp-029)
-- [CPP-030. How does `std::unique_ptr` work?](#question-cpp-030)
-- [CPP-031. How should `unique_ptr` be passed to a function?](#question-cpp-031)
-- [CPP-032. How does `shared_ptr` work?](#question-cpp-032)
-- [CPP-033. What is the difference between `make_shared<T>()` and `shared_ptr<T>(new T)`?](#question-cpp-033)
-- [CPP-034. Why is this dangerous?
-](#question-cpp-034)
-- [CPP-035. Why are cyclic `shared_ptr` references a problem?](#question-cpp-035)
-- [CPP-036. What does `weak_ptr::lock()` do?](#question-cpp-036)
-- [CPP-037. What is `enable_shared_from_this`?](#question-cpp-037)
-- [CPP-038. Is `shared_ptr` thread-safe?](#question-cpp-038)
+|  |  |  |
+|---|---|---|
+| [CPP-029. What is RAII?](#question-cpp-029) | [CPP-030. How does `std::unique_ptr` work?](#question-cpp-030) | [CPP-031. How should `unique_ptr` be passed to a function?](#question-cpp-031) |
+| [CPP-032. How does `shared_ptr` work?](#question-cpp-032) | [CPP-033. What is the difference between `make_shared<T>()` and `shared_ptr<T>(new T)`?](#question-cpp-033) | [CPP-034. Why is constructing two `shared_ptr`s from the same raw pointer dangerous?](#question-cpp-034) |
+| [CPP-035. Why are cyclic `shared_ptr` references a problem?](#question-cpp-035) | [CPP-036. What does `weak_ptr::lock()` do?](#question-cpp-036) | [CPP-037. What is `enable_shared_from_this`?](#question-cpp-037) |
+| [CPP-038. Is `shared_ptr` thread-safe?](#question-cpp-038) |  |  |
 
 ## STL and Data Structures (CPP-039–CPP-051)
 
-- [CPP-039. How does `std::vector` work?](#question-cpp-039)
-- [CPP-040. What is the difference between `size()` and `capacity()`?](#question-cpp-040)
-- [CPP-041. `reserve()` vs `resize()`?](#question-cpp-041)
-- [CPP-042. When are vector iterators invalidated?](#question-cpp-042)
-- [CPP-043. Why is `push_back` amortized O(1)?](#question-cpp-043)
-- [CPP-044. Why is `vector` often faster than `list`?](#question-cpp-044)
-- [CPP-045. `map` vs `unordered_map`?](#question-cpp-045)
-- [CPP-046. Why can `unordered_map` become O(n)?](#question-cpp-046)
-- [CPP-047. What is rehashing?](#question-cpp-047)
-- [CPP-048. What is strict weak ordering?](#question-cpp-048)
-- [CPP-049. `push_back` vs `emplace_back`?](#question-cpp-049)
-- [CPP-050. What is `std::string_view`?](#question-cpp-050)
-- [CPP-051. What is `std::span`?](#question-cpp-051)
+|  |  |  |
+|---|---|---|
+| [CPP-039. How does `std::vector` work?](#question-cpp-039) | [CPP-040. What is the difference between `size()` and `capacity()`?](#question-cpp-040) | [CPP-041. `reserve()` vs `resize()`?](#question-cpp-041) |
+| [CPP-042. When are vector iterators invalidated?](#question-cpp-042) | [CPP-043. Why is `push_back` amortized O(1)?](#question-cpp-043) | [CPP-044. Why is `vector` often faster than `list`?](#question-cpp-044) |
+| [CPP-045. `map` vs `unordered_map`?](#question-cpp-045) | [CPP-046. Why can `unordered_map` become O(n)?](#question-cpp-046) | [CPP-047. What is rehashing?](#question-cpp-047) |
+| [CPP-048. What is strict weak ordering?](#question-cpp-048) | [CPP-049. `push_back` vs `emplace_back`?](#question-cpp-049) | [CPP-050. What is `std::string_view`?](#question-cpp-050) |
+| [CPP-051. What is `std::span`?](#question-cpp-051) |  |  |
 
 ## Multithreading and Memory Model (CPP-052–CPP-070)
 
-- [CPP-052. What is a data race?](#question-cpp-052)
-- [CPP-053. Race condition vs data race?](#question-cpp-053)
-- [CPP-054. What does a mutex provide?](#question-cpp-054)
-- [CPP-055. `lock_guard` vs `unique_lock`?](#question-cpp-055)
-- [CPP-056. What is `scoped_lock`?](#question-cpp-056)
-- [CPP-057. What causes deadlock?](#question-cpp-057)
-- [CPP-058. What is a condition variable?](#question-cpp-058)
-- [CPP-059. Why must condition variables use a predicate?](#question-cpp-059)
-- [CPP-060. What is `std::atomic`?](#question-cpp-060)
-- [CPP-061. Atomic vs mutex?](#question-cpp-061)
-- [CPP-062. What is compare-and-swap?](#question-cpp-062)
-- [CPP-063. `compare_exchange_weak` vs `strong`?](#question-cpp-063)
-- [CPP-064. What is `memory_order_relaxed`?](#question-cpp-064)
-- [CPP-065. What are acquire and release semantics?](#question-cpp-065)
-- [CPP-066. What is happens-before?](#question-cpp-066)
-- [CPP-067. What is sequential consistency?](#question-cpp-067)
-- [CPP-068. What is false sharing?](#question-cpp-068)
-- [CPP-069. How would you implement producer-consumer?](#question-cpp-069)
-- [CPP-070. How would you make a thread-safe queue?](#question-cpp-070)
+|  |  |  |
+|---|---|---|
+| [CPP-052. What is a data race?](#question-cpp-052) | [CPP-053. Race condition vs data race?](#question-cpp-053) | [CPP-054. What does a mutex provide?](#question-cpp-054) |
+| [CPP-055. `lock_guard` vs `unique_lock`?](#question-cpp-055) | [CPP-056. What is `scoped_lock`?](#question-cpp-056) | [CPP-057. What causes deadlock?](#question-cpp-057) |
+| [CPP-058. What is a condition variable?](#question-cpp-058) | [CPP-059. Why must condition variables use a predicate?](#question-cpp-059) | [CPP-060. What is `std::atomic`?](#question-cpp-060) |
+| [CPP-061. Atomic vs mutex?](#question-cpp-061) | [CPP-062. What is compare-and-swap?](#question-cpp-062) | [CPP-063. `compare_exchange_weak` vs `strong`?](#question-cpp-063) |
+| [CPP-064. What is `memory_order_relaxed`?](#question-cpp-064) | [CPP-065. What are acquire and release semantics?](#question-cpp-065) | [CPP-066. What is happens-before?](#question-cpp-066) |
+| [CPP-067. What is sequential consistency?](#question-cpp-067) | [CPP-068. What is false sharing?](#question-cpp-068) | [CPP-069. How would you implement producer-consumer?](#question-cpp-069) |
+| [CPP-070. How would you make a thread-safe queue?](#question-cpp-070) |  |  |
 
 ## Performance (CPP-071–CPP-079)
 
-- [CPP-071. How do you investigate a performance problem?](#question-cpp-071)
-- [CPP-072. Latency vs throughput?](#question-cpp-072)
-- [CPP-073. What are P50, P95 and P99?](#question-cpp-073)
-- [CPP-074. What is batching?](#question-cpp-074)
-- [CPP-075. What is throttling?](#question-cpp-075)
-- [CPP-076. What is coalescing?](#question-cpp-076)
-- [CPP-077. What is backpressure?](#question-cpp-077)
-- [CPP-078. Why can allocation be expensive?](#question-cpp-078)
-- [CPP-079. How do you reduce allocation overhead?](#question-cpp-079)
+|  |  |  |
+|---|---|---|
+| [CPP-071. How do you investigate a performance problem?](#question-cpp-071) | [CPP-072. Latency vs throughput?](#question-cpp-072) | [CPP-073. What are P50, P95 and P99?](#question-cpp-073) |
+| [CPP-074. What is batching?](#question-cpp-074) | [CPP-075. What is throttling?](#question-cpp-075) | [CPP-076. What is coalescing?](#question-cpp-076) |
+| [CPP-077. What is backpressure?](#question-cpp-077) | [CPP-078. Why can allocation be expensive?](#question-cpp-078) | [CPP-079. How do you reduce allocation overhead?](#question-cpp-079) |
 
 ## Windows and Debugging (CPP-080–CPP-085)
 
-- [CPP-080. Static vs dynamic library?](#question-cpp-080)
-- [CPP-081. What are `LoadLibrary` and `GetProcAddress`?](#question-cpp-081)
-- [CPP-082. Why is `DllMain` dangerous for complex work?](#question-cpp-082)
-- [CPP-083. How would you debug a host-process crash caused by a native plug-in?](#question-cpp-083)
-- [CPP-084. How would you investigate a deadlock?](#question-cpp-084)
-- [CPP-085. How would you debug a bug that appears only after several hours?](#question-cpp-085)
+|  |  |  |
+|---|---|---|
+| [CPP-080. Static vs dynamic library?](#question-cpp-080) | [CPP-081. What are `LoadLibrary` and `GetProcAddress`?](#question-cpp-081) | [CPP-082. Why is `DllMain` dangerous for complex work?](#question-cpp-082) |
+| [CPP-083. How would you debug a host-process crash caused by a native plug-in?](#question-cpp-083) | [CPP-084. How would you investigate a deadlock?](#question-cpp-084) | [CPP-085. How would you debug a bug that appears only after several hours?](#question-cpp-085) |
 
 ## Rapid-Fire C++ (CPP-086–CPP-096)
 
-- [CPP-086. `new` vs `malloc`?](#question-cpp-086)
-- [CPP-087. `delete` vs `delete[]`?](#question-cpp-087)
-- [CPP-088. What is placement new?](#question-cpp-088)
-- [CPP-089. What is `std::terminate`?](#question-cpp-089)
-- [CPP-090. What is stack unwinding?](#question-cpp-090)
-- [CPP-091. Strong exception guarantee?](#question-cpp-091)
-- [CPP-092. What is copy-and-swap?](#question-cpp-092)
-- [CPP-093. What is ODR?](#question-cpp-093)
-- [CPP-094. What does `inline` really mean?](#question-cpp-094)
-- [CPP-095. What is ABI?](#question-cpp-095)
-- [CPP-096. What is name mangling?](#question-cpp-096)
+|  |  |  |
+|---|---|---|
+| [CPP-086. `new` vs `malloc`?](#question-cpp-086) | [CPP-087. `delete` vs `delete[]`?](#question-cpp-087) | [CPP-088. What is placement new?](#question-cpp-088) |
+| [CPP-089. What is `std::terminate`?](#question-cpp-089) | [CPP-090. What is stack unwinding?](#question-cpp-090) | [CPP-091. Strong exception guarantee?](#question-cpp-091) |
+| [CPP-092. What is copy-and-swap?](#question-cpp-092) | [CPP-093. What is ODR?](#question-cpp-093) | [CPP-094. What does `inline` really mean?](#question-cpp-094) |
+| [CPP-095. What is ABI?](#question-cpp-095) | [CPP-096. What is name mangling?](#question-cpp-096) |  |
 
 ## Build Model, Language Details and Templates (CPP-097–CPP-114)
 
-- [CPP-097. What is a translation unit, and how does C++ source become an executable?](#question-cpp-097)
-- [CPP-098. What belongs in a header, and include guards vs `#pragma once`?](#question-cpp-098)
-- [CPP-099. Forward declaration vs `#include`?](#question-cpp-099)
-- [CPP-100. How do C/C++ macros work, and what are the common traps?](#question-cpp-100)
-- [CPP-101. Declaration vs definition?](#question-cpp-101)
-- [CPP-102. What are internal, external and no linkage?](#question-cpp-102)
-- [CPP-103. What should you know about fundamental types, `nullptr` and `std::byte`?](#question-cpp-103)
-- [CPP-104. What are integer promotions and usual arithmetic conversions?](#question-cpp-104)
-- [CPP-105. `enum` vs `enum class`?](#question-cpp-105)
-- [CPP-106. How does `const` work with pointers and member functions?](#question-cpp-106)
-- [CPP-107. When should each C++ cast be used?](#question-cpp-107)
-- [CPP-108. What initialization forms exist, and why use braces carefully?](#question-cpp-108)
-- [CPP-109. `constexpr` vs `consteval` vs `constinit`?](#question-cpp-109)
-- [CPP-110. How do lambda captures work, and what can dangle?](#question-cpp-110)
-- [CPP-111. How do template instantiation and specialization work?](#question-cpp-111)
-- [CPP-112. What are variadic templates and fold expressions?](#question-cpp-112)
-- [CPP-113. SFINAE vs concepts and `requires`?](#question-cpp-113)
-- [CPP-114. Which C++20/C++23 features are most relevant in production?](#question-cpp-114)
+|  |  |  |
+|---|---|---|
+| [CPP-097. What is a translation unit, and how does C++ source become an executable?](#question-cpp-097) | [CPP-098. What belongs in a header, and include guards vs `#pragma once`?](#question-cpp-098) | [CPP-099. Forward declaration vs `#include`?](#question-cpp-099) |
+| [CPP-100. How do C/C++ macros work, and what are the common traps?](#question-cpp-100) | [CPP-101. Declaration vs definition?](#question-cpp-101) | [CPP-102. What are internal, external and no linkage?](#question-cpp-102) |
+| [CPP-103. What should you know about fundamental types, `nullptr` and `std::byte`?](#question-cpp-103) | [CPP-104. What are integer promotions and usual arithmetic conversions?](#question-cpp-104) | [CPP-105. `enum` vs `enum class`?](#question-cpp-105) |
+| [CPP-106. How does `const` work with pointers and member functions?](#question-cpp-106) | [CPP-107. When should each C++ cast be used?](#question-cpp-107) | [CPP-108. What initialization forms exist, and why use braces carefully?](#question-cpp-108) |
+| [CPP-109. `constexpr` vs `consteval` vs `constinit`?](#question-cpp-109) | [CPP-110. How do lambda captures work, and what can dangle?](#question-cpp-110) | [CPP-111. How do template instantiation and specialization work?](#question-cpp-111) |
+| [CPP-112. What are variadic templates and fold expressions?](#question-cpp-112) | [CPP-113. SFINAE vs concepts and `requires`?](#question-cpp-113) | [CPP-114. Which C++20/C++23 features are most relevant in production?](#question-cpp-114) |
 
 ## STL and Concurrency Extensions (CPP-115–CPP-128)
 
-- [CPP-115. How do you choose between `vector`, `deque`, `list` and `forward_list`?](#question-cpp-115)
-- [CPP-116. How do `map`/`set` differ from their `multi` variants?](#question-cpp-116)
-- [CPP-117. What contract must a hash function and equality predicate satisfy?](#question-cpp-117)
-- [CPP-118. What are iterator categories and why do they matter?](#question-cpp-118)
-- [CPP-119. Why prefer STL algorithms and ranges to handwritten loops?](#question-cpp-119)
-- [CPP-120. What are the erase-remove idiom and `std::erase_if`?](#question-cpp-120)
-- [CPP-121. `lower_bound` vs `upper_bound` vs `equal_range`?](#question-cpp-121)
-- [CPP-122. What is `std::optional`, and when should it not be used?](#question-cpp-122)
-- [CPP-123. `std::variant` vs `std::any`?](#question-cpp-123)
-- [CPP-124. When should you use `pair`, `tuple` and structured bindings?](#question-cpp-124)
-- [CPP-125. How should `std::chrono` be used?](#question-cpp-125)
-- [CPP-126. `std::thread`: `join`/`detach` vs `std::jthread`?](#question-cpp-126)
-- [CPP-127. How do `future`, `promise` and `async` work?](#question-cpp-127)
-- [CPP-128. When is `shared_mutex` useful?](#question-cpp-128)
+|  |  |  |
+|---|---|---|
+| [CPP-115. How do you choose between `vector`, `deque`, `list` and `forward_list`?](#question-cpp-115) | [CPP-116. How do `map`/`set` differ from their `multi` variants?](#question-cpp-116) | [CPP-117. What contract must a hash function and equality predicate satisfy?](#question-cpp-117) |
+| [CPP-118. What are iterator categories and why do they matter?](#question-cpp-118) | [CPP-119. Why prefer STL algorithms and ranges to handwritten loops?](#question-cpp-119) | [CPP-120. What are the erase-remove idiom and `std::erase_if`?](#question-cpp-120) |
+| [CPP-121. `lower_bound` vs `upper_bound` vs `equal_range`?](#question-cpp-121) | [CPP-122. What is `std::optional`, and when should it not be used?](#question-cpp-122) | [CPP-123. `std::variant` vs `std::any`?](#question-cpp-123) |
+| [CPP-124. When should you use `pair`, `tuple` and structured bindings?](#question-cpp-124) | [CPP-125. How should `std::chrono` be used?](#question-cpp-125) | [CPP-126. `std::thread`: `join`/`detach` vs `std::jthread`?](#question-cpp-126) |
+| [CPP-127. How do `future`, `promise` and `async` work?](#question-cpp-127) | [CPP-128. When is `shared_mutex` useful?](#question-cpp-128) |  |
 
 ## Systems and Networking Foundations (CPP-129–CPP-139)
 
-- [CPP-129. Process vs thread, and what is a context switch?](#question-cpp-129)
-- [CPP-130. What are a call stack and a stack frame?](#question-cpp-130)
-- [CPP-131. How do virtual memory, page faults and the TLB relate?](#question-cpp-131)
-- [CPP-132. How do cache hierarchy, alignment and padding affect performance?](#question-cpp-132)
-- [CPP-133. What is endianness?](#question-cpp-133)
-- [CPP-134. System calls vs interrupts, CPU exceptions and OS signals?](#question-cpp-134)
-- [CPP-135. What IPC mechanisms would you choose between?](#question-cpp-135)
-- [CPP-136. TCP vs UDP, and why does TCP need message framing?](#question-cpp-136)
-- [CPP-137. What is the socket lifecycle, and how do I/O multiplexers help?](#question-cpp-137)
-- [CPP-138. HTTP vs HTTPS vs WebSocket?](#question-cpp-138)
-- [CPP-139. Livelock and starvation vs deadlock?](#question-cpp-139)
+|  |  |  |
+|---|---|---|
+| [CPP-129. Process vs thread, and what is a context switch?](#question-cpp-129) | [CPP-130. What are a call stack and a stack frame?](#question-cpp-130) | [CPP-131. How do virtual memory, page faults and the TLB relate?](#question-cpp-131) |
+| [CPP-132. How do cache hierarchy, alignment and padding affect performance?](#question-cpp-132) | [CPP-133. What is endianness?](#question-cpp-133) | [CPP-134. System calls vs interrupts, CPU exceptions and OS signals?](#question-cpp-134) |
+| [CPP-135. What IPC mechanisms would you choose between?](#question-cpp-135) | [CPP-136. TCP vs UDP, and why does TCP need message framing?](#question-cpp-136) | [CPP-137. What is the socket lifecycle, and how do I/O multiplexers help?](#question-cpp-137) |
+| [CPP-138. HTTP vs HTTPS vs WebSocket?](#question-cpp-138) | [CPP-139. Livelock and starvation vs deadlock?](#question-cpp-139) |  |
 
 ## Software Design and APIs (CPP-140–CPP-149)
 
-- [CPP-140. What do the SOLID principles mean in practice?](#question-cpp-140)
-- [CPP-141. How do DRY, KISS and YAGNI complement each other?](#question-cpp-141)
-- [CPP-142. Why prefer composition over inheritance?](#question-cpp-142)
-- [CPP-143. How do PImpl, header-only and compiled libraries trade off?](#question-cpp-143)
-- [CPP-144. How do common GoF patterns differ?](#question-cpp-144)
-- [CPP-145. Observer vs pub-sub and event-driven architecture?](#question-cpp-145)
-- [CPP-146. Exceptions vs error codes vs `std::expected`?](#question-cpp-146)
-- [CPP-147. How do you evolve an API without breaking source or binary compatibility?](#question-cpp-147)
-- [CPP-148. What does ACID mean?](#question-cpp-148)
-- [CPP-149. How does an LRU cache work?](#question-cpp-149)
+|  |  |  |
+|---|---|---|
+| [CPP-140. What do the SOLID principles mean in practice?](#question-cpp-140) | [CPP-141. How do DRY, KISS and YAGNI complement each other?](#question-cpp-141) | [CPP-142. Why prefer composition over inheritance?](#question-cpp-142) |
+| [CPP-143. How do PImpl, header-only and compiled libraries trade off?](#question-cpp-143) | [CPP-144. How do common GoF patterns differ?](#question-cpp-144) | [CPP-145. Observer vs pub-sub and event-driven architecture?](#question-cpp-145) |
+| [CPP-146. Exceptions vs error codes vs `std::expected`?](#question-cpp-146) | [CPP-147. How do you evolve an API without breaking source or binary compatibility?](#question-cpp-147) | [CPP-148. What does ACID mean?](#question-cpp-148) |
+| [CPP-149. How does an LRU cache work?](#question-cpp-149) |  |  |
 
 ## Algorithms and Interview Patterns (CPP-150–CPP-163)
 
-- [CPP-150. How does Floyd's tortoise-and-hare cycle detection work?](#question-cpp-150)
-- [CPP-151. How does Brent's cycle-detection algorithm differ from Floyd's?](#question-cpp-151)
-- [CPP-152. Two pointers vs sliding window?](#question-cpp-152)
-- [CPP-153. How do you write binary search with a correct invariant?](#question-cpp-153)
-- [CPP-154. BFS vs DFS?](#question-cpp-154)
-- [CPP-155. How does Dijkstra's shortest-path algorithm work?](#question-cpp-155)
-- [CPP-156. How does topological sorting work, and how does it detect a cycle?](#question-cpp-156)
-- [CPP-157. How does Union-Find / Disjoint Set Union work?](#question-cpp-157)
-- [CPP-158. How do heaps solve priority and top-K problems?](#question-cpp-158)
-- [CPP-159. How does Kadane's maximum-subarray algorithm work?](#question-cpp-159)
-- [CPP-160. How does Knuth-Morris-Pratt string search work?](#question-cpp-160)
-- [CPP-161. How do you merge overlapping intervals?](#question-cpp-161)
-- [CPP-162. What are prefix sums and difference arrays?](#question-cpp-162)
-- [CPP-163. What are monotonic stacks and queues used for?](#question-cpp-163)
+|  |  |  |
+|---|---|---|
+| [CPP-150. How does Floyd's tortoise-and-hare cycle detection work?](#question-cpp-150) | [CPP-151. How does Brent's cycle-detection algorithm differ from Floyd's?](#question-cpp-151) | [CPP-152. Two pointers vs sliding window?](#question-cpp-152) |
+| [CPP-153. How do you write binary search with a correct invariant?](#question-cpp-153) | [CPP-154. BFS vs DFS?](#question-cpp-154) | [CPP-155. How does Dijkstra's shortest-path algorithm work?](#question-cpp-155) |
+| [CPP-156. How does topological sorting work, and how does it detect a cycle?](#question-cpp-156) | [CPP-157. How does Union-Find / Disjoint Set Union work?](#question-cpp-157) | [CPP-158. How do heaps solve priority and top-K problems?](#question-cpp-158) |
+| [CPP-159. How does Kadane's maximum-subarray algorithm work?](#question-cpp-159) | [CPP-160. How does Knuth-Morris-Pratt string search work?](#question-cpp-160) | [CPP-161. How do you merge overlapping intervals?](#question-cpp-161) |
+| [CPP-162. What are prefix sums and difference arrays?](#question-cpp-162) | [CPP-163. What are monotonic stacks and queues used for?](#question-cpp-163) |  |
 
 ## UI Architecture (CPP-164–CPP-166)
 
-- [CPP-164. MVC, MVP and MVVM - what actually differs?](#question-cpp-164)
-- [CPP-165. What belongs in a view model, and what must not?](#question-cpp-165)
-- [CPP-166. How do you refactor a fat UI class into that shape without stopping delivery?](#question-cpp-166)
-
----
+|  |  |  |
+|---|---|---|
+| [CPP-164. MVC, MVP and MVVM - what actually differs?](#question-cpp-164) | [CPP-165. What belongs in a view model, and what must not?](#question-cpp-165) | [CPP-166. How do you refactor a fat UI class into that shape without stopping delivery?](#question-cpp-166) |
 
 # 1. Modern C++
 
@@ -1754,7 +1673,7 @@ A caveat: when `weak_ptr`s remain, memory containing the combined allocation may
 
 [↑ Back to question index](#question-index)
 
-### Question CPP-034 — Why is this dangerous?
+### Question CPP-034 — Why is constructing two `shared_ptr`s from the same raw pointer dangerous?
 
 ```cpp
 T* p = new T;
