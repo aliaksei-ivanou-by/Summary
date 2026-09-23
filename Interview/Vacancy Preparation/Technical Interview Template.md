@@ -48,7 +48,9 @@ These links are correct for the reusable template at `Vacancy Preparation/`. Aft
 - [ROLE-001 - Question](#question-role-001)
 - [ROLE-002 - Question](#question-role-002)
 
-Use native Markdown headings such as `Question ROLE-001` as jump targets; do not use raw HTML anchors. Keep the return link between that heading and the question text so the question remains visible below the preview's fixed header after a jump.
+Use native Markdown headings such as `Question ROLE-001` as jump targets; do not use raw HTML anchors.
+
+Once a bank passes roughly forty questions, lay the index out as one three-column table per section rather than as a single column of bullets. Every question stays visible - which is the point of an index, since you often do not know which section a question is in - and the list takes about a third of the height. `C++ Core Questions.md` and `COM and Excel Questions.md` are the worked examples. Keep the return link between that heading and the question text so the question remains visible below the preview's fixed header after a jump.
 
 ## 03 Coverage and Priority
 
