@@ -32,6 +32,10 @@ For the link to the main preparation, use the exact relative filename inside ang
 | C | [C Language Questions](<./Technical Interview/C Language Questions.md>) | [Select stable IDs.] |
 | JavaScript / Node.js | [JavaScript and Node.js Questions](<./Technical Interview/JavaScript and Node.js Questions.md>) | [Select stable IDs.] |
 | COM / Excel | [COM and Excel Questions](<./Technical Interview/COM and Excel Questions.md>) | [Select stable IDs.] |
+| Testing | [Testing Questions](<./Technical Interview/Testing Questions.md>) | Theory and levels, C++ frameworks, GoogleTest fixtures and parameterized tests, GoogleMock, threads, time, embedded, legacy, CI |
+| Linux / shell | [Linux and Shell Questions](<./Technical Interview/Linux and Shell Questions.md>) | Filesystem, permissions, links, processes and signals, systemd, redirection, shell scripting, production diagnosis |
+| Build systems | [Build Systems Questions](<./Technical Interview/Build Systems Questions.md>) | Make, target-based CMake, dependencies, cross-compilation, build types, build speed |
+| Containers | [Containers and Orchestration Questions](<./Technical Interview/Containers and Orchestration Questions.md>) | Docker images and layers, multi-stage builds for C++, debugging in a container, Kubernetes objects and probes |
 | Live coding | [Live Coding Scaffold](<./Technical Interview/Live Coding Scaffold.md>) | Build-and-test scaffold, the clarifying questions to ask first, and two worked exercises |
 | Behavioral | [Behavioral Questions](<./Behavioral Questions.md>) | Decision defended, being wrong, disagreement, hardest bug, time zones, mentoring, weakness, deadlines, why you, salary |
 
