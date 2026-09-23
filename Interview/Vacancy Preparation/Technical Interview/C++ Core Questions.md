@@ -138,6 +138,33 @@ Questions use stable topic-specific IDs. Every answer begins with a short bullet
 |---|---|---|
 | [CPP-164. MVC, MVP and MVVM - what actually differs?](#question-cpp-164) | [CPP-165. What belongs in a view model, and what must not?](#question-cpp-165) | [CPP-166. How do you refactor a fat UI class into that shape without stopping delivery?](#question-cpp-166) |
 
+## OOP Principles and Polymorphism (CPP-167–CPP-170)
+
+|  |  |  |
+|---|---|---|
+| [CPP-167. What are the principles of OOP, and what does each one actually buy you?](#question-cpp-167) | [CPP-168. IS-A vs HAS-A - how do you decide?](#question-cpp-168) | [CPP-169. What kinds of polymorphism does C++ have?](#question-cpp-169) |
+| [CPP-170. Abstract class, pure virtual function - how do you model an interface in C++?](#question-cpp-170) |  |  |
+
+## Traps That Pass Review (CPP-171–CPP-178)
+
+|  |  |  |
+|---|---|---|
+| [CPP-171. Why is `std::vector<bool>` not a container of `bool`?](#question-cpp-171) | [CPP-172. What is the static initialization order fiasco, and what fixes it?](#question-cpp-172) | [CPP-173. In what order are function arguments evaluated, and why did that leak before C++17?](#question-cpp-173) |
+| [CPP-174. What goes wrong when signed and unsigned meet in a comparison or a loop?](#question-cpp-174) | [CPP-175. What does `const` on a member function actually guarantee?](#question-cpp-175) | [CPP-176. What is a pure virtual call, and how do you get one?](#question-cpp-176) |
+| [CPP-177. What happens when a constructor throws?](#question-cpp-177) | [CPP-178. What happens when a destructor throws?](#question-cpp-178) |  |
+
+## Algorithms and Iterator Requirements (CPP-179–CPP-181)
+
+|  |  |  |
+|---|---|---|
+| [CPP-179. Will `std::sort` work on a `std::vector`? On a `std::list`?](#question-cpp-179) | [CPP-180. Which sort does the standard library give you, and when do you need `stable_sort`, `partial_sort` or `nth_element`?](#question-cpp-180) | [CPP-181. Why do containers have their own `find` when `std::find` exists?](#question-cpp-181) |
+
+## Lock-Free Concurrency (CPP-182–CPP-184)
+
+|  |  |  |
+|---|---|---|
+| [CPP-182. What does lock-free actually mean?](#question-cpp-182) | [CPP-183. How would you build a single-producer single-consumer queue without locks?](#question-cpp-183) | [CPP-184. What are the ABA and reclamation problems?](#question-cpp-184) |
+
 # 1. Modern C++
 
 ## Question CPP-001
@@ -2470,11 +2497,23 @@ Atomicity alone does not solve every synchronization problem.
 
 **Details and nuances**
 
-Atomics are excellent for simple independent state transitions.
+The interesting half of this question is how an atomic can be **worse** than a mutex, because that is the part people do not expect.
 
-Mutexes are better when several values must be updated consistently or an invariant spans multiple operations.
+**It may not be lock-free at all.** `std::atomic<T>` is required to compile for any trivially copyable `T`, not to be lock-free. For anything wider than the platform's atomic word, the implementation takes a hidden lock - so you get a mutex anyway, with none of the visibility and none of the ability to choose its granularity. `std::atomic<T>::is_always_lock_free` is the compile-time check, and it is worth a `static_assert` in code that depends on the answer.
 
-A lock-free solution is not automatically faster or simpler.
+**Under contention it loses to a mutex.** A CAS loop that fails retries, and retrying means reading the cache line again, which means taking it back from whichever core just wrote it. Sixteen threads incrementing one atomic counter spend their time moving one cache line between cores; a mutex, by contrast, blocks the losers and lets the scheduler run something useful. The atomic version burns CPU to go slower, and the profile looks like the CPU is busy.
+
+**Every write invalidates the line everywhere.** That is the same mechanism as false sharing ([CPP-068](#question-cpp-068)) but with the variable genuinely shared, so padding does not help. The fix is usually to stop sharing the variable - per-thread counters summed at the end, or batching - rather than to make the shared write cheaper.
+
+**Atomics do not compose.** Two atomic variables are not an atomic pair: each operation is indivisible, the sequence of two is not. Code that checks one and then updates the other is a race, and it reads as obviously correct in review because every individual line is atomic. A mutex covering both is correct and honest; the atomic version needs a redesign into one value or a CAS on a combined word.
+
+**Relaxed ordering is where the real bugs are.** `memory_order_relaxed` looks like free speed and silently removes the ordering another thread was relying on. It will almost always still pass on x86, which gives acquire/release semantics nearly for free, and then fail on ARM - so the bug ships from a developer machine that could not reproduce it. Default to the sequentially consistent operations and weaken only with a specific argument for why it is safe.
+
+**Pointer-based lock-free structures add two more problems.** ABA - a value read as A, changed to B and back to A, so the CAS succeeds against state that is not the state you inspected - and reclamation, the question of when it is safe to free a node another thread may still be reading. Solving the second needs hazard pointers, epochs or RCU, and at that point the complexity is far beyond the mutex you were avoiding.
+
+**And the failure mode is worse.** A mutex deadlock appears in a stack trace and points at two threads. A broken lock-free algorithm appears as corrupted data minutes later, on one machine, under load.
+
+So the honest ordering: start with a mutex, keep the critical section small, measure, and move to atomics only where the profile shows lock contention *and* the state is a single value. Lock-free is a guarantee about system-wide progress, not a synonym for fast - and wait-free, which bounds every individual thread, is stronger still and rarer.
 
 [↑ Back to question index](#question-index)
 
@@ -3380,12 +3419,20 @@ RAII relies on this for cleanup.
 
 **Details and nuances**
 
-If an operation fails, program state remains unchanged.
+There are four levels, and naming all four with an example of each is what the question is really asking:
 
-Other common guarantees:
+| Guarantee | Promise if an operation throws | Typical example |
+|---|---|---|
+| No-throw (`noexcept`) | It cannot throw at all | Destructors, `swap`, move operations that should be usable by containers |
+| Strong | State is exactly as before - the operation either fully happened or did not | `vector::push_back` when the element type is nothrow-movable or copyable |
+| Basic | Invariants hold and nothing leaks, but the state may have changed | `vector::insert` in the general case |
+| None | Anything may be true afterwards, including a corrupt object | What you get by default if you never thought about it |
 
-- basic guarantee — invariants preserved, no leaks
-- no-throw guarantee — operation cannot fail by throwing
+The mechanism behind the strong guarantee is always the same: **do all the work that can fail first, into somewhere new, then commit with an operation that cannot fail.** Copy-and-swap is that pattern written down - build a copy, then `swap`, which is `noexcept`.
+
+This is also why move constructors should be `noexcept` ([CPP-007](#question-cpp-007)): `vector` reallocation must keep the strong guarantee, so if moving elements could throw it copies them instead. One missing `noexcept` silently turns every reallocation from moves into copies, and nothing reports it.
+
+The practical decision: aim for the basic guarantee everywhere as a baseline, the strong guarantee where a caller would otherwise have to clean up after a failure, and `noexcept` where the standard requires it or where failure genuinely cannot happen. Promising `noexcept` and then throwing is worse than promising nothing - it calls `std::terminate` ([CPP-089](#question-cpp-089)).
 
 [↑ Back to question index](#question-index)
 
@@ -5502,6 +5549,609 @@ The risk to name honestly if asked: a large refactor near a release is a real ha
 **Example or evidence boundary**
 
 Production experience: a late-project call-architecture refactor introducing explicit session, service, adapter and presentation boundaries, completed as internal engineering work with a large migration surface near the end of the project - which is exactly the risk described above.
+
+[↑ Back to question index](#question-index)
+
+---
+
+# 15. OOP Principles and Polymorphism
+
+## Question CPP-167
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-167 — What are the principles of OOP, and what does each one actually buy you?
+
+**Short answer**
+
+- **Encapsulation**: state is private and reachable only through operations the type defines, so the class can guarantee its own invariants instead of trusting every caller.
+- **Abstraction**: the interface describes what something does; the implementation is free to change. **Inheritance**: a derived type is usable where the base is expected. **Polymorphism**: one call site dispatches to different behaviour.
+- The four are usually recited; what an interviewer is listening for is what each one *costs*, because inheritance in particular is the one that is overused.
+
+**Details and nuances**
+
+Encapsulation is the load-bearing one. Once the only way to change state is through member functions, the class can check its invariant in one place, and a bug in that invariant has one suspect rather than every line that touched a public field. In C++ it is also what makes RAII possible at all: the constructor establishes the invariant and the destructor releases what it acquired, and neither can be skipped.
+
+Abstraction and encapsulation are often conflated. The distinction worth stating: encapsulation hides *data*, abstraction hides *design*. An opaque handle in C ([C-013](<./C Language Questions.md#question-c-013>)) is encapsulation without any language support for it; a pure virtual interface is abstraction.
+
+The honest part of this answer is inheritance. It couples the derived class to the base's implementation, so a change to the base can break a derived class nobody remembered existed - the fragile base class problem. Prefer composition ([CPP-142](#question-cpp-142)), and use public inheritance only where the substitution in [CPP-168](#question-cpp-168) genuinely holds.
+
+Worth adding in C++ specifically: none of this requires classes with virtual functions. Templates give abstraction and polymorphism with no runtime cost and no inheritance at all, which is why C++ style diverged from the Java-flavoured OOP these four words come from.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-168
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-168 — IS-A vs HAS-A - how do you decide?
+
+**Short answer**
+
+- IS-A is public inheritance: every derived object must be usable anywhere the base is expected. HAS-A is composition: the type holds another as a member and forwards what it chooses.
+- The test is not English - "a car is a vehicle" proves nothing. The test is behavioural substitutability: can a caller holding a `Base&` do everything the base promises and still be correct?
+- If the answer is "yes, except…" then it is not IS-A, and composition is the correct relationship no matter how natural the sentence sounds.
+
+**Details and nuances**
+
+That test is the Liskov substitution principle, and the canonical counterexample is square and rectangle: a square *is a* rectangle in geometry, and it is not one in code, because `setWidth` and `setHeight` on a rectangle promise independent dimensions and a square cannot keep that promise. Code written against `Rectangle&` breaks when handed a `Square`, and nothing in the type system warns you.
+
+Concrete symptoms that IS-A was the wrong call:
+
+- A derived class overrides a method to do nothing, or to throw.
+- A derived class strengthens a precondition - it accepts less than the base promised to accept.
+- Callers check the dynamic type to decide what to do, which means the abstraction is not carrying its weight.
+
+C++ also gives you **private inheritance**, which is HAS-A expressed through inheritance - useful for the empty base optimisation or when you need to override a virtual, and not a substitutability claim. Saying that distinguishes someone who knows C++ from someone reciting general OOP.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-169
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-169 — What kinds of polymorphism does C++ have?
+
+**Short answer**
+
+- **Subtype (runtime)**: virtual functions dispatched through the vtable - the type is chosen at runtime, at the cost of an indirect call and no inlining.
+- **Parametric (compile-time)**: templates - one implementation instantiated per type, resolved at compile time, fully inlinable, at the cost of code size and error messages.
+- **Ad-hoc**: overloading and specialisation, resolved at compile time by the argument types. Plus **CRTP**, which gets static dispatch with an inheritance-shaped syntax, and `std::variant` with `std::visit` for a closed set of types.
+
+**Details and nuances**
+
+```cpp
+struct Shape { virtual double area() const = 0; };          // subtype, runtime
+
+template <class T> double area(const T& s) { return s.area(); }   // parametric
+
+template <class D> struct Base {                             // CRTP, static
+    double area() const { return static_cast<const D&>(*this).areaImpl(); }
+};
+
+using AnyShape = std::variant<Circle, Square>;               // closed set
+double area(const AnyShape& s) { return std::visit([](auto& x){ return x.area(); }, s); }
+```
+
+The decision rule worth stating: **is the set of types open or closed, and is it known at compile time?** Open and runtime - plugins, a set that grows without recompiling - needs virtual. Closed and known - a handful of message kinds - is better as a `variant`, because the compiler then checks that every case is handled and there is no allocation or indirection. Compile-time with no need for a common base at all is a template.
+
+The cost that decides it in performance-sensitive code: a virtual call cannot be inlined, so a tiny function called in a loop pays both the indirect call and the lost optimisation around it. That is exactly why CRTP exists, and also why reaching for it before measuring is premature.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-170
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-170 — Abstract class, pure virtual function - how do you model an interface in C++?
+
+**Short answer**
+
+- A pure virtual function (`= 0`) makes the class abstract: it cannot be instantiated, and a derived class must override it to become concrete.
+- C++ has no `interface` keyword, so an interface is a class with only pure virtual functions, no data, and a **virtual (or protected non-virtual) destructor** - without that, deleting through a base pointer is undefined behaviour.
+- A pure virtual function may still have a definition, which is occasionally useful as a default implementation a derived class calls explicitly.
+
+**Details and nuances**
+
+```cpp
+class ICodec {
+public:
+    virtual ~ICodec() = default;                 // required for deletion via base*
+    virtual bool encode(Span in, Buffer& out) = 0;
+    virtual const char* name() const = 0;
+};
+```
+
+Two refinements worth having ready. If the interface is never deleted polymorphically, a **protected non-virtual destructor** expresses that and costs nothing - it prevents `delete base_ptr` at compile time instead of leaving it undefined.
+
+And the **non-virtual interface** idiom inverts the usual shape: the public function is non-virtual and does the invariant checking, logging and locking, then calls a private virtual for the part that varies. That keeps the contract in one place instead of relying on every derived class to remember it.
+
+Worth naming the limit too: C++ does not enforce that an interface has no state, and it allows multiple inheritance of interfaces without the diamond problem only because they carry no data ([CPP-027](#question-cpp-027) is where that stops being true).
+
+[↑ Back to question index](#question-index)
+
+---
+
+# 16. Traps That Pass Review
+
+## Question CPP-171
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-171 — Why is `std::vector<bool>` not a container of `bool`?
+
+**Short answer**
+
+- It is a specialisation that packs one bit per element, so it does not store `bool` objects and `operator[]` cannot return `bool&` - it returns a proxy object instead.
+- That breaks the container contract: `&v[0]` does not give you a `bool*`, `auto x = v[i]` deduces the proxy rather than `bool`, and it does not satisfy the requirements a generic algorithm may rely on.
+- Use `std::vector<char>`, `std::deque<bool>`, `std::bitset` for a fixed size, or `std::vector<std::uint8_t>` - and reach for the specialisation only when the memory saving is the actual point.
+
+**Details and nuances**
+
+```cpp
+std::vector<bool> v{true, false};
+auto x = v[0];      // x is a proxy, not bool
+v[0] = false;       // x now observes false - it is a reference into the bitfield
+bool* p = &v[0];    // does not compile
+```
+
+The `auto` case is the one that gets people, because the proxy keeps referring to the vector: copying what looks like a value actually copies a reference, and the value changes underneath. `auto x = static_cast<bool>(v[0])` or `bool x = v[0]` is the fix.
+
+It is also not thread-safe per element the way other containers are: two threads writing different elements touch the same underlying word, so it is a data race where `vector<char>` would be fine. That one is easy to miss and hard to debug.
+
+This is widely regarded as a standardisation mistake kept for compatibility, which is worth saying - it explains why the language has a rule that looks arbitrary.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-172
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-172 — What is the static initialization order fiasco, and what fixes it?
+
+**Short answer**
+
+- Namespace-scope objects with dynamic initialisation are initialised in an unspecified order *across* translation units, so one global that uses another during its own construction may see it unconstructed.
+- Within one translation unit the order is the order of definition, which is why the bug appears only after someone links the same code in a different order.
+- The fix is the construct-on-first-use idiom: put the object in a function-local `static` and return a reference, so it is constructed on the first call rather than at an unspecified point before `main`.
+
+**Details and nuances**
+
+```cpp
+// Broken: Logger may not exist yet when Config's constructor runs.
+Logger  g_logger;          // some.cpp
+Config  g_config;          // other.cpp - constructor calls g_logger
+
+// Fixed: constructed on first use, in a defined order.
+Logger& logger() { static Logger instance; return instance; }
+```
+
+Function-local statics are also the answer to a second question that often follows: since C++11 their initialisation is **thread-safe** - the standard requires concurrent callers to block until the first initialisation completes, which is why "magic statics" replaced hand-written double-checked locking. Double-checked locking written by hand before C++11 was famously broken without atomics, and there is no reason to write it now.
+
+The remaining trap is the mirror image: the **destruction** order is the reverse of construction, so a static that logs from its destructor may find the logger already destroyed. Where that matters, deliberately leak - `static Logger* p = new Logger;` - because a never-destroyed object cannot be used after destruction.
+
+The broader point worth making: a shared mutable global is the actual problem, and the idiom only makes the lifetime defined. Dependency injection removes the question instead of answering it.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-173
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-173 — In what order are function arguments evaluated, and why did that leak before C++17?
+
+**Short answer**
+
+- The order in which function arguments are evaluated is **unspecified**, and before C++17 the evaluations of different arguments could also be *interleaved*.
+- So `f(std::shared_ptr<T>(new T), may_throw())` could allocate the `T`, then run `may_throw()`, then throw - with the raw pointer owned by nobody. That is a leak the code does not look like it has.
+- `std::make_shared<T>()` fixes it by making allocation and ownership one indivisible step, which is the real reason to prefer it over `shared_ptr<T>(new T)`.
+
+**Details and nuances**
+
+C++17 tightened this: each argument is now indivisibly sequenced with respect to the others, though the *order* between them is still unspecified. So the leak is gone, and code that depends on which argument runs first is still wrong.
+
+The same family of traps, worth naming together:
+
+- `i = i++ + 1` and friends were undefined before C++17 and are merely unsequenced-or-defined now depending on the form; the practical rule is to not modify a variable twice in one expression.
+- `f(g(), h())` - `g` and `h` may run in either order, so a side effect in one that the other depends on is a bug that appears when the compiler version changes.
+- `std::cout << f() << g()` has the same problem; the chained `<<` calls are ordered, the argument evaluations are not (before C++17).
+
+The takeaway to state: if the order matters, put it in statements. A named local per step costs nothing and removes the whole class.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-174
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-174 — What goes wrong when signed and unsigned meet in a comparison or a loop?
+
+**Short answer**
+
+- The usual arithmetic conversions turn the signed operand unsigned, so `-1 < v.size()` is **false**: `-1` becomes a very large unsigned value.
+- A reverse loop written as `for (size_t i = v.size() - 1; i >= 0; --i)` never terminates, because an unsigned `i` is always `>= 0`; and on an empty vector `v.size() - 1` is already the maximum value, so the first iteration indexes out of bounds.
+- Enable `-Wsign-compare` (part of `-Wall`/`-Wextra`), compare like with like, and use indices only where an iterator or a range-based loop will not do.
+
+**Details and nuances**
+
+```cpp
+for (std::size_t i = v.size(); i-- > 0; )   // correct reverse loop
+    use(v[i]);
+
+for (auto it = v.rbegin(); it != v.rend(); ++it)   // clearer
+    use(*it);
+```
+
+The `i-- > 0` form works because the comparison uses the value before the decrement, so the loop ends after `i` was 0 and the body sees `i` from `size()-1` down to `0` without ever going negative.
+
+Two related surprises worth having ready. `v.size() - v.capacity()` is unsigned arithmetic, so a "negative" difference is an enormous positive number. And unsigned overflow is *defined* to wrap while signed overflow is undefined behaviour, which is why the compiler may optimise away a signed overflow check you wrote and will not do the same for unsigned.
+
+C++20 added `std::cmp_less` and its family for exactly this: they compare integers by value regardless of signedness, which is the correct answer when you genuinely must mix them. `std::ssize` returns a signed size for the same reason.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-175
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-175 — What does `const` on a member function actually guarantee?
+
+**Short answer**
+
+- Only that the object's own bits are not modified through `this` - the constness is shallow. A `const` member function may freely modify whatever a pointer or reference member points at, because the pointer is const, not the pointee.
+- It also does not guarantee thread safety by itself, although the standard library's own types promise that concurrent `const` operations are safe, and that is the convention worth following in your own code.
+- `mutable` deliberately breaks the guarantee for members that are not part of the observable state - a cache, a memoised value, a mutex.
+
+**Details and nuances**
+
+```cpp
+class Widget {
+    int*        data_;      // const method may write *data_
+    std::vector<int> items_; // const method may not modify items_
+    mutable std::mutex m_;   // lockable from a const method, by design
+};
+```
+
+This is the difference between **bitwise const**, which is what the compiler enforces, and **logical const**, which is what the reader assumes. A `const` method that mutates through a pointer member is bitwise-const and not logically const, and nothing warns about it - which makes it exactly the sort of thing that survives review.
+
+The thread-safety point deserves care because it is often stated too strongly: the language guarantees nothing. What exists is a convention, honoured by the standard library, that `const` means "safe to call concurrently". Once your `const` method mutates a cache without a mutex, you have broken that convention and a caller who relied on it has a race - which is why a cache inside a `const` method needs the `mutable` mutex above, not just a `mutable` value.
+
+`std::propagate_const` exists as a wrapper for when you want the constness to reach through a pointer member, most usefully with PImpl ([CPP-143](#question-cpp-143)), where otherwise a `const` method can modify the entire implementation object.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-176
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-176 — What is a pure virtual call, and how do you get one?
+
+**Short answer**
+
+- Calling a pure virtual function during base construction or destruction is undefined behaviour; in practice the runtime aborts with "pure virtual function call" or `R6025`.
+- It happens because dispatch is restricted to the class currently being constructed or destroyed ([CPP-024](#question-cpp-024)) - and in the base, that function has no implementation at all, so there is nothing to dispatch to.
+- The indirect form is the one that actually ships: the base constructor calls an ordinary member function, which calls the pure virtual. Nothing in the constructor mentions anything virtual.
+
+**Details and nuances**
+
+```cpp
+struct Base {
+    Base() { start(); }              // looks harmless
+    void start() { run(); }          // ...calls a pure virtual
+    virtual void run() = 0;
+    virtual ~Base() = default;
+};
+struct Derived : Base { void run() override { /* never reached */ } };
+
+Derived d;                           // "pure virtual function call" - abort
+```
+
+The direct form - `run()` written in the constructor body - is usually caught by the compiler with a warning. The indirect form above is not, because the compiler would have to prove which function the call reaches.
+
+There is a second, nastier variant: a pure virtual call from a **destructor** of an object being destroyed by another thread, or after the vtable pointer has been reset during destruction. That one is intermittent and looks like memory corruption.
+
+The fixes, in order of preference: do not call virtuals from constructors or destructors at all; use a two-step creation where a factory constructs the object and then calls `initialise()`; or pass the varying behaviour in as a parameter instead of inheriting it. If a virtual really must be called at construction time, that is a signal the design wants composition rather than inheritance ([CPP-168](#question-cpp-168)).
+
+A pure virtual function may have a definition, which is occasionally used to give a default implementation ([CPP-170](#question-cpp-170)) - but that definition still does not make it callable through dispatch from a base constructor.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-177
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-177 — What happens when a constructor throws?
+
+**Short answer**
+
+- The object never existed, so **its destructor is not called** - but every base and member whose construction had already completed is destroyed, in reverse order.
+- That is why a raw pointer member leaks: the pointer's "destructor" does nothing, so whatever it points at is lost. A smart pointer or any RAII member is destroyed correctly.
+- The caller sees the exception and no object; there is no half-constructed object to inspect or clean up, which is exactly the property you want.
+
+**Details and nuances**
+
+```cpp
+class Broken {
+    int*     a_ = new int[100];      // leaks if b_'s initialisation throws
+    Resource b_;                     // may throw
+};
+
+class Fixed {
+    std::unique_ptr<int[]> a_ = std::make_unique<int[]>(100);  // destroyed correctly
+    Resource               b_;
+};
+```
+
+The rule follows directly: **acquire every resource through an object that owns it.** If the constructor body has to acquire something raw, wrap it immediately, or use a function-try-block:
+
+```cpp
+Fixed::Fixed() try : a_(...), b_(...) { }
+catch (...) { /* members already destroyed; cannot suppress - it rethrows */ }
+```
+
+Two details worth knowing about function-try-blocks, because they are usually misunderstood: in a *constructor* the handler cannot swallow the exception - it rethrows automatically when it returns - and the members are already destroyed by the time it runs, so it is for logging, not for recovery.
+
+The alternative people reach for is two-phase initialisation: an empty constructor plus an `init()` that returns an error code. It is worse, because it creates a state where the object exists and is not usable, and every method now has to handle that state. Throwing from the constructor is the design that has no invalid state.
+
+For allocation specifically: if `operator new` succeeds and then the constructor throws, the memory is released automatically - the matching `operator delete` is called. You do not leak the allocation, only whatever the constructor had acquired raw.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-178
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-178 — What happens when a destructor throws?
+
+**Short answer**
+
+- Since C++11 destructors are implicitly `noexcept`, so an exception escaping one calls `std::terminate` immediately - the program dies, no unwinding, no handler.
+- Even before that rule, throwing from a destructor during stack unwinding was fatal: a second exception while one is already propagating has no defined resolution, so the runtime terminates.
+- So a destructor must swallow and log, not propagate. If the cleanup can genuinely fail in a way the caller needs to know about, expose an explicit `close()` that may throw, and have the destructor call it inside a `try`/`catch(...)` as a last resort.
+
+**Details and nuances**
+
+```cpp
+class Writer {
+public:
+    void close() { flush(); }        // may throw - caller can handle it
+    ~Writer() {
+        try { close(); }
+        catch (...) { /* log; never rethrow */ }
+    }
+};
+```
+
+This is the standard shape for anything whose release can fail - a file whose final flush can fail, a transaction whose commit can fail, a socket with a shutdown handshake. The caller who cares calls `close()` and handles the error; the destructor exists so that an exceptional path still releases the handle, and it accepts that it cannot report a problem.
+
+`~T() noexcept(false)` opts out and is almost always the wrong answer: it does not make throwing safe, it only moves the failure from "terminates immediately" to "terminates if it happens during unwinding", which is the harder case to reproduce.
+
+`std::uncaught_exceptions()` exists to let a destructor ask whether it is running during unwinding - it returns the count, and comparing it against the count captured in the constructor is how a scope-guard library implements "run this only on failure". Worth knowing as the mechanism behind `scope_fail`, not as something to hand-roll.
+
+The connection to the rest: this is why `swap` and move operations are expected to be `noexcept` ([CPP-091](#question-cpp-091)) - the commit step of the strong guarantee has to be a step that cannot fail, and the same reasoning makes destructors non-throwing by construction.
+
+[↑ Back to question index](#question-index)
+
+---
+
+# 17. Algorithms and Iterator Requirements
+
+## Question CPP-179
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-179 — Will `std::sort` work on a `std::vector`? On a `std::list`?
+
+**Short answer**
+
+- On a `vector`, yes: its iterators are contiguous, which satisfies `std::sort`'s requirement for **random-access** iterators.
+- On a `list`, no - it will not compile. `list` iterators are bidirectional: you can step forwards and backwards, but not jump, and not compute a distance in constant time. `std::sort` needs both.
+- `std::list` therefore provides its own `sort` member function, which merge-sorts by relinking nodes rather than moving elements.
+
+**Details and nuances**
+
+The requirement is not arbitrary. `std::sort` is introsort - quicksort with a heapsort fallback and insertion sort for small ranges - and every one of those needs to pick a pivot at an arbitrary position, partition by moving elements, and recurse on sub-ranges given by offsets. All three are `O(1)` on random access and `O(n)` on a linked list, which would turn `O(n log n)` into something far worse.
+
+So the rule generalises past `sort`: an algorithm's iterator category tells you which containers it accepts.
+
+| Algorithm | Needs | Works on `list`? |
+|---|---|---|
+| `std::find`, `std::count`, `std::copy` | input / forward | yes |
+| `std::reverse` | bidirectional | yes |
+| `std::sort`, `std::nth_element`, `std::binary_search`* | random access | no |
+| `std::lower_bound` | forward (but `O(n)` steps without random access) | compiles, but scans |
+
+*`binary_search` compiles on a forward iterator and degrades to a linear walk - which is the subtler trap: it still *works*, it just is not binary search any more.
+
+`list::sort` being a member is the general pattern for node-based containers: `list` also has member `remove`, `unique`, `reverse` and `merge`, and they exist because the member version relinks nodes in `O(1)` each where the generic algorithm would copy values. Same for `map::find`, which is `O(log n)` against `std::find`'s `O(n)` ([CPP-181](#question-cpp-181)).
+
+The everyday practical answer: this is one more reason `vector` is the default container ([CPP-044](#question-cpp-044)). Choosing `list` costs you most of `<algorithm>`.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-180
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-180 — Which sort does the standard library give you, and when do you need `stable_sort`, `partial_sort` or `nth_element`?
+
+**Short answer**
+
+- `std::sort` is `O(n log n)` worst case (introsort) and **not stable** - equal elements may be reordered. `std::stable_sort` preserves their relative order, at `O(n log n)` with a temporary buffer, degrading to `O(n log² n)` if the allocation fails.
+- `std::partial_sort` gives you the first `k` in order without sorting the rest; `std::nth_element` only guarantees that the element at position `n` is where it would be after a full sort, with everything smaller before it - which is what you want for a median or a top-K.
+- Picking the weakest one that answers the question is a real difference: `nth_element` is `O(n)` on average where `sort` is `O(n log n)`.
+
+**Details and nuances**
+
+```cpp
+std::nth_element(v.begin(), v.begin() + v.size()/2, v.end());
+auto median = v[v.size()/2];                     // O(n) average, no full sort
+
+std::partial_sort(v.begin(), v.begin() + 10, v.end());   // top 10, in order
+```
+
+Stability matters whenever you sort by one key after having sorted by another - sort by date, then `stable_sort` by name, and entries with the same name stay in date order. With `std::sort` that second pass silently destroys the first.
+
+The comparator must be a **strict weak ordering** ([CPP-048](#question-cpp-048)). This is the one place where getting it wrong is not a wrong answer but undefined behaviour: a comparator that returns `true` for equal elements (using `<=` instead of `<`) lets `sort` run off the end of the range, and it usually crashes rather than mis-sorts - intermittently, on large inputs only.
+
+C++20 adds the ranges versions - `std::ranges::sort(v)` - which take the container directly and check the iterator requirements through concepts, so the `std::list` case above produces a readable constraint error rather than a page of template instantiation.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-181
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-181 — Why do containers have their own `find` when `std::find` exists?
+
+**Short answer**
+
+- Because the member version can use the container's structure. `std::map::find` is `O(log n)` through the tree, `std::unordered_map::find` is `O(1)` average through the hash - and `std::find` is `O(n)` on either, because a generic algorithm only knows how to walk.
+- The same applies to `list::remove`, `list::unique` and `set::count`: the member relinks or looks up, the free algorithm iterates.
+- Rule of thumb: if the container has a member with that name, it exists because it is asymptotically better - use it.
+
+**Details and nuances**
+
+The trap is that the generic version still compiles and still gives the right answer, so the mistake is invisible until the container is large. `std::find(m.begin(), m.end(), ...)` on a map with a million entries is a linear scan through a tree, which is both `O(n)` and cache-hostile.
+
+A related pairing worth knowing: the erase-remove idiom ([CPP-120](#question-cpp-120)) is for sequence containers, because `std::remove` cannot erase - it only shuffles. For `list` the member `remove` does erase, and for associative containers `erase(key)` does it directly. C++20's `std::erase` and `std::erase_if` free functions finally give one spelling that does the right thing for each container.
+
+[↑ Back to question index](#question-index)
+
+---
+
+# 18. Lock-Free Concurrency
+
+## Question CPP-182
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-182 — What does lock-free actually mean?
+
+**Short answer**
+
+- It is a **progress guarantee**, not a performance claim: in a lock-free algorithm, if threads run long enough, at least one of them makes progress - so the system cannot stall because one thread was suspended at the wrong moment.
+- **Wait-free** is stronger: *every* thread completes in a bounded number of steps. **Obstruction-free** is weaker: a thread makes progress if it runs alone. A mutex gives none of these, because a thread holding the lock can be descheduled and everyone waits.
+- Lock-free does not mean faster, and it does not mean no atomic instructions - it means no lock, and the failure mode changes from blocking to retrying ([CPP-061](#question-cpp-061)).
+
+**Details and nuances**
+
+The property that actually matters in practice is what happens when a thread is interrupted at the worst moment. With a mutex, a thread preempted inside the critical section blocks everyone until it is scheduled again - which is why a lock is unusable in a signal handler, in a real-time audio callback, or between a process and a shared-memory region it does not control. Lock-free code has no such window, and that - not throughput - is the reason to reach for it.
+
+Where it genuinely earns its place:
+
+- A signal handler or an interrupt context, where blocking is not allowed at all.
+- A hard latency bound, where the tail matters more than the average.
+- Shared memory across processes, where a lock held by a crashed process is never released.
+
+Where it does not: ordinary application code under moderate contention, where a mutex is simpler, debuggable and usually faster.
+
+`std::atomic<T>::is_always_lock_free` answers whether a given type qualifies on this platform; note that `std::atomic_flag` is the only type the standard guarantees is always lock-free.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-183
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-183 — How would you build a single-producer single-consumer queue without locks?
+
+**Short answer**
+
+- A fixed-size ring buffer with two atomic indices: the producer owns `head`, the consumer owns `tail`, and neither writes the other's index.
+- Because there is exactly one writer per index, no compare-and-swap is needed at all - a plain store with release ordering and a load with acquire ordering is enough, which is why SPSC is the one lock-free structure that is genuinely simple.
+- Pad the two indices onto separate cache lines, or the two threads fight over one line and the queue is slower than a mutex ([CPP-068](#question-cpp-068)).
+
+**Details and nuances**
+
+```cpp
+template <class T, std::size_t N>
+class SpscQueue {                       // N a power of two
+public:
+    bool push(const T& v) {
+        const auto h = head_.load(std::memory_order_relaxed);   // we own head_
+        const auto next = (h + 1) & (N - 1);
+        if (next == tail_.load(std::memory_order_acquire)) return false;  // full
+        buf_[h] = v;
+        head_.store(next, std::memory_order_release);           // publishes buf_[h]
+        return true;
+    }
+    bool pop(T& out) {
+        const auto t = tail_.load(std::memory_order_relaxed);   // we own tail_
+        if (t == head_.load(std::memory_order_acquire)) return false;     // empty
+        out = buf_[t];
+        tail_.store((t + 1) & (N - 1), std::memory_order_release);
+        return true;
+    }
+private:
+    alignas(64) std::atomic<std::size_t> head_{0};
+    alignas(64) std::atomic<std::size_t> tail_{0};
+    std::array<T, N> buf_{};
+};
+```
+
+The two orderings carry the whole correctness argument: the producer's **release** store on `head_` publishes the element written just before it, and the consumer's **acquire** load of `head_` makes that write visible. Weakening either to `relaxed` compiles, passes on x86 and fails on ARM.
+
+Why it stops being simple the moment you add a second producer: two producers both reading `head_`, both writing a slot, both storing `head_ + 1` - now you need a CAS loop, and with a CAS loop come retries, the ABA question and the reclamation question ([CPP-184](#question-cpp-184)). Multi-producer multi-consumer lock-free queues are a library, not an exercise; use one rather than writing one.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-184
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-184 — What are the ABA and reclamation problems?
+
+**Short answer**
+
+- **ABA**: a thread reads a value `A`, is descheduled, and by the time it runs its compare-and-swap the value has been changed to `B` and back to `A`. The CAS succeeds against state that is not the state it inspected.
+- **Reclamation**: in a pointer-based lock-free structure you cannot free a node when you unlink it, because another thread may still be holding a pointer into it - and there is no lock to tell you when that stops being true.
+- The two are related and both are why lock-free data structures are library work: the standard solutions are tagged pointers, hazard pointers, epoch-based reclamation or RCU, and each is substantially more machinery than a mutex.
+
+**Details and nuances**
+
+The classic ABA is a lock-free stack. Thread 1 reads the top node `A` and prepares to CAS the head to `A->next`. Meanwhile thread 2 pops `A`, pops `B`, frees them, allocates a new node that the allocator happens to place at `A`'s old address, and pushes it. Thread 1's CAS sees the head is still the pointer value `A` and succeeds - setting the head to a `next` pointer that belongs to a freed node.
+
+The cheapest mitigation is a **tagged pointer**: pack a counter next to the pointer and CAS both together with a double-width compare-and-swap, so a pointer that came back is still a different value. It narrows the window rather than closing it, because the counter wraps.
+
+Reclamation is the harder half and has no cheap answer:
+
+| Technique | Idea | Cost |
+|---|---|---|
+| Hazard pointers | Each thread publishes what it is reading; a node is freed only when no hazard pointer names it | Per-read bookkeeping |
+| Epoch / quiescent state | Free a node once every thread has passed a point where it held no references | Memory held longer |
+| RCU | Readers are free, writers wait for a grace period | Reader-heavy workloads only |
+| Never free | Pool and reuse nodes instead | Bounded memory, no reuse across types |
+
+Saying this out loud is the senior answer to "would you write a lock-free queue": for SPSC yes ([CPP-183](#question-cpp-183)), and beyond that the correct engineering decision is to use an existing implementation or a mutex, because the failure mode is silent corruption under load on one machine.
 
 [↑ Back to question index](#question-index)
 
