@@ -4,6 +4,8 @@
 
 # Question Index
 
+> **C-specific questions are in a separate bank**: [C Language Questions](<./C Language Questions.md>) - standards and C89, undefined behaviour, memory sections, alignment and packing, flexible array members, strings, function pointers, opaque structs, the preprocessor, static and shared libraries, `dlopen`/`LD_PRELOAD`, core dumps, Valgrind and sanitizers. This bank is C++.
+
 Questions use stable topic-specific IDs. Every answer begins with a short bullet summary and keeps details, examples and edge cases below it.
 
 ## Modern C++ (CPP-001–CPP-020)
@@ -47,7 +49,8 @@ Questions use stable topic-specific IDs. Every answer begins with a short bullet
 - [CPP-031. How should `unique_ptr` be passed to a function?](#question-cpp-031)
 - [CPP-032. How does `shared_ptr` work?](#question-cpp-032)
 - [CPP-033. What is the difference between `make_shared<T>()` and `shared_ptr<T>(new T)`?](#question-cpp-033)
-- [CPP-034. Why is this dangerous?](#question-cpp-034)
+- [CPP-034. Why is this dangerous?
+](#question-cpp-034)
 - [CPP-035. Why are cyclic `shared_ptr` references a problem?](#question-cpp-035)
 - [CPP-036. What does `weak_ptr::lock()` do?](#question-cpp-036)
 - [CPP-037. What is `enable_shared_from_this`?](#question-cpp-037)
