@@ -8,24 +8,23 @@
 
 ## The Model (GIT-001–GIT-004)
 
-- [GIT-001. What is a commit, actually?](#question-git-001)
-- [GIT-002. What is the difference between the working tree, the index and HEAD?](#question-git-002)
-- [GIT-003. What is a branch?](#question-git-003)
-- [GIT-004. Merge vs rebase?](#question-git-004)
+|  |  |  |
+|---|---|---|
+| [GIT-001. What is a commit, actually?](#question-git-001) | [GIT-002. What is the difference between the working tree, the index and HEAD?](#question-git-002) | [GIT-003. What is a branch?](#question-git-003) |
+| [GIT-004. Merge vs rebase?](#question-git-004) |  |  |
 
 ## Everyday Operations (GIT-005–GIT-008)
 
-- [GIT-005. How do you resolve a merge conflict?](#question-git-005)
-- [GIT-006. `reset --soft`, `--mixed`, `--hard` and `revert` - which undoes what?](#question-git-006)
-- [GIT-007. What are `cherry-pick` and `stash` for?](#question-git-007)
-- [GIT-008. You committed a secret. What now?](#question-git-008)
+|  |  |  |
+|---|---|---|
+| [GIT-005. How do you resolve a merge conflict?](#question-git-005) | [GIT-006. `reset --soft`, `--mixed`, `--hard` and `revert` - which undoes what?](#question-git-006) | [GIT-007. What are `cherry-pick` and `stash` for?](#question-git-007) |
+| [GIT-008. You committed a secret. What now?](#question-git-008) |  |  |
 
 ## Working With Others (GIT-009–GIT-010)
 
-- [GIT-009. Which branching strategy, and why?](#question-git-009)
-- [GIT-010. How do you find the commit that broke something?](#question-git-010)
-
----
+|  |  |  |
+|---|---|---|
+| [GIT-009. Which branching strategy, and why?](#question-git-009) | [GIT-010. How do you find the commit that broke something?](#question-git-010) |  |
 
 # 1. The Model
 
