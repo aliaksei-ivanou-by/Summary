@@ -8,55 +8,66 @@ Questions use stable topic-specific IDs. Every answer begins with a short bullet
 
 ## COM Fundamentals (COM-001–COM-014)
 
-|  |  |  |
-|---|---|---|
-| [COM-001. What is COM?](#question-com-001) | [COM-002. What is `IUnknown`?](#question-com-002) | [COM-003. What does `QueryInterface` do?](#question-com-003) |
-| [COM-004. What do `AddRef` and `Release` do?](#question-com-004) | [COM-005. What is a GUID / IID / CLSID?](#question-com-005) | [COM-006. What is `CoCreateInstance`?](#question-com-006) |
-| [COM-007. In-process vs out-of-process COM server?](#question-com-007) | [COM-008. What is a COM class factory?](#question-com-008) | [COM-009. What is `HRESULT`?](#question-com-009) |
-| [COM-010. What is `BSTR`?](#question-com-010) | [COM-011. What is `VARIANT`?](#question-com-011) | [COM-012. What is `SAFEARRAY`?](#question-com-012) |
-| [COM-013. What is `IDispatch`?](#question-com-013) | [COM-014. Early binding vs late binding?](#question-com-014) |  |
+- [COM-001. What is COM?](#question-com-001)
+- [COM-002. What is `IUnknown`?](#question-com-002)
+- [COM-003. What does `QueryInterface` do?](#question-com-003)
+- [COM-004. What do `AddRef` and `Release` do?](#question-com-004)
+- [COM-005. What is a GUID / IID / CLSID?](#question-com-005)
+- [COM-006. What is `CoCreateInstance`?](#question-com-006)
+- [COM-007. In-process vs out-of-process COM server?](#question-com-007)
+- [COM-008. What is a COM class factory?](#question-com-008)
+- [COM-009. What is `HRESULT`?](#question-com-009)
+- [COM-010. What is `BSTR`?](#question-com-010)
+- [COM-011. What is `VARIANT`?](#question-com-011)
+- [COM-012. What is `SAFEARRAY`?](#question-com-012)
+- [COM-013. What is `IDispatch`?](#question-com-013)
+- [COM-014. Early binding vs late binding?](#question-com-014)
 
 ## COM Apartments and Threading (COM-015–COM-022)
 
-|  |  |  |
-|---|---|---|
-| [COM-015. What is a COM apartment?](#question-com-015) | [COM-016. `CoInitialize` vs `CoInitializeEx`?](#question-com-016) | [COM-017. What is STA?](#question-com-017) |
-| [COM-018. What is MTA?](#question-com-018) | [COM-019. Can you pass a COM interface pointer directly to another thread?](#question-com-019) | [COM-020. What is COM marshaling?](#question-com-020) |
-| [COM-021. Why can using Excel COM objects from worker threads be problematic?](#question-com-021) | [COM-022. Why does an STA usually need a message pump?](#question-com-022) |  |
+- [COM-015. What is a COM apartment?](#question-com-015)
+- [COM-016. `CoInitialize` vs `CoInitializeEx`?](#question-com-016)
+- [COM-017. What is STA?](#question-com-017)
+- [COM-018. What is MTA?](#question-com-018)
+- [COM-019. Can you pass a COM interface pointer directly to another thread?](#question-com-019)
+- [COM-020. What is COM marshaling?](#question-com-020)
+- [COM-021. Why can using Excel COM objects from worker threads be problematic?](#question-com-021)
+- [COM-022. Why does an STA usually need a message pump?](#question-com-022)
 
 ## Excel Add-In and Office Integration (COM-023–COM-028)
 
-|  |  |  |
-|---|---|---|
-| [COM-023. What is a COM Add-In?](#question-com-023) | [COM-024. What is `IDTExtensibility2`?](#question-com-024) | [COM-025. What are important Excel Object Model objects?](#question-com-025) |
-| [COM-026. Why is reading cells one-by-one through COM slow?](#question-com-026) | [COM-027. How would you efficiently read a large Excel range?](#question-com-027) | [COM-028. How would you update many Excel cells efficiently?](#question-com-028) |
+- [COM-023. What is a COM Add-In?](#question-com-023)
+- [COM-024. What is `IDTExtensibility2`?](#question-com-024)
+- [COM-025. What are important Excel Object Model objects?](#question-com-025)
+- [COM-026. Why is reading cells one-by-one through COM slow?](#question-com-026)
+- [COM-027. How would you efficiently read a large Excel range?](#question-com-027)
+- [COM-028. How would you update many Excel cells efficiently?](#question-com-028)
 
 ## Add-In Technologies (COM-029–COM-032)
 
-|  |  |  |
-|---|---|---|
-| [COM-029. COM Add-In, XLL, VSTO and Office.js: how do they differ and when is each used?](#question-com-029) | [COM-030. What is an XLL, and what does the Excel C API give you that Automation does not?](#question-com-030) | [COM-031. What is VSTO, and what does it add and require?](#question-com-031) |
-| [COM-032. How is a COM Add-In registered and loaded, and what does `LoadBehavior` control?](#question-com-032) |  |  |
+- [COM-029. COM Add-In, XLL, VSTO and Office.js: how do they differ and when is each used?](#question-com-029)
+- [COM-030. What is an XLL, and what does the Excel C API give you that Automation does not?](#question-com-030)
+- [COM-031. What is VSTO, and what does it add and require?](#question-com-031)
+- [COM-032. How is a COM Add-In registered and loaded, and what does `LoadBehavior` control?](#question-com-032)
 
 ## Excel Performance Controls and Real-Time Data (COM-033–COM-036)
 
-|  |  |  |
-|---|---|---|
-| [COM-033. Which `Application` settings speed up bulk Excel work, and why must they be restored?](#question-com-033) | [COM-034. `Value` vs `Value2` vs `Text`?](#question-com-034) | [COM-035. What is an RTD server, and how does Excel drive it?](#question-com-035) |
-| [COM-036. What is an asynchronous UDF, and how does it differ from RTD?](#question-com-036) |  |  |
+- [COM-033. Which `Application` settings speed up bulk Excel work, and why must they be restored?](#question-com-033)
+- [COM-034. `Value` vs `Value2` vs `Text`?](#question-com-034)
+- [COM-035. What is an RTD server, and how does Excel drive it?](#question-com-035)
+- [COM-036. What is an asynchronous UDF, and how does it differ from RTD?](#question-com-036)
 
 ## Office.js and Client-Side Scripting (COM-037–COM-040)
 
-|  |  |  |
-|---|---|---|
-| [COM-037. What is Office.js, and where does it run?](#question-com-037) | [COM-038. How do `load()` and `context.sync()` work, and why is batching essential?](#question-com-038) | [COM-039. How does Office.js differ from COM Automation for the same task?](#question-com-039) |
-| [COM-040. What are Office.js custom functions, and how does streaming work?](#question-com-040) |  |  |
+- [COM-037. What is Office.js, and where does it run?](#question-com-037)
+- [COM-038. How do `load()` and `context.sync()` work, and why is batching essential?](#question-com-038)
+- [COM-039. How does Office.js differ from COM Automation for the same task?](#question-com-039)
+- [COM-040. What are Office.js custom functions, and how does streaming work?](#question-com-040)
 
 ## Staleness, Teardown and Testing (COM-041–COM-042)
 
-|  |  |  |
-|---|---|---|
-| [COM-041. How do you keep a background computation from using stale workbook state?](#question-com-041) | [COM-042. How would you test update bursts, workbook closure and shutdown races?](#question-com-042) |  |
+- [COM-041. How do you keep a background computation from using stale workbook state?](#question-com-041)
+- [COM-042. How would you test update bursts, workbook closure and shutdown races?](#question-com-042)
 
 # 1. COM Fundamentals
 
