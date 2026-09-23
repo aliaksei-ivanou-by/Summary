@@ -8,26 +8,24 @@
 
 ## Schema and Modelling (DB-001–DB-004)
 
-- [DB-001. What are primary and foreign keys, and what does a foreign key actually enforce?](#question-db-001)
-- [DB-002. What is normalization, and when would you denormalize?](#question-db-002)
-- [DB-003. `NULL` - what makes it different from every other value?](#question-db-003)
-- [DB-004. Which JOIN types are there, and which one do people get wrong?](#question-db-004)
+|  |  |  |
+|---|---|---|
+| [DB-001. What are primary and foreign keys, and what does a foreign key actually enforce?](#question-db-001) | [DB-002. What is normalization, and when would you denormalize?](#question-db-002) | [DB-003. `NULL` - what makes it different from every other value?](#question-db-003) |
+| [DB-004. Which JOIN types are there, and which one do people get wrong?](#question-db-004) |  |  |
 
 ## Indexes and Query Plans (DB-005–DB-008)
 
-- [DB-005. How does an index work, and what does it cost?](#question-db-005)
-- [DB-006. When will an index not be used?](#question-db-006)
-- [DB-007. A query is slow. What do you do?](#question-db-007)
-- [DB-008. What is the N+1 query problem?](#question-db-008)
+|  |  |  |
+|---|---|---|
+| [DB-005. How does an index work, and what does it cost?](#question-db-005) | [DB-006. When will an index not be used?](#question-db-006) | [DB-007. A query is slow. What do you do?](#question-db-007) |
+| [DB-008. What is the N+1 query problem?](#question-db-008) |  |  |
 
 ## Transactions and Engines (DB-009–DB-012)
 
-- [DB-009. What does ACID mean in practice?](#question-db-009)
-- [DB-010. What are isolation levels, and which anomalies do they allow?](#question-db-010)
-- [DB-011. What is a deadlock in a database, and how do you avoid one?](#question-db-011)
-- [DB-012. SQLite vs a server database - when is each right?](#question-db-012)
-
----
+|  |  |  |
+|---|---|---|
+| [DB-009. What does ACID mean in practice?](#question-db-009) | [DB-010. What are isolation levels, and which anomalies do they allow?](#question-db-010) | [DB-011. What is a deadlock in a database, and how do you avoid one?](#question-db-011) |
+| [DB-012. SQLite vs a server database - when is each right?](#question-db-012) |  |  |
 
 # 1. Schema and Modelling
 
