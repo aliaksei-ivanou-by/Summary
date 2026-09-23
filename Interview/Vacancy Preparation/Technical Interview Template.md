@@ -32,6 +32,8 @@ For the link to the main preparation, use the exact relative filename inside ang
 | C | [C Language Questions](<./Technical Interview/C Language Questions.md>) | [Select stable IDs.] |
 | JavaScript / Node.js | [JavaScript and Node.js Questions](<./Technical Interview/JavaScript and Node.js Questions.md>) | [Select stable IDs.] |
 | COM / Excel | [COM and Excel Questions](<./Technical Interview/COM and Excel Questions.md>) | [Select stable IDs.] |
+| Git | [Git Questions](<./Technical Interview/Git Questions.md>) | The commit graph, merge vs rebase, conflicts, reset vs revert, leaked secrets, branching strategy, bisect |
+| Databases | [Databases and SQL Questions](<./Technical Interview/Databases and SQL Questions.md>) | Keys, normalization, NULL, joins, indexes and query plans, N+1, ACID, isolation levels, SQLite vs a server |
 | Testing | [Testing Questions](<./Technical Interview/Testing Questions.md>) | Theory and levels, C++ frameworks, GoogleTest fixtures and parameterized tests, GoogleMock, threads, time, embedded, legacy, CI |
 | Linux / shell | [Linux and Shell Questions](<./Technical Interview/Linux and Shell Questions.md>) | Filesystem, permissions, links, processes and signals, systemd, redirection, shell scripting, production diagnosis |
 | Build systems | [Build Systems Questions](<./Technical Interview/Build Systems Questions.md>) | Make, target-based CMake, dependencies, cross-compilation, build types, build speed |
