@@ -191,11 +191,21 @@ Arrow functions do not bind their own `this`; they capture lexical `this` from t
 
 **Details and nuances**
 
-`==` performs type coercion.
+`===` first requires the operands to have the same type, then compares their values. `==` follows the abstract equality algorithm and may convert one or both operands before comparing them. That makes individually explainable rules compose into surprising results:
 
-`===` compares without implicit type conversion.
+```js
+0 == false          // true
+'' == 0             // true
+'0' == false        // true
+null == undefined   // true
+[] == 0             // true: [] -> '' -> 0
+```
 
-In most application code, `===` is safer and more predictable.
+With `===`, all five comparisons are false. Objects are a separate point: equality compares identity, not structure, under either operator, so `[] === []` and `[] == []` are both false.
+
+The usual rule is therefore `===` and `!==`. The useful deliberate exception is `value == null`, which concisely accepts exactly `null` or `undefined` in normal JavaScript; write it only if that intent is clear. Do not confuse equality with truthiness: `if (value)` also rejects `0`, `''`, `false` and `NaN`.
+
+Even strict equality has two edge cases: `NaN === NaN` is false, while `+0 === -0` is true. `Object.is` reverses those two decisions: it recognizes `NaN` as itself and distinguishes signed zero.
 
 [↑ Back to question index](#question-index)
 
@@ -215,21 +225,22 @@ In most application code, `===` is safer and more predictable.
 
 **Details and nuances**
 
-A Promise represents an asynchronous result.
+A Promise is a state machine with three states: **pending**, **fulfilled** with a value, or **rejected** with a reason. Fulfilled and rejected are collectively *settled*, and settlement is permanent. Resolving a promise with another promise or thenable makes it adopt that object's eventual state; resolution is therefore not always the same as immediate fulfillment.
 
-States:
+The executor passed to `new Promise(...)` runs synchronously. In contrast, handlers registered with `.then`, `.catch` and `.finally` never run inline: a settled promise queues them as microtasks after the current JavaScript job finishes ([JS-010](#question-js-010)).
 
-- pending
-- fulfilled
-- rejected
-
-Handlers are registered with:
+Every `.then` returns a **new** promise, which is why chains compose:
 
 ```js
-.then(...)
-.catch(...)
-.finally(...)
+fetchData()
+    .then(parse)       // returned value fulfills the next promise
+    .then(save)        // a returned promise is awaited/adopted
+    .catch(report);    // a thrown exception becomes a rejection
 ```
+
+Omitting a handler passes the value or rejection through. `.finally` is for cleanup and normally preserves the outcome; if it throws or returns a rejected promise, that new failure replaces the old outcome.
+
+A Promise observes an operation; it does not itself create a thread, make synchronous work asynchronous, or provide cancellation. The underlying API must support cancellation explicitly, commonly through `AbortController`/`AbortSignal`. Rejections also need an intentional terminal handler or return path—starting a chain and discarding it can leave an unhandled rejection.
 
 [↑ Back to question index](#question-index)
 
@@ -317,7 +328,17 @@ console.log(4);
 2
 ```
 
-Promise callbacks run as microtasks before the next timer/macrotask.
+The initial script is one job and runs to completion. It logs `1`, registers a timer, queues a Promise reaction, then logs `4`. Only after the call stack becomes empty can queued work run.
+
+At that checkpoint the runtime drains the microtask queue, so the Promise reaction logs `3`. The timer callback belongs to a later task (or to the timers phase in Node.js), so it logs `2` afterwards. `setTimeout(..., 0)` means "eligible after at least this delay", not "run now"; the callback must still wait until the current job and its microtasks finish.
+
+The robust rule for this example is:
+
+```text
+current synchronous job -> drain Promise microtasks -> next timer/task
+```
+
+Two qualifications prevent overgeneralizing it. First, a microtask may queue more microtasks, and the queue is drained again before moving on; an endless Promise chain can therefore starve timers and I/O. Second, host-specific queues matter in larger examples: Node.js gives `process.nextTick` its own higher-priority queue, and ordering between `setImmediate` and `setTimeout` depends on the context. Neither qualification changes `1, 4, 3, 2` for the code shown.
 
 [↑ Back to question index](#question-index)
 
@@ -448,11 +469,17 @@ Solutions can include:
 
 **Details and nuances**
 
-Worker Threads allow JavaScript to run in additional threads.
+A Node.js Worker Thread has its own V8 isolate, JavaScript heap and event loop on another OS thread. It can execute JavaScript in parallel with the main thread, but it is not a lightweight callback and does not implicitly share ordinary objects or module state. Unlike a child process, it remains in the same process and can deliberately share memory.
 
-They are useful for CPU-bound work.
+There are three important ways to move data across the boundary:
 
-Communication can use messages or shared memory.
+- `postMessage` normally uses the structured-clone algorithm, which copies supported values;
+- a transferable such as an `ArrayBuffer` can move ownership without copying, detaching it from the sender;
+- `SharedArrayBuffer` exposes the same bytes to both threads and requires `Atomics` or another sound synchronization protocol.
+
+Workers are most useful for sufficiently large CPU-bound jobs: parsing, compression, image processing or computation that would otherwise block the event loop ([JS-014](#question-js-014)). They usually do not help ordinary network or filesystem I/O because Node already handles that asynchronously. Startup, cloning and message passing can cost more than a small job, so production code normally uses a bounded reusable pool and a bounded work queue rather than one worker per request.
+
+The design still needs backpressure, error propagation, cooperative cancellation and deterministic shutdown. It also needs measurement: too many workers oversubscribe the CPU, while transferring huge results back to the main thread can simply move the bottleneck to serialization and result handling.
 
 [↑ Back to question index](#question-index)
 
