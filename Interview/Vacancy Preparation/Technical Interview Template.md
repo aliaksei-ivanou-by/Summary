@@ -50,7 +50,7 @@ These links are correct for the reusable template at `Vacancy Preparation/`. Aft
 
 Use native Markdown headings such as `Question ROLE-001` as jump targets; do not use raw HTML anchors.
 
-Once a bank passes roughly forty questions, lay the index out as one three-column table per section rather than as a single column of bullets. Every question stays visible - which is the point of an index, since you often do not know which section a question is in - and the list takes about a third of the height. `C++ Core Questions.md` and `COM and Excel Questions.md` are the worked examples. Keep the return link between that heading and the question text so the question remains visible below the preview's fixed header after a jump.
+Lay the index out as one three-column table per section, in every bank, so navigation is the same everywhere. Note that this is a consistency choice rather than a compactness one: cells wrap at roughly a third of the page width and each section costs two lines of table header, so on a small bank the table renders slightly taller than a list would. Scrolling is needed either way; the value is that every index looks and behaves identically. Keep the return link between that heading and the question text so the question remains visible below the preview's fixed header after a jump.
 
 ## 03 Coverage and Priority
 
