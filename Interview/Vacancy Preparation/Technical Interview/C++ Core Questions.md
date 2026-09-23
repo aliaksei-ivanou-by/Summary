@@ -211,6 +211,12 @@ Questions use stable topic-specific IDs. Every answer begins with a short bullet
 - [CPP-162. What are prefix sums and difference arrays?](#question-cpp-162)
 - [CPP-163. What are monotonic stacks and queues used for?](#question-cpp-163)
 
+## UI Architecture (CPP-164–CPP-166)
+
+- [CPP-164. MVC, MVP and MVVM - what actually differs?](#question-cpp-164)
+- [CPP-165. What belongs in a view model, and what must not?](#question-cpp-165)
+- [CPP-166. How do you refactor a fat UI class into that shape without stopping delivery?](#question-cpp-166)
+
 ---
 
 # 1. Modern C++
@@ -5493,3 +5499,90 @@ Store indices rather than values when expiration, distance or result positions m
 The O(n) proof is amortized: an individual iteration may pop many elements, but no element returns after being popped. These structures require an order-compatible domination rule; they are not general-purpose sorted containers.
 
 [↑ Back to question index](#question-index)
+
+---
+
+# 14. UI Architecture
+
+## Question CPP-164
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-164 — MVC, MVP and MVVM - what actually differs?
+
+**Short answer**
+
+- All three separate what the application *knows* from what it *shows*; they differ in who mediates and in which direction the dependency runs.
+- **MVC**: the controller handles input and updates the model; the view observes the model. **MVP**: the presenter sits between them and the view is passive, talking only to the presenter. **MVVM**: the view binds to a view model that exposes state as observable properties, so the view model never references the view at all.
+- The property that matters in all three is the same: the model knows nothing about the UI, so the logic can be tested without instantiating a widget.
+
+**Details and nuances**
+
+| | Who handles input | What the view depends on | What the mediator depends on |
+|---|---|---|---|
+| MVC | Controller | Model (observes it) | Model |
+| MVP | Presenter | Presenter interface | View interface, model |
+| MVVM | View, via bindings | View model (binds to it) | Model only |
+
+MVVM needs a binding mechanism to be worth the name - in Qt that is the property system, signals and slots, or Model/View with roles. Without bindings you have written MVP and called it MVVM, which is fine as long as nobody is being misled.
+
+The reason the honest label is usually "MVVM-style" rather than MVVM: real applications have a view model that is not purely declarative, a view that occasionally holds state, and a controller layer that does not fit the diagram. Claiming the pure pattern invites a question the code cannot answer.
+
+**Example or evidence boundary**
+
+Production experience: refactoring a C++17/Qt Widgets SIP call flow into an MVC/MVVM-style architecture, separating UI state, user actions, media negotiation and SDK integration. I describe it as MVC/MVVM-*style* deliberately - it is that shape, not a textbook implementation.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-165
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-165 — What belongs in a view model, and what must not?
+
+**Short answer**
+
+- In: the state the UI displays, in the form the UI needs it - already formatted, already filtered, already ordered - plus the commands the UI can invoke and whether each is currently enabled.
+- Out: any reference to a widget, any framework type that only exists to draw something, and any business rule that would still be true in a command-line version of the program.
+- The test is whether the view model can be constructed and exercised in a unit test with no UI at all. If it cannot, the separation is nominal.
+
+**Details and nuances**
+
+The boundary that is easiest to get wrong is formatting versus meaning. "This call is on hold" is model state; "the hold button shows a resumed icon and is enabled" is view-model state; the pixel is the view. Putting the second in the model spreads UI concerns into the domain, and putting it in the view spreads logic into the part that cannot be tested.
+
+The second is the enabled/disabled decision: it is genuinely logic - it depends on state and on what operations are legal right now - so it belongs in the view model, not in a slot that inspects three widgets to decide.
+
+Where asynchrony is involved, one rule prevents most of the bugs: the view model owns the current state, events carry what they were computed from, and anything stale is dropped rather than applied. That is the same rule as [COM-041](<./COM and Excel Questions.md#question-com-041>), arrived at from the UI side.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-166
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-166 — How do you refactor a fat UI class into that shape without stopping delivery?
+
+**Short answer**
+
+- Not all at once. Pick the state that causes the most bugs - usually whatever several widgets read and write - and move that out first, leaving everything else where it is.
+- Extract state before extracting behaviour: once the state has one owner and the widgets read it rather than each holding a copy, most of the inconsistency bugs stop even before the logic moves.
+- Keep each step shippable and reviewable, and expect the result to be a mixture for a long time - a half-refactored class that works beats a complete design that was never finished.
+
+**Details and nuances**
+
+The order matters because state duplication is the actual defect source. A dialog that caches what it thinks the connection state is, alongside a status bar with its own copy, produces disagreement the moment an event arrives out of order - and no amount of tidy layering fixes that if both copies remain.
+
+What makes the steps safe is that each one is behaviour-preserving and small enough to review on its own, so a reviewer can disagree about one extraction rather than about the whole redesign. That is also what makes it possible to stop half way when priorities change, without leaving the codebase worse than it started.
+
+The risk to name honestly if asked: a large refactor near a release is a real hazard, and the mitigation is the size of the steps plus tests around the extracted state rather than confidence.
+
+**Example or evidence boundary**
+
+Production experience: a late-project call-architecture refactor introducing explicit session, service, adapter and presentation boundaries, completed as internal engineering work with a large migration surface near the end of the project - which is exactly the risk described above.
+
+[↑ Back to question index](#question-index)
+
