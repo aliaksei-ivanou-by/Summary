@@ -12,6 +12,10 @@
 | [C Language Questions](<../Technical Interview/C Language Questions.md>) | C89 and later standards, undefined behaviour, memory sections, alignment and packing, strings, function pointers, opaque structs, static and shared libraries, core dumps and sanitizers |
 | [JavaScript and Node.js Questions](<../Technical Interview/JavaScript and Node.js Questions.md>) | JavaScript semantics, promises, event loop, Node.js, libuv, workers and streams |
 | [COM and Excel Questions](<../Technical Interview/COM and Excel Questions.md>) | COM fundamentals, apartments/marshaling, add-in lifecycle, Excel object-model performance, add-in technologies, RTD and Office.js |
+| [Testing Questions](<../Technical Interview/Testing Questions.md>) | Testing theory, GoogleTest fixtures and parameterized tests, GoogleMock, testing threads and time, legacy code, CI layering |
+| [Linux and Shell Questions](<../Technical Interview/Linux and Shell Questions.md>) | Permissions, processes and signals, hung-process diagnosis, systemd, redirection, shell scripting |
+| [Build Systems Questions](<../Technical Interview/Build Systems Questions.md>) | Make, target-based CMake, dependencies, cross-compilation, build speed |
+| [Containers and Orchestration Questions](<../Technical Interview/Containers and Orchestration Questions.md>) | Docker and Kubernetes - prepared knowledge, low priority for this vacancy |
 | [Live Coding Scaffold](<../Technical Interview/Live Coding Scaffold.md>) | CMake/GoogleTest scaffold, clarifying questions, and two exercises: a range block into native data, and coalescing a fast feed for a slow consumer |
 
 # Question Index
