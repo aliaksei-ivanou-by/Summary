@@ -8,30 +8,24 @@
 
 ## Theory and Levels (TEST-001–TEST-005)
 
-- [TEST-001. Verification vs validation?](#question-test-001)
-- [TEST-002. Unit, integration, system and regression testing - what is the actual difference?](#question-test-002)
-- [TEST-003. Black-box, white-box and gray-box?](#question-test-003)
-- [TEST-004. What belongs in the test pyramid, and what goes wrong when it inverts?](#question-test-004)
-- [TEST-005. What makes a test good, and what makes one worse than nothing?](#question-test-005)
+|  |  |  |
+|---|---|---|
+| [TEST-001. Verification vs validation?](#question-test-001) | [TEST-002. Unit, integration, system and regression testing - what is the actual difference?](#question-test-002) | [TEST-003. Black-box, white-box and gray-box?](#question-test-003) |
+| [TEST-004. What belongs in the test pyramid, and what goes wrong when it inverts?](#question-test-004) | [TEST-005. What makes a test good, and what makes one worse than nothing?](#question-test-005) |  |
 
 ## C++ Frameworks (TEST-006–TEST-011)
 
-- [TEST-006. Which C++ test frameworks do you know, and how do you choose?](#question-test-006)
-- [TEST-007. How do GoogleTest fixtures work, and what must not go in the constructor?](#question-test-007)
-- [TEST-008. `ASSERT_*` vs `EXPECT_*`?](#question-test-008)
-- [TEST-009. What are parameterized and typed tests?](#question-test-009)
-- [TEST-010. What is a mock, and how does it differ from a stub or a fake?](#question-test-010)
-- [TEST-011. How do you declare expectations in GoogleMock?](#question-test-011)
+|  |  |  |
+|---|---|---|
+| [TEST-006. Which C++ test frameworks do you know, and how do you choose?](#question-test-006) | [TEST-007. How do GoogleTest fixtures work, and what must not go in the constructor?](#question-test-007) | [TEST-008. `ASSERT_*` vs `EXPECT_*`?](#question-test-008) |
+| [TEST-009. What are parameterized and typed tests?](#question-test-009) | [TEST-010. What is a mock, and how does it differ from a stub or a fake?](#question-test-010) | [TEST-011. How do you declare expectations in GoogleMock?](#question-test-011) |
 
 ## Hard Things to Test (TEST-012–TEST-016)
 
-- [TEST-012. How do you test multithreaded code?](#question-test-012)
-- [TEST-013. How do you test code that depends on time?](#question-test-013)
-- [TEST-014. How do you test embedded or hardware-dependent code?](#question-test-014)
-- [TEST-015. How would you introduce tests into a legacy C or C++ codebase with none?](#question-test-015)
-- [TEST-016. How do tests fit into CI/CD, and what runs where?](#question-test-016)
-
----
+|  |  |  |
+|---|---|---|
+| [TEST-012. How do you test multithreaded code?](#question-test-012) | [TEST-013. How do you test code that depends on time?](#question-test-013) | [TEST-014. How do you test embedded or hardware-dependent code?](#question-test-014) |
+| [TEST-015. How would you introduce tests into a legacy C or C++ codebase with none?](#question-test-015) | [TEST-016. How do tests fit into CI/CD, and what runs where?](#question-test-016) |  |
 
 # 1. Theory and Levels
 
