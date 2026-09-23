@@ -8,26 +8,23 @@
 
 ## Docker Fundamentals (CNT-001–CNT-005)
 
-- [CNT-001. Image vs container vs layer?](#question-cnt-001)
-- [CNT-002. What is a container actually, at the kernel level?](#question-cnt-002)
-- [CNT-003. `ENTRYPOINT` vs `CMD`?](#question-cnt-003)
-- [CNT-004. How does layer caching work, and how do you order a Dockerfile for it?](#question-cnt-004)
-- [CNT-005. Bind mounts vs volumes?](#question-cnt-005)
+|  |  |  |
+|---|---|---|
+| [CNT-001. Image vs container vs layer?](#question-cnt-001) | [CNT-002. What is a container actually, at the kernel level?](#question-cnt-002) | [CNT-003. `ENTRYPOINT` vs `CMD`?](#question-cnt-003) |
+| [CNT-004. How does layer caching work, and how do you order a Dockerfile for it?](#question-cnt-004) | [CNT-005. Bind mounts vs volumes?](#question-cnt-005) |  |
 
 ## Docker for C++ (CNT-006–CNT-009)
 
-- [CNT-006. What does a multi-stage build give a C++ project?](#question-cnt-006)
-- [CNT-007. How do you get a small and still-working C++ image?](#question-cnt-007)
-- [CNT-008. How do you debug a C++ application inside a container?](#question-cnt-008)
-- [CNT-009. How should a containerised application log and be configured?](#question-cnt-009)
+|  |  |  |
+|---|---|---|
+| [CNT-006. What does a multi-stage build give a C++ project?](#question-cnt-006) | [CNT-007. How do you get a small and still-working C++ image?](#question-cnt-007) | [CNT-008. How do you debug a C++ application inside a container?](#question-cnt-008) |
+| [CNT-009. How should a containerised application log and be configured?](#question-cnt-009) |  |  |
 
 ## Kubernetes (CNT-010–CNT-012)
 
-- [CNT-010. Pod, Deployment, Service, ConfigMap, Secret - what is each for?](#question-cnt-010)
-- [CNT-011. Liveness, readiness and startup probes?](#question-cnt-011)
-- [CNT-012. How does a rolling update work, and how do you roll back?](#question-cnt-012)
-
----
+|  |  |  |
+|---|---|---|
+| [CNT-010. Pod, Deployment, Service, ConfigMap, Secret - what is each for?](#question-cnt-010) | [CNT-011. Liveness, readiness and startup probes?](#question-cnt-011) | [CNT-012. How does a rolling update work, and how do you roll back?](#question-cnt-012) |
 
 # 1. Docker Fundamentals
 
