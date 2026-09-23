@@ -6,24 +6,22 @@
 
 ## Make (BLD-001–BLD-003)
 
-- [BLD-001. How does `make` decide what to rebuild?](#question-bld-001)
-- [BLD-002. What does a Makefile rule look like, and what are the traps?](#question-bld-002)
-- [BLD-003. Why do hand-written Makefiles miss header changes, and how is that fixed?](#question-bld-003)
+|  |  |  |
+|---|---|---|
+| [BLD-001. How does `make` decide what to rebuild?](#question-bld-001) | [BLD-002. What does a Makefile rule look like, and what are the traps?](#question-bld-002) | [BLD-003. Why do hand-written Makefiles miss header changes, and how is that fixed?](#question-bld-003) |
 
 ## CMake (BLD-004–BLD-008)
 
-- [BLD-004. Make vs CMake - what is the actual relationship?](#question-bld-004)
-- [BLD-005. What does target-based CMake mean, and why does it matter?](#question-bld-005)
-- [BLD-006. How do you bring in a dependency in CMake?](#question-bld-006)
-- [BLD-007. How do you cross-compile with CMake?](#question-bld-007)
-- [BLD-008. How do build types and generators work?](#question-bld-008)
+|  |  |  |
+|---|---|---|
+| [BLD-004. Make vs CMake - what is the actual relationship?](#question-bld-004) | [BLD-005. What does target-based CMake mean, and why does it matter?](#question-bld-005) | [BLD-006. How do you bring in a dependency in CMake?](#question-bld-006) |
+| [BLD-007. How do you cross-compile with CMake?](#question-bld-007) | [BLD-008. How do build types and generators work?](#question-bld-008) |  |
 
 ## Dependencies and Speed (BLD-009–BLD-010)
 
-- [BLD-009. vcpkg, Conan or the system package manager?](#question-bld-009)
-- [BLD-010. A build takes twenty minutes - what do you do?](#question-bld-010)
-
----
+|  |  |  |
+|---|---|---|
+| [BLD-009. vcpkg, Conan or the system package manager?](#question-bld-009) | [BLD-010. A build takes twenty minutes - what do you do?](#question-bld-010) |  |
 
 # 1. Make
 
