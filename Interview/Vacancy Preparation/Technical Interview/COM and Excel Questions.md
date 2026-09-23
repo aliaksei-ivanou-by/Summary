@@ -104,17 +104,19 @@ It allows components compiled with different languages/tools to interact through
 
 **Details and nuances**
 
-The fundamental COM interface.
-
-It exposes:
+`IUnknown` is the three-method binary contract at the start of every COM interface:
 
 ```cpp
-QueryInterface
-AddRef
-Release
+HRESULT QueryInterface(REFIID iid, void** out);
+ULONG   AddRef();
+ULONG   Release();
 ```
 
-Every COM interface ultimately derives from the `IUnknown` contract.
+`QueryInterface` performs capability discovery by IID. On success it returns an interface pointer with one owned reference; the caller must eventually `Release` it. `AddRef` creates another ownership claim, and `Release` gives one up, normally destroying the object when the last claim disappears. In C++, a COM smart pointer should express that ownership so exceptions and early returns cannot leak it ([COM-004](#question-com-004)). Reference counting does not collect cycles and says nothing by itself about method thread safety.
+
+The subtle contract is **COM identity**. Querying any interface of one object for `IID_IUnknown` must produce the same physical pointer value. Other interface pointers may have different addresses, so compare their controlling `IUnknown` pointers—not their raw interface pointers—to ask whether they represent the same COM identity. The supported interface set must also behave consistently: a successful query should remain available, and reachability should be reflexive, symmetric and transitive ([COM-003](#question-com-003)).
+
+Aggregation is the advanced exception worth naming: an inner object can delegate identity and reference counting to an outer object's controlling `IUnknown`, while keeping a non-delegating implementation for its own internal management.
 
 [↑ Back to question index](#question-index)
 
@@ -482,14 +484,13 @@ Frequently used together with `VARIANT` for Automation and Excel range data.
 
 **Details and nuances**
 
-`IDispatch` supports late-bound Automation.
+`IDispatch` extends `IUnknown` with a standard late-binding protocol. A client normally calls `GetIDsOfNames` once to map a textual member name such as `"Value"` to a numeric `DISPID`, caches that ID, then calls `Invoke`. This is how scripting languages and generic Automation clients can drive Office objects without compiling direct calls against every concrete vtable ([COM-014](#question-com-014)).
 
-A client can:
+`Invoke` is more than "call by name". The caller supplies flags such as `DISPATCH_METHOD`, `DISPATCH_PROPERTYGET`, `DISPATCH_PROPERTYPUT` or `DISPATCH_PROPERTYPUTREF`, and packs arguments into `DISPPARAMS` as `VARIANT`s. Positional arguments appear in **reverse order**. Named arguments use a parallel DISPID array, and a property put normally requires the special named argument `DISPID_PROPERTYPUT`.
 
-- resolve method/property names to DISPIDs
-- invoke methods/properties dynamically
+The result also follows Automation conventions: a return value arrives as a `VARIANT`; ordinary failure arrives as an `HRESULT`; an exception raised by the target may be reported through `DISP_E_EXCEPTION` plus `EXCEPINFO`; and type/argument errors can identify the offending argument. Correct code therefore checks all of these and clears every owned `VARIANT`, `BSTR` and exception field, preferably through RAII wrappers ([COM-009](#question-com-009), [COM-010](#question-com-010), [COM-011](#question-com-011)).
 
-It is widely used in Office Automation.
+Late binding improves language interoperability and version flexibility, but it shifts name lookup, conversion and many errors to runtime. It does not relax COM apartment, marshaling or lifetime rules.
 
 [↑ Back to question index](#question-index)
 
@@ -686,9 +687,21 @@ When crossing apartment boundaries, the interface may need to be marshaled so CO
 
 **Details and nuances**
 
-Marshaling converts an interface reference into a representation usable across apartment or process boundaries.
+An interface pointer is meaningful in the apartment where it was obtained unless the interface is explicitly agile. Marshaling exports that reference into a form COM can import in another apartment or process. The receiver normally gets a **proxy** implementing the same interface; the proxy serializes parameters, sends the call through COM/RPC, and a stub or channel invokes the real object in its owning context. Interface definitions and Automation type information tell the marshaler how parameters cross the boundary; components can also provide custom marshaling.
 
-COM may create proxies/stubs so calls can safely cross those boundaries.
+For a one-time thread handoff, the common pair is:
+
+```cpp
+CoMarshalInterThreadInterfaceInStream(iid, source, &stream);
+// transfer stream ownership to the destination thread
+CoGetInterfaceAndReleaseStream(stream, iid, &destination);
+```
+
+The destination thread must initialize COM and receives the apartment-appropriate pointer. The Global Interface Table is useful when several apartments need to retrieve their own valid proxies repeatedly. Copying the raw pointer bits skips all of this and is not a substitute ([COM-019](#question-com-019)).
+
+Marshaling preserves the interface and lifetime contract, not local-call behavior. A cross-apartment call can block, fail because the server disappeared, and re-enter the caller while COM pumps messages. Calls into an STA object are dispatched on its owning thread, so that thread must keep processing messages. Cross-process calls additionally pay IPC and serialization costs.
+
+The performance consequence is architectural: avoid chatty property-by-property traffic. With Excel, read or write a whole range as a `SAFEARRAY`/`VARIANT`, do pure computation off-thread, then marshal a small number of batched results back to the Excel-owning thread ([COM-021](#question-com-021)).
 
 [↑ Back to question index](#question-index)
 
@@ -1405,4 +1418,3 @@ feed  →  coalescing store  →  scheduler (injected clock)  →  ISink  →  r
 The Excel-hosted part is prepared knowledge. What is production experience is the shape of the argument: on the phone platform the unit and integration tests ran headless on the target device precisely because hardware-dependent behavior cannot be proven anywhere else, and everything that did not need the device was tested where it was fast to run.
 
 [↑ Back to question index](#question-index)
-
