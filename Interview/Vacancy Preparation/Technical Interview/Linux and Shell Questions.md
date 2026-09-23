@@ -6,28 +6,24 @@
 
 ## Filesystem and Permissions (NIX-001–NIX-005)
 
-- [NIX-001. How is a Unix filesystem laid out, and what lives where?](#question-nix-001)
-- [NIX-002. How do Unix file permissions work?](#question-nix-002)
-- [NIX-003. Hard link vs symbolic link?](#question-nix-003)
-- [NIX-004. How do you find things - `find`, `grep`, `locate`?](#question-nix-004)
-- [NIX-005. What does `sudo` actually do, and why `visudo`?](#question-nix-005)
+|  |  |  |
+|---|---|---|
+| [NIX-001. How is a Unix filesystem laid out, and what lives where?](#question-nix-001) | [NIX-002. How do Unix file permissions work?](#question-nix-002) | [NIX-003. Hard link vs symbolic link?](#question-nix-003) |
+| [NIX-004. How do you find things - `find`, `grep`, `locate`?](#question-nix-004) | [NIX-005. What does `sudo` actually do, and why `visudo`?](#question-nix-005) |  |
 
 ## Processes and Signals (NIX-006–NIX-009)
 
-- [NIX-006. How do you inspect what is running?](#question-nix-006)
-- [NIX-007. What does `kill` do, and why is `kill -9` a last resort?](#question-nix-007)
-- [NIX-008. A process is hung - how do you find out what it is waiting on?](#question-nix-008)
-- [NIX-009. How do you manage a service with systemd?](#question-nix-009)
+|  |  |  |
+|---|---|---|
+| [NIX-006. How do you inspect what is running?](#question-nix-006) | [NIX-007. What does `kill` do, and why is `kill -9` a last resort?](#question-nix-007) | [NIX-008. A process is hung - how do you find out what it is waiting on?](#question-nix-008) |
+| [NIX-009. How do you manage a service with systemd?](#question-nix-009) |  |  |
 
 ## Shell (NIX-010–NIX-014)
 
-- [NIX-010. How do redirection and pipes work?](#question-nix-010)
-- [NIX-011. What is a shebang, and why `#!/usr/bin/env bash`?](#question-nix-011)
-- [NIX-012. Which shell startup files run when?](#question-nix-012)
-- [NIX-013. What makes a shell script safe rather than merely working?](#question-nix-013)
-- [NIX-014. Where do you look when a service is misbehaving in production?](#question-nix-014)
-
----
+|  |  |  |
+|---|---|---|
+| [NIX-010. How do redirection and pipes work?](#question-nix-010) | [NIX-011. What is a shebang, and why `#!/usr/bin/env bash`?](#question-nix-011) | [NIX-012. Which shell startup files run when?](#question-nix-012) |
+| [NIX-013. What makes a shell script safe rather than merely working?](#question-nix-013) | [NIX-014. Where do you look when a service is misbehaving in production?](#question-nix-014) |  |
 
 # 1. Filesystem and Permissions
 
