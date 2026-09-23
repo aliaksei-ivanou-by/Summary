@@ -8,30 +8,19 @@ Questions use stable topic-specific IDs. Every answer begins with a short bullet
 
 ## JavaScript Fundamentals (JS-001–JS-011)
 
-- [JS-001. `var` vs `let` vs `const`?](#question-js-001)
-- [JS-002. What is a closure?](#question-js-002)
-- [JS-003. What is hoisting?](#question-js-003)
-- [JS-004. What is the prototype chain?](#question-js-004)
-- [JS-005. How does `this` work in JavaScript?](#question-js-005)
-- [JS-006. `==` vs `===`?](#question-js-006)
-- [JS-007. What is a Promise?](#question-js-007)
-- [JS-008. How does `async/await` work?](#question-js-008)
-- [JS-009. What is the JavaScript event loop?](#question-js-009)
-- [JS-010. What does this print?
-](#question-js-010)
-- [JS-011. Is JavaScript really single-threaded?](#question-js-011)
+|  |  |  |
+|---|---|---|
+| [JS-001. `var` vs `let` vs `const`?](#question-js-001) | [JS-002. What is a closure?](#question-js-002) | [JS-003. What is hoisting?](#question-js-003) |
+| [JS-004. What is the prototype chain?](#question-js-004) | [JS-005. How does `this` work in JavaScript?](#question-js-005) | [JS-006. `==` vs `===`?](#question-js-006) |
+| [JS-007. What is a Promise?](#question-js-007) | [JS-008. How does `async/await` work?](#question-js-008) | [JS-009. What is the JavaScript event loop?](#question-js-009) |
+| [JS-010. What does this print, and in what order: sync, microtask, timer?](#question-js-010) | [JS-011. Is JavaScript really single-threaded?](#question-js-011) |  |
 
 ## Node.js (JS-012–JS-016)
 
-- [JS-012. What is the Node.js event loop?](#question-js-012)
-- [JS-013. What is libuv?](#question-js-013)
-- [JS-014. Why can CPU-heavy code be a problem in Node.js?](#question-js-014)
-- [JS-015. What are Worker Threads?](#question-js-015)
-- [JS-016. What are Node.js streams?](#question-js-016)
-
----
-
-> JavaScript **inside Excel** is a different API surface and lives in the COM and Excel bank: [COM-037](<./COM and Excel Questions.md#question-com-037>) Office.js and where it runs, [COM-038](<./COM and Excel Questions.md#question-com-038>) `load()` and `context.sync()`, [COM-039](<./COM and Excel Questions.md#question-com-039>) Office.js against COM Automation, [COM-040](<./COM and Excel Questions.md#question-com-040>) custom functions and streaming. This bank covers the language and the Node.js runtime only.
+|  |  |  |
+|---|---|---|
+| [JS-012. What is the Node.js event loop?](#question-js-012) | [JS-013. What is libuv?](#question-js-013) | [JS-014. Why can CPU-heavy code be a problem in Node.js?](#question-js-014) |
+| [JS-015. What are Worker Threads?](#question-js-015) | [JS-016. What are Node.js streams?](#question-js-016) |  |
 
 # 1. JavaScript Fundamentals
 
@@ -301,7 +290,7 @@ JavaScript executes application code on one main thread, while runtime facilitie
 
 [↑ Back to question index](#question-index)
 
-### Question JS-010 — What does this print?
+### Question JS-010 — What does this print, and in what order: sync, microtask, timer?
 
 ```js
 console.log(1);
