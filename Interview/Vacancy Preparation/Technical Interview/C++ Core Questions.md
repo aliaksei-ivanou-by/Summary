@@ -165,6 +165,20 @@ Questions use stable topic-specific IDs. Every answer begins with a short bullet
 |---|---|---|
 | [CPP-182. What does lock-free actually mean?](#question-cpp-182) | [CPP-183. How would you build a single-producer single-consumer queue without locks?](#question-cpp-183) | [CPP-184. What are the ABA and reclamation problems?](#question-cpp-184) |
 
+## Library Internals (CPP-185–CPP-189)
+
+|  |  |  |
+|---|---|---|
+| [CPP-185. How does `std::string` store its data, and what is SSO?](#question-cpp-185) | [CPP-186. How does `std::function` work, and why can it allocate?](#question-cpp-186) | [CPP-187. What does `dynamic_cast` cost, and when should you use it?](#question-cpp-187) |
+| [CPP-188. Implement `unique_ptr`.](#question-cpp-188) | [CPP-189. Implement `shared_ptr` - what does the control block hold?](#question-cpp-189) |  |
+
+## Language Features Often Asked (CPP-190–CPP-194)
+
+|  |  |  |
+|---|---|---|
+| [CPP-190. What are the rules for operator overloading, and what does `<=>` change?](#question-cpp-190) | [CPP-191. What is a lambda, really?](#question-cpp-191) | [CPP-192. What are type traits, and how does `if constexpr` change template code?](#question-cpp-192) |
+| [CPP-193. What is CTAD, and when do you need a deduction guide?](#question-cpp-193) | [CPP-194. What is a C++20 coroutine, at the level you would be asked about it?](#question-cpp-194) |  |
+
 # 1. Modern C++
 
 ## Question CPP-001
@@ -1183,9 +1197,16 @@ Example of implementation-defined behavior: exact size of some integer types.
 
 **Details and nuances**
 
-The compiler may transform code however it wants as long as observable behavior remains equivalent according to the language rules.
+The compiler may transform the program however it likes as long as the **observable behaviour** is preserved. Observable means I/O, volatile accesses and, in a threaded program, what other threads can legally see - not the instructions, not the order of operations, not whether your variable exists at all.
 
-This allows aggressive optimization.
+Concretely, the compiler may delete a local you never read, keep a value in a register instead of memory, reorder two independent stores, replace a loop with a constant, and elide a copy even when the copy constructor has side effects (copy elision is the one case where observable behaviour may legally change, and since C++17 it is mandatory in some contexts).
+
+Two consequences that come up in interviews:
+
+- **Undefined behaviour widens the rule.** If a program has UB, there is no defined observable behaviour to preserve, so the compiler may assume the UB path never happens and optimise on that assumption - which is why a signed-overflow check can be deleted entirely ([C-002](<./C Language Questions.md#question-c-002>)).
+- **`volatile` is the opt-out for a single object**: every access must actually happen and may not be reordered relative to other volatile accesses. It says nothing about atomicity or about ordering against non-volatile memory, which is why it is not a threading tool ([CPP-019](#question-cpp-019)).
+
+The practical version: reasoning about what the generated code does is only valid through the abstract machine. "It works in debug and breaks in release" is almost always a program that relied on something the as-if rule never promised.
 
 [↑ Back to question index](#question-index)
 
@@ -1335,9 +1356,16 @@ This is an implementation strategy, not something mandated exactly by the C++ st
 
 **Details and nuances**
 
-Usually no.
+The usual layout: one vtable per *class*, one `vptr` per *object* (per polymorphic base subobject, so multiple inheritance gives more than one). So a class with virtual functions costs one pointer per instance regardless of how many virtual functions it has - which matters when you have millions of small objects, and not otherwise.
 
-Objects typically contain a `vptr`, while the `vtable` is shared between objects of the same dynamic type.
+None of this is mandated. The standard describes behaviour, not implementation; vtables are simply what every mainstream compiler does. Saying that is worth a sentence, because the honest answer to "how do virtual functions work" is "here is how they are implemented in practice".
+
+Two consequences worth naming:
+
+- The `vptr` is set as each constructor runs, base first, which is exactly why dispatch during construction reaches the base override and not the derived one ([CPP-024](#question-cpp-024)).
+- Because the `vptr` is part of the object, a class with virtual functions is not trivially copyable and cannot be safely `memcpy`-ed or sent over the wire as raw bytes.
+
+`final` on a class or a method lets the compiler devirtualise when the dynamic type is known, which is the cheap way to get back the inlining a virtual call costs.
 
 [↑ Back to question index](#question-index)
 
@@ -1793,11 +1821,19 @@ if (auto owner = parent->child->parent.lock()) {
 
 **Details and nuances**
 
-It attempts to create a `shared_ptr` from a `weak_ptr`.
+It is an **atomic check-and-promote**: it examines the strong count and, if it is non-zero, increments it and hands back a `shared_ptr` - all in one indivisible step.
 
-If the object still exists, it returns a valid `shared_ptr`.
+That atomicity is the whole point, and it is why you cannot write it yourself as `if (!wp.expired()) auto sp = /* ... */`. Between the check and the use, another thread can drop the last strong reference and the object is gone. `expired()` is therefore only good for a hint or a log line; `lock()` is the only safe way to use the object.
 
-Otherwise, it returns an empty `shared_ptr`.
+```cpp
+if (auto sp = wp.lock()) {      // one step: checked and owned
+    sp->use();                  // guaranteed alive for this scope
+}                               // released here
+```
+
+The returned `shared_ptr` keeps the object alive for as long as you hold it, which is exactly what makes the pattern safe in a callback: the observer stores a `weak_ptr`, locks it when the event arrives, and does nothing if the subject has gone. That is the standard answer to the dangling-callback problem ([CPP-035](#question-cpp-035)).
+
+Cost: an atomic compare-and-swap loop on the strong count, so it is not free in a hot loop - lock once outside the loop rather than per iteration.
 
 [↑ Back to question index](#question-index)
 
@@ -1899,9 +1935,21 @@ When size exceeds capacity, it allocates a larger block and moves or copies exis
 
 **Details and nuances**
 
-`size()` = number of constructed elements.
+The gap between them is raw storage: allocated, uninitialised, and not yet holding objects. That is why `v[i]` for `i >= size()` is undefined behaviour even when `i < capacity()` ([CPP-041](#question-cpp-041)).
 
-`capacity()` = number of elements that fit before another reallocation is required.
+Growth is geometric - typically 1.5x or 2x depending on the implementation - which is what makes `push_back` amortised O(1) ([CPP-043](#question-cpp-043)). The two factors trade differently: 2x is simpler, 1.5x can reuse previously freed blocks, and neither is mandated by the standard.
+
+Three operations that get confused:
+
+| Call | `size()` | `capacity()` | Elements |
+|---|---|---|---|
+| `clear()` | 0 | unchanged | destroyed |
+| `shrink_to_fit()` | unchanged | *may* drop to `size()` - non-binding | unchanged |
+| `std::vector<T>(v).swap(v)` | unchanged | drops to `size()` | copied once |
+
+The swap idiom is the only guaranteed way to release capacity, because `shrink_to_fit` is a request the implementation may ignore - and it can reallocate, so it invalidates iterators like any other reallocation.
+
+`capacity()` is also why a vector that grew to a million elements and was then cleared still holds the memory: `clear()` destroys objects, it does not deallocate.
 
 [↑ Back to question index](#question-index)
 
@@ -1921,9 +1969,28 @@ When size exceeds capacity, it allocates a larger block and moves or copies exis
 
 **Details and nuances**
 
-`reserve(n)` changes capacity but does not change logical size.
+The question underneath is usually "does it construct anything", and the answer is the whole distinction:
 
-`resize(n)` changes the number of actual elements.
+| | `reserve(n)` | `resize(n)` |
+|---|---|---|
+| Constructs elements | **No** - allocates raw storage only | **Yes** when growing; value-initialises them |
+| `size()` after | unchanged | `n` |
+| `capacity()` after | `>= n` | `>= n`, never reduced when shrinking |
+| Shrinking | does nothing - `reserve` never reduces capacity | destroys the trailing elements |
+| Requires of `T` | nothing | default-insertable (or copy-insertable for `resize(n, v)`) |
+
+**The trap that follows directly:** after `v.reserve(10)` the memory exists and the elements do not, so `v[0] = 1;` is undefined behaviour - `operator[]` is only valid below `size()`. It will usually appear to work, which is what makes it dangerous. Use `push_back`/`emplace_back` after `reserve`, or use `resize` if you actually want `n` elements to exist.
+
+**Value-initialisation is stronger than people expect.** `std::vector<int> v; v.resize(5);` gives five zeros, not five indeterminate values - which also means `resize` on a large vector of a trivial type still costs a write over the whole range, so it is not free the way `reserve` is.
+
+**Both can reallocate, and reallocation invalidates everything** - all iterators, pointers and references into the vector. That is the reason to `reserve` before a loop that takes addresses of elements, and the reason a saved iterator across a `push_back` is a bug ([CPP-042](#question-cpp-042)).
+
+Two more that tend to be the follow-up:
+
+- Whether reallocation *moves* or *copies* the existing elements depends on `T`'s move constructor being `noexcept`, because `vector` must preserve the strong exception guarantee ([CPP-007](#question-cpp-007), [CPP-091](#question-cpp-091)).
+- `resize` down destroys elements but keeps the capacity; `shrink_to_fit()` is a non-binding request to release it, and the guaranteed way is the swap idiom `std::vector<T>(v).swap(v)`.
+
+And the constructor is a third thing again: `std::vector<T> v(n)` constructs `n` elements, while `v.reserve(n)` on an empty vector constructs none - the same `n`, three different meanings.
 
 [↑ Back to question index](#question-index)
 
@@ -2071,9 +2138,15 @@ Choice depends on ordering needs, key type, hash quality, memory usage and acces
 
 **Details and nuances**
 
-Many keys may end up in the same bucket because of poor hashing or adversarial input.
+Average O(1) is a statement about a good hash and a bounded load factor. Both can fail.
 
-Then lookup may degrade toward linear traversal.
+**Poor hashing** puts many keys in one bucket, and libstdc++ and libc++ resolve collisions by chaining, so that bucket becomes a linked list and lookup within it is linear.
+
+**Adversarial input** is the same thing on purpose: if an attacker can choose keys and the hash is predictable, they can force every key into one bucket and turn an O(1) lookup into O(n) - a hash-flooding denial of service. That is why some languages randomise their hash seed per process and C++ does not, which makes `unordered_map` a poor choice for untrusted keys unless you supply your own hash.
+
+**Rehashing** is the second cost: when `size() / bucket_count()` exceeds `max_load_factor()`, the container rebuilds with more buckets and rehashes everything - O(n), and it invalidates all iterators ([CPP-047](#question-cpp-047)). `reserve()` up front avoids the repeated rebuilds.
+
+Worth mentioning as the practical counterweight: for small collections `std::map` or even a sorted `std::vector` often beats `unordered_map` outright, because the tree or the linear scan is cache-friendly and the hash container chases pointers ([CPP-045](#question-cpp-045)).
 
 [↑ Back to question index](#question-index)
 
@@ -2201,11 +2274,18 @@ The returned view dangles.
 
 **Details and nuances**
 
-A non-owning view over contiguous elements.
+It is the array analogue of `string_view` ([CPP-050](#question-cpp-050)): a pointer and a length, no ownership, no allocation, and it binds to a C array, a `std::array`, a `std::vector` or any contiguous range.
 
-It can represent arrays, vectors and other contiguous storage without copying.
+What it replaces is the pointer-plus-length pair that every C-style API carries, and the two bugs that come with it - a length that drifts out of sync with the pointer, and a function template instantiated once per container type for no reason.
 
-Useful for API boundaries when ownership stays elsewhere.
+```cpp
+void process(std::span<const int> data);   // accepts all of these
+process(carray);  process(vec);  process(arr);  process({p, n});
+```
+
+Two properties worth naming. It can be **dynamic or static extent** - `std::span<int, 4>` carries the size in the type, so the check is at compile time and the object is just a pointer. And `span<const T>` is how you express read-only, because constness belongs to the element type, not to the span.
+
+The hazard is the same as every non-owning view: it does not extend any lifetime. A span into a `vector` is invalidated by anything that reallocates it, and returning a span to a local is a dangling reference the compiler will not catch.
 
 [↑ Back to question index](#question-index)
 
@@ -2350,15 +2430,20 @@ It has slightly more overhead because it stores additional state.
 
 **Details and nuances**
 
-`std::scoped_lock` can lock one or several mutexes using deadlock-avoidance mechanisms.
-
-Example:
+The part that matters is the multi-mutex case: `scoped_lock` uses a deadlock-avoidance algorithm (the same as `std::lock`) rather than simply taking them in the order written. So two threads that acquire the same two mutexes in opposite orders cannot deadlock - which is the single most common deadlock in real code ([CPP-057](#question-cpp-057)).
 
 ```cpp
-std::scoped_lock lock(m1, m2);
+void transfer(Account& a, Account& b) {
+    std::scoped_lock lock(a.m, b.m);   // safe regardless of argument order
+    // ...
+}
 ```
 
-Useful when multiple mutexes must be acquired together.
+Written by hand that would be two `lock_guard`s and an ordering convention everyone has to remember, or `std::lock` followed by two `lock_guard`s with `std::adopt_lock`.
+
+Since C++17 `scoped_lock` is the default choice over `lock_guard`: it does the same job for one mutex and the right thing for several. The one trap is CTAD-related - `std::scoped_lock lock(m);` is correct and `std::scoped_lock(m);` creates a temporary that unlocks immediately ([CPP-193](#question-cpp-193)).
+
+`unique_lock` remains the one to use when you need to unlock early, transfer ownership, defer locking or wait on a condition variable.
 
 [↑ Back to question index](#question-index)
 
@@ -2451,9 +2536,20 @@ Updating the predicate and checking it under one mutex prevents lost logical sta
 
 **Details and nuances**
 
-Because wakeups can be spurious and notifications may happen before a thread actually starts waiting.
+Two independent reasons, and naming both is what the question is testing.
 
-The predicate checks the real condition under the mutex.
+**Spurious wakeups**: `wait` may return without any notification at all. That is permitted by the standard and does happen on real platforms, so a bare `wait` must always be inside a loop that rechecks the condition.
+
+**Lost wakeups**: `notify_one` releases nobody if no thread is waiting yet. If the producer sets the flag and notifies before the consumer reaches `wait`, the consumer then waits forever - for a notification that already happened. The predicate form fixes this because it checks the condition *before* waiting.
+
+```cpp
+std::unique_lock lock(m);
+cv.wait(lock, [&]{ return ready; });     // equivalent to: while (!ready) cv.wait(lock);
+```
+
+The mutex is part of the mechanism, not decoration: `wait` atomically releases it and suspends, then reacquires it before returning, which is what makes the check-and-wait indivisible. Modifying the condition without holding the mutex reintroduces the lost wakeup even with a correct predicate.
+
+`notify_one` versus `notify_all`: one is enough when any single waiter can consume the event; use `notify_all` when waiters are waiting on different conditions, or the wrong one may wake, see its predicate is false, and go back to sleep while the right one is never woken.
 
 [↑ Back to question index](#question-index)
 
@@ -2586,9 +2682,17 @@ It is commonly used inside retry loops and can map more efficiently to some hard
 
 **Details and nuances**
 
-It guarantees atomicity of the operation but provides no synchronization ordering with other memory operations.
+Atomicity and ordering are two separate guarantees, and `relaxed` buys only the first. The operation itself is indivisible - no torn read, no lost update - but the compiler and the CPU may move other loads and stores across it freely, so it publishes nothing and synchronises with nothing.
 
-Useful for things like independent statistics counters.
+Where it is genuinely correct:
+
+- A statistics counter whose value is read at the end and whose ordering against anything else does not matter.
+- A reference count **increment**, because adding a reference cannot let anything die. The decrement must be stronger - `acq_rel` - so the thread that reaches zero sees every other thread's writes before running the destructor ([CPP-189](#question-cpp-189)).
+- A flag whose only job is to be eventually observed, with no data attached to it.
+
+Where it is wrong, and this is the common case: any flag that means "the data I wrote is now ready". That requires release on the store and acquire on the load, and `relaxed` silently removes it.
+
+The reason this bug ships is that **x86 gives acquire/release ordering almost for free**, so a relaxed program that is formally broken behaves correctly on every developer machine and fails on ARM. That is the single strongest argument for defaulting to `seq_cst` and weakening only where you can state why it is safe ([CPP-061](#question-cpp-061)).
 
 [↑ Back to question index](#question-index)
 
@@ -3052,14 +3156,16 @@ Techniques include:
 
 **Details and nuances**
 
-Heap allocation may involve:
+A heap allocation is not one cost but four, and they compound:
 
-- allocator bookkeeping
-- synchronization
-- fragmentation
-- cache misses
+- **Bookkeeping** - finding a free block, splitting it, updating the free list. Tens to hundreds of nanoseconds, far more than the arithmetic around it.
+- **Synchronisation** - the global heap is shared, so allocation from several threads contends. Modern allocators (tcmalloc, jemalloc, mimalloc) fix most of this with per-thread caches, which is why swapping the allocator is sometimes a large free win.
+- **Fragmentation** - long-running processes end up with memory they hold and cannot use, so RSS grows while the program believes it freed everything.
+- **Cache behaviour** - separately allocated nodes land anywhere, so traversing them is a chain of cache misses. This usually dominates the other three, and it is the real reason `vector` beats `list` ([CPP-044](#question-cpp-044)).
 
-In hot paths, excessive small allocations can significantly hurt performance.
+What to do about it, in order: allocate less (reserve, reuse, batch), allocate contiguously (`vector` over node containers), keep objects on the stack or in a small buffer where the size is bounded, and only then reach for a pool or a custom allocator.
+
+The measurement point matters too: allocation cost rarely shows up as one hot function in a profile - it shows as time spread across `malloc`, page faults and cache misses, which is why "it is not in the profile" is not evidence that it is not the problem.
 
 [↑ Back to question index](#question-index)
 
@@ -3141,11 +3247,24 @@ but introduce ABI/versioning concerns.
 
 **Details and nuances**
 
-`LoadLibrary` loads a DLL dynamically.
+They are the Windows equivalent of `dlopen`/`dlsym` ([C-018](<./C Language Questions.md#question-c-018>)), and the design question they answer is the same: load at run time instead of linking at build time, so the program starts without the library present and decides for itself what to do.
 
-`GetProcAddress` obtains the address of an exported function by name or ordinal.
+```cpp
+HMODULE h = ::LoadLibraryW(L"plugin.dll");
+if (!h) { /* GetLastError */ }
+auto fn = reinterpret_cast<int(*)(int)>(::GetProcAddress(h, "entry"));
+if (!fn) { /* exported? correct name? */ }
+// ... ::FreeLibrary(h) when finished - and not while anything still points inside
+```
 
-Useful for plugin systems and optional runtime dependencies.
+Four practical points:
+
+- **Name mangling**: a C++ function is exported under its decorated name, so `GetProcAddress` with the source name fails. Plugin entry points are declared `extern "C"` for exactly this reason ([CPP-096](#question-cpp-096)).
+- **Reference counting**: each `LoadLibrary` increments a count and each `FreeLibrary` decrements it; the DLL unloads at zero, and unloading while a function pointer into it is still live is a crash.
+- **Bitness must match** - a 32-bit DLL will not load into a 64-bit process ([COM-032](<./COM and Excel Questions.md#question-com-032>)).
+- **Do not do real work in `DllMain`** ([CPP-082](#question-cpp-082)): it runs under the loader lock, so calling `LoadLibrary` or waiting on anything from there deadlocks.
+
+`LoadLibrary` is also how optional dependencies are handled: try to load, fall back gracefully if absent, rather than failing to start.
 
 [↑ Back to question index](#question-index)
 
@@ -3322,11 +3441,19 @@ Use:
 
 **Details and nuances**
 
-Use `delete` for objects allocated with scalar `new`.
+The reason they are different operations is that `new[]` usually stores the element count somewhere - often in a header just before the returned pointer - so `delete[]` knows how many destructors to run. `delete` on that pointer runs one destructor and frees from the wrong address; `delete[]` on a scalar allocation reads a count that was never written.
 
-Use `delete[]` for arrays allocated with `new[]`.
+It is undefined behaviour in both directions, and it frequently *appears* to work for trivially destructible types, which is why it survives in code until someone adds a destructor.
 
-Mixing them is undefined behavior.
+```cpp
+int*  a = new int[10];   delete a;      // UB, usually "works"
+Foo*  b = new Foo[10];   delete b;      // UB, leaks 9 destructors
+std::unique_ptr<Foo[]> c{new Foo[10]};  // correct: calls delete[]
+```
+
+The practical rule is to not write either: `std::vector` for a dynamic array, `std::unique_ptr<T[]>` or `std::make_unique<T[]>(n)` when you truly need raw ownership. `unique_ptr<T[]>` exists precisely because the single-object specialisation would call the wrong delete.
+
+Worth knowing for completeness: `new` throws `std::bad_alloc` on failure while `new (std::nothrow)` returns null, and the matching `operator delete` is chosen at compile time from the static type - so deleting a derived object through a base pointer without a virtual destructor is a third variant of the same class of bug ([CPP-021](#question-cpp-021)).
 
 [↑ Back to question index](#question-index)
 
@@ -3346,13 +3473,21 @@ Mixing them is undefined behavior.
 
 **Details and nuances**
 
-Placement new constructs an object in already allocated storage.
+It separates the two things ordinary `new` does together - allocate, then construct - and performs only the second, in storage you already have.
 
 ```cpp
-new (buffer) T(args...);
+alignas(T) std::byte buf[sizeof(T)];
+T* p = new (buf) T{args...};   // construct in place, no allocation
+p->~T();                        // destroy explicitly - no delete
 ```
 
-You must later call the destructor manually.
+Calling `delete` on that pointer is undefined behaviour, because the storage did not come from `operator new`. The destructor must be invoked by name, and forgetting it is a leak that no allocator tracks.
+
+The requirement people miss is **alignment**: the buffer must be suitably aligned for `T`, which is what `alignas` above is for. A `char` array without it is undefined behaviour on architectures that care, and silently slower on x86.
+
+Where it is actually used: inside containers, so `vector` can have capacity without constructed elements ([CPP-041](#question-cpp-041)); inside `std::optional` and `std::variant`, which hold storage and construct into it on demand; in memory pools and arenas; and in embedded code that must place an object at a fixed hardware address.
+
+Worth knowing that `std::construct_at` (C++20) and `std::destroy_at` are the modern spellings, and that they work in `constexpr` contexts where placement `new` did not.
 
 [↑ Back to question index](#question-index)
 
@@ -3397,9 +3532,19 @@ Examples:
 
 **Details and nuances**
 
-When an exception propagates, local automatic objects in exited scopes are destroyed in reverse construction order.
+Only objects whose construction **completed** are destroyed - which is the same rule that decides what happens when a constructor throws ([CPP-177](#question-cpp-177)). A partially constructed object has no destructor call, so anything it acquired raw is lost.
 
-RAII relies on this for cleanup.
+What unwinding does *not* clean up is the point of the answer: raw `new`, a `fopen` without a wrapper, a manually locked mutex, a handle from a C API. Every one of those leaks on the exceptional path unless an object owns it - which is the whole argument for RAII, stated as a mechanism rather than as advice.
+
+Cases where unwinding does not happen at all, worth having ready:
+
+- `std::terminate` - an exception escaping `noexcept`, or one thrown during unwinding ([CPP-089](#question-cpp-089)) - aborts without unwinding the remaining frames.
+- `std::exit` runs static destructors but not automatic ones; `std::abort` and `_exit` run nothing.
+- An exception escaping `main` or a thread's entry function calls `terminate`, and whether anything was unwound first is implementation-defined.
+
+So a destructor is not a place to put behaviour the program depends on: it runs on every normal and exceptional path *through* the scope, and not at all if the process is terminated.
+
+`-fno-exceptions` builds, common in embedded, remove the machinery entirely - worth mentioning, because it changes what error handling can look like on that target.
 
 [↑ Back to question index](#question-index)
 
@@ -3502,11 +3647,16 @@ Violations can cause linker errors or undefined behavior.
 
 **Details and nuances**
 
-It allows identical definitions in multiple translation units under ODR rules.
+The keyword's job is linkage, not optimisation. It tells the linker that multiple identical definitions of this entity are expected and must be folded into one, instead of being a one-definition-rule violation ([CPP-093](#question-cpp-093)). That is why a function defined in a header needs it and a function defined in a `.cpp` does not.
 
-It does **not** force machine-code inlining.
+Whether the compiler actually inlines a call is a separate decision it makes from size and profitability, and it will inline functions never marked `inline` and decline to inline ones that are.
 
-The optimizer decides whether to inline function calls.
+Two consequences:
+
+- A member function defined **inside** the class body is implicitly `inline`, which is why header-only classes work without the keyword appearing anywhere.
+- **`inline` variables** (C++17) apply the same rule to data, which is what finally allows a header-only library to define a global without the old trick of a function returning a static reference ([CPP-172](#question-cpp-172)).
+
+If you genuinely need to influence the optimiser, the tools are `[[gnu::always_inline]]` / `__forceinline` and `[[gnu::noinline]]` - non-standard, and worth using only with a measurement, because forcing inlining of a large function inflates code size and can cost more in instruction-cache misses than the call ever cost.
 
 [↑ Back to question index](#question-index)
 
@@ -6152,6 +6302,364 @@ Reclamation is the harder half and has no cheap answer:
 | Never free | Pool and reuse nodes instead | Bounded memory, no reuse across types |
 
 Saying this out loud is the senior answer to "would you write a lock-free queue": for SPSC yes ([CPP-183](#question-cpp-183)), and beyond that the correct engineering decision is to use an existing implementation or a mutex, because the failure mode is silent corruption under load on one machine.
+
+[↑ Back to question index](#question-index)
+
+---
+
+# 19. Library Internals
+
+## Question CPP-185
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-185 — How does `std::string` store its data, and what is SSO?
+
+**Short answer**
+
+- A typical `std::string` is a pointer, a size and a capacity - three words - plus a **small string optimisation**: short strings are stored inside those bytes rather than on the heap, so they cost no allocation at all.
+- The threshold is implementation-defined; libstdc++ stores about 15 characters inline, MSVC about 15, libc++ about 22, and `sizeof(std::string)` is 32 bytes on common 64-bit builds.
+- The practical consequence: short strings are cheap and move is not free for them - moving an SSO string copies the buffer rather than stealing a pointer.
+
+**Details and nuances**
+
+That last point surprises people who assume move is always O(1). For a heap-allocated string it is; for one in the small buffer, there is nothing to steal, so the characters are copied. Fast either way, but not the same operation.
+
+**Copy-on-write is forbidden since C++11**, and the reason is worth knowing: COW made `operator[]` on a non-const string potentially mutating - it had to detach the shared buffer - so two threads reading two copies of the same string could race on the shared reference count. C++11 requires that concurrent access to distinct objects be safe, which makes COW non-conforming. GCC carried a COW `std::string` for years and the ABI break to fix it is why `_GLIBCXX_USE_CXX11_ABI` exists ([BLD-009](<./Build Systems Questions.md#question-bld-009>) is where that bites in practice).
+
+Related and frequently asked next: `std::string_view` ([CPP-050](#question-cpp-050)) avoids both the allocation and the copy, at the price of not owning anything - so returning a `string_view` to a temporary is a dangling reference, and that is the follow-up question.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-186
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-186 — How does `std::function` work, and why can it allocate?
+
+**Short answer**
+
+- It is **type erasure**: `std::function<int(int)>` stores any callable with that signature behind a uniform interface, which means an indirect call through a vtable-like mechanism rather than a direct one.
+- Implementations keep a small buffer inline, so a capture-free lambda or a small closure fits without allocating; a larger closure goes on the heap. The buffer size is implementation-defined and there is no way to query it portably.
+- So it costs an indirect call, possible allocation, and lost inlining - which is why a template parameter is the right choice when the callable type is known at compile time.
+
+**Details and nuances**
+
+The mechanism in one sketch:
+
+```cpp
+struct Base { virtual int call(int) = 0; virtual ~Base() = default; };
+template <class F> struct Model : Base {
+    F f;  int call(int x) override { return f(x); }
+};
+// std::function holds a Base* into either its inline buffer or the heap
+```
+
+When to use which:
+
+| | `template <class F> void run(F f)` | `std::function<void()> f` |
+|---|---|---|
+| Call | direct, inlinable | indirect, not inlinable |
+| Allocation | never | possible |
+| Type known at | compile time | run time |
+| Use for | hot paths, algorithms | storing callbacks in a container, crossing an ABI, member variables |
+
+`std::function` also requires the callable to be **copy-constructible**, which is why it cannot hold a lambda capturing a `unique_ptr`. C++23's `std::move_only_function` fixes exactly that, and mentioning it is a good signal.
+
+For a Qt or SIP-style event system this is the trade in practice: signals and slots, `std::function` callbacks and templates all solve the same problem at different points on the compile-time/run-time line.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-187
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-187 — What does `dynamic_cast` cost, and when should you use it?
+
+**Short answer**
+
+- It performs a run-time check using RTTI, walking the inheritance structure, so it is meaningfully more expensive than any other cast - typically tens of nanoseconds, and worse with multiple or virtual inheritance.
+- It requires a polymorphic type (at least one virtual function), returns `nullptr` for a failed pointer cast and throws `std::bad_cast` for a failed reference cast.
+- Frequent `dynamic_cast` in application logic is usually a design smell: the code is asking "what are you" where a virtual function would let the object answer "here is what I do".
+
+**Details and nuances**
+
+The legitimate uses are real and worth naming so the answer is not dogma: crossing a plugin or framework boundary where you receive a base pointer and genuinely must discover the type; implementing a visitor or serialisation layer; and safe downcasting in test code. `static_cast` down a hierarchy is faster and unchecked - correct only when you already know the type, and undefined behaviour when you are wrong.
+
+RTTI can be disabled (`-fno-rtti`, common in embedded and in some game engines), which removes `dynamic_cast` and `typeid` entirely - so code that depends on them is not portable to those builds. That is a point worth raising in an embedded context.
+
+The usual alternatives, in order of preference: a virtual function that does the thing; a `std::variant` with `std::visit` when the set of types is closed ([CPP-169](#question-cpp-169)); and an explicit type tag only when neither fits.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-188
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-188 — Implement `unique_ptr`.
+
+**Short answer**
+
+- A pointer member, a destructor that deletes it, copy operations deleted, move operations that steal and null the source - that is the whole idea.
+- The details an interviewer is checking: `explicit` constructor, `noexcept` on the move operations, self-assignment safety in move assignment, and `release`/`reset`/`get`/`operator*`/`operator->`/`operator bool`.
+- The complete version also parameterises the deleter and specialises for arrays, which is worth mentioning even if you do not write it.
+
+**Details and nuances**
+
+```cpp
+template <class T>
+class UniquePtr {
+public:
+    UniquePtr() noexcept = default;
+    explicit UniquePtr(T* p) noexcept : p_(p) {}
+    ~UniquePtr() { delete p_; }
+
+    UniquePtr(const UniquePtr&)            = delete;
+    UniquePtr& operator=(const UniquePtr&) = delete;
+
+    UniquePtr(UniquePtr&& o) noexcept : p_(o.release()) {}
+    UniquePtr& operator=(UniquePtr&& o) noexcept {
+        if (this != &o) reset(o.release());      // handles self-move
+        return *this;
+    }
+
+    T*   release() noexcept { return std::exchange(p_, nullptr); }
+    void reset(T* p = nullptr) noexcept { delete std::exchange(p_, p); }
+    T*   get() const noexcept { return p_; }
+    T&   operator*()  const { return *p_; }
+    T*   operator->() const noexcept { return p_; }
+    explicit operator bool() const noexcept { return p_ != nullptr; }
+
+private:
+    T* p_ = nullptr;
+};
+```
+
+Points to raise while writing it, because they are what the exercise is actually testing: `explicit` on the raw-pointer constructor prevents an accidental implicit take-over of ownership; `std::exchange` makes release and reset obviously correct in one line; `noexcept` on the move operations is what lets containers move rather than copy ([CPP-091](#question-cpp-091)); and `explicit operator bool` allows `if (p)` without allowing `int x = p`.
+
+The real `unique_ptr` takes `Deleter` as a second template parameter, stores it with the empty base optimisation so a stateless deleter costs nothing, and has a `T[]` specialisation that calls `delete[]` and provides `operator[]` instead of `operator*`.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-189
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-189 — Implement `shared_ptr` - what does the control block hold?
+
+**Short answer**
+
+- Two pointers: one to the object, one to a **control block** holding a strong count, a weak count and the deleter. The strong count destroys the object when it reaches zero; the weak count frees the control block when it reaches zero.
+- Both counters are atomic, which is why copying a `shared_ptr` is not free - it is an atomic increment, and contention on a hot shared pointer shows up in profiles.
+- `make_shared` allocates the object and the control block in one block, which is faster and halves the allocations, at the cost that the object's memory is only released when the last *weak* reference is gone.
+
+**Details and nuances**
+
+```cpp
+struct ControlBlock {
+    std::atomic<long> strong{1};
+    std::atomic<long> weak{1};        // one weak reference held by the strong group
+    virtual void destroy() = 0;       // type-erased deleter
+    virtual ~ControlBlock() = default;
+};
+
+template <class T>
+class SharedPtr {
+    T*            p_  = nullptr;
+    ControlBlock* cb_ = nullptr;
+public:
+    SharedPtr(const SharedPtr& o) noexcept : p_(o.p_), cb_(o.cb_) {
+        if (cb_) cb_->strong.fetch_add(1, std::memory_order_relaxed);
+    }
+    ~SharedPtr() {
+        if (cb_ && cb_->strong.fetch_sub(1, std::memory_order_acq_rel) == 1) {
+            cb_->destroy();                                  // destroy the object
+            if (cb_->weak.fetch_sub(1, std::memory_order_acq_rel) == 1) delete cb_;
+        }
+    }
+};
+```
+
+Three things worth saying out loud while drawing this:
+
+- The two pointers are separate on purpose, which is what makes the **aliasing constructor** possible - a `shared_ptr` that keeps a parent alive while pointing at a member.
+- The increment can be `relaxed` (adding a reference cannot let anything die) but the decrement must be `acq_rel`, because the thread that brings the count to zero must see every other thread's writes before running the destructor. Getting that wrong is a classic subtle bug.
+- The control block is type-erased, which is why `shared_ptr<void>` can still call the right destructor, and why `shared_ptr` is two words while `unique_ptr` is one.
+
+The follow-ups this invites are all already answerable: why `make_shared` versus `shared_ptr(new T)` ([CPP-033](#question-cpp-033), [CPP-173](#question-cpp-173)), cycles and `weak_ptr` ([CPP-035](#question-cpp-035)), and what "thread-safe" does and does not mean here ([CPP-038](#question-cpp-038)).
+
+[↑ Back to question index](#question-index)
+
+---
+
+# 20. Language Features Often Asked
+
+## Question CPP-190
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-190 — What are the rules for operator overloading, and what does `<=>` change?
+
+**Short answer**
+
+- Overload only where the meaning is obvious to a reader; prefer non-member functions for symmetric operators so implicit conversions apply equally to both sides, and members for those that mutate `this` such as `+=`, `[]`, `()` and `->`.
+- The canonical shape is to implement `+=` as a member and `+` as a non-member in terms of it, and to implement `==` and `<` and derive the rest - which is exactly the boilerplate C++20 removes.
+- `operator<=>`, the three-way comparison, returns an ordering category and lets the compiler synthesise `<`, `>`, `<=` and `>=`; `= default` on it and on `==` gives you memberwise comparison for free.
+
+**Details and nuances**
+
+```cpp
+struct Version {
+    int major, minor, patch;
+    auto operator<=>(const Version&) const = default;   // all four relations
+    bool operator==(const Version&) const = default;    // == is separate
+};
+```
+
+`==` is deliberately not synthesised from `<=>` in the defaulted case because equality can often be computed much faster than ordering - comparing sizes before contents, for example - so the standard keeps them independent.
+
+The three ordering categories are the part that gets asked: `strong_ordering` means equal values are interchangeable; `weak_ordering` means equivalent but distinguishable (case-insensitive strings); `partial_ordering` means some pairs are unordered, which is what floating point returns because of NaN.
+
+Rules that do not change: you cannot invent new operators or change precedence or arity; `&&`, `||` and `,` lose their short-circuit or sequencing behaviour when overloaded, which is why overloading them is nearly always wrong; and assignment, subscript, call and arrow must be members.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-191
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-191 — What is a lambda, really?
+
+**Short answer**
+
+- A compiler-generated **closure type** - an unnamed class with a `const` `operator()` and one member per captured variable - and the lambda expression creates an object of that type.
+- `mutable` removes the `const` from `operator()`, so a by-value capture can be modified; each call sees the modification because it is member state, not a fresh copy.
+- A capture-free lambda is additionally convertible to a plain function pointer, which is what makes it usable as a C callback.
+
+**Details and nuances**
+
+```cpp
+int n = 0;
+auto f = [n]() mutable { return ++n; };   // 1, 2, 3 - state lives in the closure
+auto g = [p = std::make_unique<T>()] { use(*p); };   // init-capture: move into the closure
+auto h = [](auto x) { return x + x; };    // generic: templated operator()
+```
+
+**Init-capture** (C++14) is the answer to "how do you capture a move-only type", and it is also how you capture an expression rather than a variable - `[len = v.size()]`.
+
+The capture defaults are where the bugs are. `[&]` captures everything by reference including `this`, so a lambda stored and called later dangles ([CPP-110](#question-cpp-110)); `[=]` captures `this` **by pointer** even though it looks like a copy, which is the same dangling problem wearing a disguise - C++17 added `[*this]` to capture a copy of the object, and C++20 deprecated the implicit `this` capture in `[=]` for this reason.
+
+Worth knowing that a generic lambda's `operator()` is a template, so `auto` parameters make it usable with any type, and C++20 allows an explicit template parameter list - `[]<class T>(std::vector<T>& v)` - when you need the type by name.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-192
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-192 — What are type traits, and how does `if constexpr` change template code?
+
+**Short answer**
+
+- Type traits are compile-time queries and transformations on types - `std::is_integral_v<T>`, `std::remove_reference_t<T>`, `std::is_nothrow_move_constructible_v<T>` - evaluated by the compiler with no run-time cost.
+- `if constexpr` discards the untaken branch **at compile time**, so the discarded branch does not have to be valid for the current `T` - which replaces most `enable_if` and tag-dispatch machinery with an ordinary `if`.
+- The result is that C++17 template code reads like normal code, and C++20 concepts then move the constraint into the signature where the error message can name it.
+
+**Details and nuances**
+
+```cpp
+template <class T>
+std::string describe(const T& v) {
+    if constexpr (std::is_integral_v<T>)        return std::to_string(v);
+    else if constexpr (requires { v.str(); })   return v.str();          // C++20
+    else                                        return "unprintable";
+}
+```
+
+Without `if constexpr` this needed either `enable_if` overloads or tag dispatch, and both scattered the logic across several functions. The evolution worth naming in one line: SFINAE and `enable_if` (C++11) → `if constexpr` (C++17) → concepts and `requires` (C++20), each making the same idea readable by more people.
+
+Two practical notes. `if constexpr` only discards inside a template - in a non-template function both branches must compile. And a trait is a query, not a guarantee of behaviour: `std::is_nothrow_move_constructible_v` tells you what was declared, which is why declaring `noexcept` wrongly is worse than not declaring it ([CPP-091](#question-cpp-091)).
+
+`static_assert` with a trait is the cheapest way to turn a confusing instantiation error into a one-line message, and is worth reaching for at the top of any template with real requirements.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-193
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-193 — What is CTAD, and when do you need a deduction guide?
+
+**Short answer**
+
+- Class template argument deduction (C++17) lets you write `std::vector v{1, 2, 3};` or `std::lock_guard lock{m};` and have the template arguments deduced from the constructor arguments, the way function templates always could.
+- The compiler builds implicit guides from the constructors; a **deduction guide** is an explicit rule you write when those do not give the answer you want.
+- It is a readability feature with one sharp edge: the deduced type is sometimes not the one you assumed, so `auto` plus a factory function is still clearer in generic code.
+
+**Details and nuances**
+
+```cpp
+template <class T> struct Box { Box(T) {} };
+Box b{42};                            // Box<int> - implicit guide
+
+template <class It> struct Range { Range(It, It); };
+template <class It> Range(It, It) -> Range<It>;     // explicit guide
+
+std::vector v{std::string("a")};      // vector<std::string>, one element
+std::vector w(3, 0);                  // vector<int> of three zeros - different!
+```
+
+The classic surprise is that braces and parentheses select different constructors, and CTAD does not change that - it just makes the difference harder to notice because the type is no longer written down.
+
+A guide is genuinely needed when the constructor takes something other than the template parameter - an iterator pair, an initializer list of a different type, or a type that needs `decay` applied. `std::pair`'s guide, which decays its arguments so `std::pair p{"a", 1}` gives `pair<const char*, int>` rather than a reference to an array, is the textbook example.
+
+`std::lock_guard lock{m}` is the everyday win, and it removes a real bug class too: `std::lock_guard{m}` without a name is a temporary that unlocks immediately, and naming it is what CTAD makes painless.
+
+[↑ Back to question index](#question-index)
+
+---
+
+## Question CPP-194
+
+[↑ Back to question index](#question-index)
+
+### Question CPP-194 — What is a C++20 coroutine, at the level you would be asked about it?
+
+**Short answer**
+
+- A function that can suspend and resume: using `co_await`, `co_yield` or `co_return` makes the compiler transform it into a state machine whose state lives in a heap-allocated frame rather than on the stack.
+- C++20 provides only the **language machinery**, not usable types - there is no standard task or generator in C++20, so real use means a library (cppcoro, Boost.Asio, Qt's own) or writing promise types yourself, which is why adoption has been slow.
+- The value is asynchronous code that reads sequentially: no callback nesting, no explicit state variable, with the compiler generating the state machine you would otherwise write by hand.
+
+**Details and nuances**
+
+```cpp
+Task<Response> fetch(Request r) {
+    auto conn = co_await connect(r.host);    // suspends, does not block
+    auto resp = co_await conn.send(r);
+    co_return resp;
+}
+```
+
+The three keywords and what each does: `co_await` suspends until an awaitable is ready, `co_yield` produces a value and suspends (that is a generator), `co_return` finishes.
+
+What to be careful about, and what an interviewer is likely probing: the frame is usually heap-allocated, so a coroutine in a hot loop is not free (the allocation is elidable in principle and often is not in practice); a reference parameter is a dangling-reference trap because the referent may die while the coroutine is suspended; and a suspended coroutine that is never resumed leaks its frame.
+
+The honest framing for a C++17 codebase: this is worth knowing about and rarely worth introducing yet. C++23 adds `std::generator`, which is the first genuinely usable standard coroutine type.
 
 [↑ Back to question index](#question-index)
 
