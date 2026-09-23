@@ -12,6 +12,8 @@
 | [C Language Questions](<../Technical Interview/C Language Questions.md>) | C89 and later standards, undefined behaviour, memory sections, alignment and packing, strings, function pointers, opaque structs, static and shared libraries, core dumps and sanitizers |
 | [JavaScript and Node.js Questions](<../Technical Interview/JavaScript and Node.js Questions.md>) | JavaScript semantics, promises, event loop, Node.js, libuv, workers and streams |
 | [COM and Excel Questions](<../Technical Interview/COM and Excel Questions.md>) | COM fundamentals, apartments/marshaling, add-in lifecycle, Excel object-model performance, add-in technologies, RTD and Office.js |
+| [Git Questions](<../Technical Interview/Git Questions.md>) | Commit graph, merge vs rebase, conflicts, reset vs revert, branching strategy, bisect |
+| [Databases and SQL Questions](<../Technical Interview/Databases and SQL Questions.md>) | Joins, indexes and query plans, N+1, ACID and isolation, SQLite vs a server database |
 | [Testing Questions](<../Technical Interview/Testing Questions.md>) | Testing theory, GoogleTest fixtures and parameterized tests, GoogleMock, testing threads and time, legacy code, CI layering |
 | [Linux and Shell Questions](<../Technical Interview/Linux and Shell Questions.md>) | Permissions, processes and signals, hung-process diagnosis, systemd, redirection, shell scripting |
 | [Build Systems Questions](<../Technical Interview/Build Systems Questions.md>) | Make, target-based CMake, dependencies, cross-compilation, build speed |
