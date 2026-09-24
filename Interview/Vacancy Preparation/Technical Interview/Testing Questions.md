@@ -89,6 +89,18 @@ Integration tests are where most of the disagreement lives, because "integration
 
 The resolution is to derive the cases white-box and write the assertions black-box: use the code to decide *which* inputs matter - the boundary, the empty case, the branch nobody hits - and then assert on the observable contract rather than on internals. That keeps the coverage and loses the brittleness.
 
+**The techniques each one gives you** are worth naming, because "black-box" on its own sounds like "testing without thinking":
+
+*Black-box*: equivalence partitioning (one representative per class of input), boundary-value analysis (the off-by-one lives at `0`, `1`, `n-1`, `n`, and at type limits), decision tables for combinations of conditions, state-transition testing, and pairwise selection when the parameter space is too large to enumerate.
+
+*White-box*: coverage-directed testing. Statement coverage is the weak form; **branch** coverage is the useful minimum; MC/DC is what safety-critical standards require. The value is diagnostic, not a target — coverage tells you what is definitely **untested**, and a number above 80% tells you almost nothing about whether the assertions are any good. Mutation testing is the honest measure: change the code deliberately and see whether any test notices.
+
+*Gray-box*: knowing the schema, the wire format, the cache policy or the log lines lets you assert on an internal effect without depending on internal structure — verifying that a retry actually happened, or that a cache was populated, from the outside.
+
+**Where each fits in practice:** unit tests are usually white- or gray-box because you own the code; integration and end-to-end tests are black-box because they must survive refactoring of everything underneath; acceptance tests are black-box by definition, since they express what the customer asked for.
+
+**The point that matters most for this codebase's kind of work:** coverage tools do not see concurrency, and neither branch coverage nor boundary analysis finds a race or a lock-order inversion. Those need a different family of techniques entirely — stress and soak runs, deterministic scheduling, and sanitizers.
+
 [↑ Back to question index](#question-index)
 
 ---
