@@ -234,7 +234,7 @@ measure again
 
 **Short answer**
 
-- Name the mechanism first: in Excel this is what an **RTD server** exists for. The feed thread coalesces into a latest-value-per-topic store and calls `UpdateNotify`; Excel then pulls through `RefreshData` at `Application.RTD.ThrottleInterval`, so the display rate is decoupled from the feed rate by the platform rather than by my own timer.
+- Name the mechanism first: in Excel this is what an **RTD (Real-Time Data) server** exists for. It is a COM component implementing `IRtdServer` that supplies continuously changing values to cells using the `RTD` worksheet function; "server" here means a COM server, not necessarily a separate network service or machine. The feed thread coalesces into a latest-value-per-topic store and calls `UpdateNotify`; Excel then pulls through `RefreshData` at `Application.RTD.ThrottleInterval`, so the display rate is decoupled from the feed rate by the platform rather than by my own timer.
 - If the product does not use RTD, the same shape by hand: a bounded latest-value-per-key store instead of a queue of obsolete ticks, a ~10 Hz scheduler that snapshots changed keys, builds range-shaped batches and posts one task to the Excel/STA thread. On Office.js the equivalent is a streaming custom function emitting at a chosen rate.
 - Either way, define backpressure and drop policy, ordering and stale-data indication; instrument ingress rate, coalescing ratio, queue age, refresh latency and shutdown.
 
