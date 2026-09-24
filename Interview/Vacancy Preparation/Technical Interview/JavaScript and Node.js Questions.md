@@ -169,9 +169,30 @@ ES6 `class` syntax is largely built on top of the prototype model.
 
 **Details and nuances**
 
-For normal functions, `this` depends primarily on how the function is called.
+For an ordinary function `this` is decided at the **call site**, not where the function was written. The rules apply in a fixed precedence order, and being able to recite it is the point of the question:
 
-Arrow functions do not bind their own `this`; they capture lexical `this` from the surrounding scope.
+1. `new f()` — `this` is the freshly created object.
+2. `f.call(o)` / `f.apply(o)` / `f.bind(o)` — `this` is `o` (an explicit `bind` wins over a later `call`).
+3. `o.f()` — `this` is `o`, the object *left of the dot*.
+4. Otherwise — `undefined` in strict mode and in ES modules and class bodies; the global object (`globalThis`) in sloppy mode.
+
+**The classic bug is detaching a method**, because rule 3 depends on the call expression rather than on the function:
+
+```js
+const counter = { n: 0, inc() { this.n++; } };
+const f = counter.inc;
+f();                       // TypeError in strict mode: this is undefined
+setTimeout(counter.inc, 0) // same problem - the reference is passed, the receiver is not
+
+setTimeout(() => counter.inc(), 0);      // fix 1: keep the call expression intact
+setTimeout(counter.inc.bind(counter), 0) // fix 2: bind the receiver
+```
+
+Class methods are strict by definition, so a detached class method gives `undefined` rather than silently writing to the global object—which is why React class components needed `bind` in the constructor or class fields.
+
+**Arrow functions have no `this` binding at all.** They are not "bound to the enclosing object"; they simply do not create the slot, so `this` resolves lexically through the scope chain exactly like any other variable. `call`/`apply`/`bind` cannot change it, and `new` on an arrow is a `TypeError`. That makes arrows right for callbacks inside a method and wrong for object literal methods (`{ f: () => this.x }` captures the *module* `this`, not the object) and for anything that needs a dynamic receiver, such as a DOM event handler that wants `this === event.currentTarget`.
+
+**Coming from C++** the useful framing is that `this` is not a hidden first parameter fixed at definition like a member function's; it is closer to an implicit argument re-bound per call—so passing a method around loses it, the way passing a member function pointer without its object would.
 
 [↑ Back to question index](#question-index)
 
@@ -191,21 +212,26 @@ Arrow functions do not bind their own `this`; they capture lexical `this` from t
 
 **Details and nuances**
 
-`===` first requires the operands to have the same type, then compares their values. `==` follows the abstract equality algorithm and may convert one or both operands before comparing them. That makes individually explainable rules compose into surprising results:
+`===` compares type first: different types, `false`, no conversion. `==` runs the abstract equality algorithm, which converts until the types match:
+
+- `null == undefined` is `true`, and neither equals anything else—`null == 0` is `false`.
+- string vs number: the string is converted to a number, so `"1" == 1` and `"" == 0` are `true`.
+- boolean vs anything: the boolean becomes `0` or `1` *first*, so `"1" == true` is true but `"yes" == true` is false.
+- object vs primitive: the object is converted with `valueOf`/`toString`, which is where the party tricks come from—`[] == 0` and `[] == ""` are true, and `[] == ![]` is true because `![]` is `false`, then `0`, and `[]` also converts to `0`.
+- `NaN` equals nothing, including itself, under both operators.
+
+**The one place loose equality is idiomatic** is `x == null`, which is true for exactly `null` and `undefined`—a deliberate, readable nullish check. Everywhere else use `===`; most style guides and ESLint's `eqeqeq` enforce this with a `null` exemption.
+
+**Three comparisons, not two.** `Object.is` is `===` except that it treats `NaN` as equal to `NaN` and distinguishes `+0` from `-0`:
 
 ```js
-0 == false          // true
-'' == 0             // true
-'0' == false        // true
-null == undefined   // true
-[] == 0             // true: [] -> '' -> 0
+NaN === NaN            // false
+Object.is(NaN, NaN)    // true      (or use Number.isNaN)
+0 === -0               // true
+Object.is(0, -0)       // false
 ```
 
-With `===`, all five comparisons are false. Objects are a separate point: equality compares identity, not structure, under either operator, so `[] === []` and `[] == []` are both false.
-
-The usual rule is therefore `===` and `!==`. The useful deliberate exception is `value == null`, which concisely accepts exactly `null` or `undefined` in normal JavaScript; write it only if that intent is clear. Do not confuse equality with truthiness: `if (value)` also rejects `0`, `''`, `false` and `NaN`.
-
-Even strict equality has two edge cases: `NaN === NaN` is false, while `+0 === -0` is true. `Object.is` reverses those two decisions: it recognizes `NaN` as itself and distinguishes signed zero.
+**Objects are compared by reference under all three.** `{a:1} === {a:1}` is `false`; there is no value equality operator, so deep comparison needs a library or a hand-written walk. This is the part a C++ engineer should flag explicitly, because there is no way to overload `==` for a class—unlike `operator==`, equality is not user-definable in JavaScript.
 
 [↑ Back to question index](#question-index)
 
@@ -225,22 +251,26 @@ Even strict equality has two edge cases: `NaN === NaN` is false, while `+0 === -
 
 **Details and nuances**
 
-A Promise is a state machine with three states: **pending**, **fulfilled** with a value, or **rejected** with a reason. Fulfilled and rejected are collectively *settled*, and settlement is permanent. Resolving a promise with another promise or thenable makes it adopt that object's eventual state; resolution is therefore not always the same as immediate fulfillment.
+A Promise is a container for a result that does not exist yet. It is in one of three states—**pending**, **fulfilled** with a value, or **rejected** with a reason—and the transition out of pending happens exactly once and is irreversible. Registering a handler after it has settled is fine; the handler just runs on the next microtask checkpoint.
 
-The executor passed to `new Promise(...)` runs synchronously. In contrast, handlers registered with `.then`, `.catch` and `.finally` never run inline: a settled promise queues them as microtasks after the current JavaScript job finishes ([JS-010](#question-js-010)).
-
-Every `.then` returns a **new** promise, which is why chains compose:
+**The executor runs synchronously; only the handlers are deferred.** This surprises people:
 
 ```js
-fetchData()
-    .then(parse)       // returned value fulfills the next promise
-    .then(save)        // a returned promise is awaited/adopted
-    .catch(report);    // a thrown exception becomes a rejection
+console.log('a');
+new Promise(res => { console.log('b'); res(); }).then(() => console.log('d'));
+console.log('c');
+// a b c d
 ```
 
-Omitting a handler passes the value or rejection through. `.finally` is for cleanup and normally preserves the outcome; if it throws or returns a rejected promise, that new failure replaces the old outcome.
+**`.then` returns a *new* promise**, which is what makes chaining work and what makes the return value of each handler meaningful: returning a plain value fulfils the next promise with it, returning a promise (or any thenable) adopts its eventual state—so chains flatten rather than nest—and throwing rejects it. That is why the C++ instinct to think of it as a `std::future` is only half right: `std::future` has no continuations and `.get()` blocks, whereas a promise never blocks and composes.
 
-A Promise observes an operation; it does not itself create a thread, make synchronous work asynchronous, or provide cancellation. The underlying API must support cancellation explicitly, commonly through `AbortController`/`AbortSignal`. Rejections also need an intentional terminal handler or return path—starting a chain and discarding it can leave an unhandled rejection.
+**Rejection propagates down the chain** until a handler with an `onRejected` argument catches it. Two details follow: `.then(f).catch(g)` catches errors thrown by `f`, while `.then(f, g)` does not; and a rejected promise nobody ever handles raises `unhandledrejection` (in Node, since v15 that terminates the process by default).
+
+**`.finally`** runs on both paths and passes the settlement through unchanged—it is the cleanup hook, not a place to produce a result.
+
+**Combinators** are where promises pay off: `Promise.all` fails fast on the first rejection, `allSettled` always resolves with per-item status, `race` settles with the first to settle either way, `any` takes the first *fulfilment* and rejects with an `AggregateError` only if all fail.
+
+**A promise is not a handle to the work.** It cannot be cancelled and `all`'s fail-fast does not stop the other operations—they run to completion and their results are discarded. Cancellation has to be built into the operation itself, normally via `AbortController`/`AbortSignal`.
 
 [↑ Back to question index](#question-index)
 
@@ -328,17 +358,25 @@ console.log(4);
 2
 ```
 
-The initial script is one job and runs to completion. It logs `1`, registers a timer, queues a Promise reaction, then logs `4`. Only after the call stack becomes empty can queued work run.
+The mechanism, in the order the engine applies it:
 
-At that checkpoint the runtime drains the microtask queue, so the Promise reaction logs `3`. The timer callback belongs to a later task (or to the timers phase in Node.js), so it logs `2` afterwards. `setTimeout(..., 0)` means "eligible after at least this delay", not "run now"; the callback must still wait until the current job and its microtasks finish.
+1. The whole script is one task. `console.log(1)` and `console.log(4)` are plain synchronous statements, so they run to completion first. `setTimeout` and `.then` only *schedule*—they return immediately.
+2. When the call stack empties, the engine drains the **microtask queue** completely. The promise reaction prints `3`. If that handler had queued further microtasks, they would also run now, before anything else—an infinite microtask chain starves the loop entirely, which is a real hang, not a slowdown.
+3. Only then does the loop proceed to the next macrotask: the timer callback prints `2`.
 
-The robust rule for this example is:
+**`setTimeout(f, 0)` is a minimum delay, not "now".** Browsers clamp nested timeouts to ~4 ms after five levels, and Node's timer resolution means a 0 is treated as 1 ms. So the ordering guarantee here is "microtasks before timers", not "timers are slow".
 
-```text
-current synchronous job -> drain Promise microtasks -> next timer/task
+**The same reasoning with `async/await`**, which is the usual follow-up:
+
+```js
+async function f() { console.log('a'); await null; console.log('b'); }
+f(); console.log('c');
+// a c b
 ```
 
-Two qualifications prevent overgeneralizing it. First, a microtask may queue more microtasks, and the queue is drained again before moving on; an endless Promise chain can therefore starve timers and I/O. Second, host-specific queues matter in larger examples: Node.js gives `process.nextTick` its own higher-priority queue, and ordering between `setImmediate` and `setTimeout` depends on the context. Neither qualification changes `1, 4, 3, 2` for the code shown.
+An `async` function body runs synchronously up to the first `await`; everything after it is a microtask continuation, even when awaiting a non-promise.
+
+**In Node there is one extra layer.** `queueMicrotask`/promise reactions and `process.nextTick` are two separate queues, and the `nextTick` queue is drained *first*. `setImmediate` versus `setTimeout(...,0)` at top level is genuinely non-deterministic because it depends on how long the loop took to start, but inside an I/O callback `setImmediate` always wins—it runs in the check phase of the same iteration ([JS-012](#question-js-012)).
 
 [↑ Back to question index](#question-index)
 
@@ -413,14 +451,17 @@ When results are ready, callbacks are queued for execution on the JavaScript thr
 
 **Details and nuances**
 
-libuv is the cross-platform library used by Node.js for:
+libuv is the C library underneath Node: it owns the event loop, normalises the platform's readiness/completion APIs—epoll on Linux, kqueue on macOS/BSD, IOCP on Windows—and provides timers, child processes, signals, TTY and the thread pool.
 
-- event loop
-- async I/O abstraction
-- timers
-- filesystem operations
-- networking
-- thread pool tasks
+**The distinction that actually gets asked: which work is truly async, and which is faked with threads.**
+
+*Kernel-backed, no thread used*: TCP/UDP sockets, pipes, TTY. The loop just waits for readiness and does the syscall itself, so tens of thousands of connections cost no threads.
+
+*Thread pool*: filesystem operations (there is no portable async file I/O), `dns.lookup` (it calls `getaddrinfo`, which is blocking—`dns.resolve` uses the network and does not), and the async crypto and zlib calls (`pbkdf2`, `randomBytes`, `scrypt`, `gzip`).
+
+**The pool is small and shared—four threads by default.** That is the practical consequence worth stating: four concurrent `pbkdf2` calls will delay an unrelated `fs.readFile`, because they queue in the same place. `UV_THREADPOOL_SIZE` raises it (up to 1024) and must be set before the pool is first used, i.e. at process start, not after the first async call.
+
+**The loop phases** are timers → pending callbacks → poll → check (`setImmediate`) → close callbacks, with the microtask and `nextTick` queues drained between each ([JS-012](#question-js-012)). Completion of a pool task is signalled back into the poll phase, so a pool thread never runs your JavaScript—the callback still executes on the main thread, which is why libuv gives you parallel *I/O*, not parallel *JavaScript*. For that you need Worker Threads ([JS-015](#question-js-015)).
 
 [↑ Back to question index](#question-index)
 
@@ -469,17 +510,25 @@ Solutions can include:
 
 **Details and nuances**
 
-A Node.js Worker Thread has its own V8 isolate, JavaScript heap and event loop on another OS thread. It can execute JavaScript in parallel with the main thread, but it is not a lightweight callback and does not implicitly share ordinary objects or module state. Unlike a child process, it remains in the same process and can deliberately share memory.
+A worker is a real OS thread running its **own V8 isolate and its own event loop**. Nothing is shared implicitly: no globals, no module cache, no prototypes. That isolation is what makes it safe, and also what makes it more expensive than a thread in C++—expect on the order of milliseconds and several megabytes per worker, so you create a pool at startup rather than a worker per task.
 
-There are three important ways to move data across the boundary:
+```js
+const { Worker, isMainThread, parentPort, workerData } = require('node:worker_threads');
+```
 
-- `postMessage` normally uses the structured-clone algorithm, which copies supported values;
-- a transferable such as an `ArrayBuffer` can move ownership without copying, detaching it from the sender;
-- `SharedArrayBuffer` exposes the same bytes to both threads and requires `Atomics` or another sound synchronization protocol.
+**Three ways data crosses, with very different costs.**
 
-Workers are most useful for sufficiently large CPU-bound jobs: parsing, compression, image processing or computation that would otherwise block the event loop ([JS-014](#question-js-014)). They usually do not help ordinary network or filesystem I/O because Node already handles that asynchronously. Startup, cloning and message passing can cost more than a small job, so production code normally uses a bounded reusable pool and a bounded work queue rather than one worker per request.
+*Structured clone* is the default for `postMessage`: a deep copy that handles cycles, `Map`/`Set`/`Date`/typed arrays, but not functions, class identity or DOM-style handles. Cost is proportional to payload size, so a large object graph per message will eat the gain.
 
-The design still needs backpressure, error propagation, cooperative cancellation and deterministic shutdown. It also needs measurement: too many workers oversubscribe the CPU, while transferring huge results back to the main thread can simply move the bottleneck to serialization and result handling.
+*Transfer* moves ownership instead of copying—`postMessage(buf, [buf])` on an `ArrayBuffer` or `MessagePort` is O(1) and leaves the sender's buffer detached (`byteLength === 0`). This is the right mechanism for bulk numeric data.
+
+*`SharedArrayBuffer`* is genuinely shared memory with no copy at all, but then you own the synchronisation: `Atomics.load`/`store`/`add` and `Atomics.wait`/`notify`. The mental model maps directly onto `std::atomic` and a futex, and the same reasoning about data races applies—the only difference is that JavaScript has no way to share ordinary objects, so the shared region is always raw bytes plus a typed-array view.
+
+**When *not* to use them.** Not for I/O—libuv already does that without blocking ([JS-013](#question-js-013)). Not for a single short task, because startup dominates. Use them when a synchronous CPU-bound step would otherwise block the loop and stall every other request ([JS-014](#question-js-014)).
+
+**The comparison to have ready**: `worker_threads` shares the process (cheap messaging, shared memory possible); `child_process`/`fork` gives full isolation at higher IPC cost and is what you want for untrusted or crash-prone code; `cluster` forks whole processes sharing a listening socket, which is for scaling I/O-bound servers across cores, not for offloading computation.
+
+**Operationally**, a pool needs the boring parts defined up front: a bounded queue, a per-task timeout, `worker.on('error')` and `on('exit')` to replace a dead worker, and `worker.terminate()` (which returns a promise) on shutdown—otherwise the process will not exit.
 
 [↑ Back to question index](#question-index)
 
