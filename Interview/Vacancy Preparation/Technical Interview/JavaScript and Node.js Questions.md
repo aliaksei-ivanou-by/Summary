@@ -55,7 +55,30 @@ Questions use stable topic-specific IDs. Every answer begins with a short bullet
 - block-scoped
 - binding cannot be reassigned
 
-`const` does not make the referenced object immutable.
+`const` does not make the referenced object immutable — it freezes the **binding**, not the value:
+
+```js
+const a = [1, 2];
+a.push(3);        // fine - the array is mutable
+a = [];           // TypeError - the binding is not
+```
+
+The C++ analogue is `T* const p`, not `const T* p`. For actual immutability use `Object.freeze` (shallow) or a structural-sharing library.
+
+**`var`'s function scoping is the historical bug source**, and the loop is the canonical demonstration:
+
+```js
+for (var i = 0; i < 3; i++) setTimeout(() => console.log(i));  // 3 3 3 - one shared i
+for (let i = 0; i < 3; i++) setTimeout(() => console.log(i));  // 0 1 2 - a fresh binding per iteration
+```
+
+`let` in a `for` head creates a **new binding each iteration**, which is a special rule worth naming—it is not merely block scoping.
+
+**The temporal dead zone** is the region from the top of the block to the declaration. A `let` or `const` *is* hoisted—the binding exists—but touching it throws `ReferenceError` instead of quietly giving `undefined` ([JS-003](#question-js-003)). That turns a class of silent bugs into loud ones.
+
+**`var` also creates a property on the global object** when declared at top level in a script (`var x = 1; window.x === 1`); `let` and `const` do not. And `var` allows redeclaration of the same name in the same scope, so a duplicated declaration in a long function silently overwrites.
+
+**The rule in modern code:** `const` by default, `let` when the binding must change, `var` never. That is not style—`const` communicates that the binding is stable, which is real information for a reader, and the linter can enforce it (`prefer-const`, `no-var`).
 
 [↑ Back to question index](#question-index)
 
@@ -87,7 +110,26 @@ function counter() {
 }
 ```
 
-The returned function keeps access to `value`.
+The returned function keeps access to `value` — the variable outlives the call that created it, because the inner function holds a reference to the enclosing **environment record**, not a copy of the variable.
+
+```js
+const c1 = counter(), c2 = counter();
+c1(); c1();   // 2
+c2();         // 1  - separate environments, separate `value`
+```
+
+**The C++ comparison is the useful one here**: a closure is a lambda that captures by reference, but with **garbage-collected lifetime** — so there is no dangling-reference problem, which is exactly the hazard that makes `[&]` capture dangerous in C++ when the lambda outlives the frame. The trade-off is the opposite one: nothing is freed while a closure still refers to it.
+
+**Which is the main practical hazard: closures are how you leak memory in JavaScript.** An event handler or interval callback that closes over a large object keeps that object alive as long as the handler is registered; removing the listener, or nulling the reference, is what releases it. V8 is smart enough to keep only the variables actually referenced — but a single reference to a big structure pins the whole thing.
+
+**What it is used for**, beyond the counter example:
+
+- **private state** — the module pattern, and still the way to get genuinely private data without `#fields`;
+- **partial application** — `const add5 = x => x + 5` built from a factory;
+- **callbacks that need context** — every `setTimeout`, event handler and promise continuation captures its surroundings, which is why async code in JavaScript reads sequentially at all;
+- **memoisation** — the cache lives in the closure.
+
+**The classic interview follow-up is the `var`-in-a-loop question** ([JS-001](#question-js-001)): three closures over *one* `var` binding print the same value; `let` gives each iteration its own binding. The pre-ES6 fix was an IIFE to create a fresh scope — which is the same mechanism, made explicit.
 
 [↑ Back to question index](#question-index)
 
@@ -114,6 +156,32 @@ Function declarations are available earlier.
 `var` is hoisted and initialized to `undefined`.
 
 `let` and `const` are hoisted but remain unavailable in the temporal dead zone until their declaration is executed.
+
+**The accurate mental model is two phases per scope.** On entry, the engine creates bindings for every declaration in that scope; then it executes statements. What differs is how each kind is *initialised* at creation time:
+
+| Declaration | At scope entry | Before the declaration line |
+|---|---|---|
+| `function f(){}` | fully defined | callable |
+| `var x` | initialised to `undefined` | `undefined` |
+| `let` / `const` | created, **uninitialised** | `ReferenceError` (TDZ) |
+| `class C {}` | created, uninitialised | `ReferenceError` |
+
+```js
+console.log(f());   // "ok"      - function declaration is fully hoisted
+console.log(v);     // undefined - var is hoisted and initialised
+console.log(l);     // ReferenceError - TDZ
+function f(){ return "ok"; }
+var v = 1;
+let l = 2;
+```
+
+**Function *expressions* are not hoisted as functions** — `var f = function(){}` hoists `f` as `undefined`, so calling it early gives `f is not a function`, a different error from the TDZ one. The same for arrow functions assigned to `const`, which give a `ReferenceError` instead.
+
+**`typeof` is not safe in the TDZ**, which is the detail that catches people: `typeof undeclaredVar` returns `"undefined"` harmlessly, but `typeof letVarInTDZ` throws.
+
+**Function declarations inside blocks** are the messy corner: in strict mode (and modules) they are block-scoped; in sloppy mode the behaviour is a compatibility annex and differs between engines. Do not rely on it.
+
+**Why the TDZ was designed in**: it turns "used before defined" from a silent `undefined` — which then flows through the program and fails somewhere else — into an immediate, located error ([JS-001](#question-js-001)). Writing declarations before use makes all of this moot, which is the actual advice.
 
 [↑ Back to question index](#question-index)
 
@@ -149,7 +217,29 @@ prototype's prototype
 null
 ```
 
-ES6 `class` syntax is largely built on top of the prototype model.
+ES6 `class` syntax is largely built on top of the prototype model — `class` is syntax over constructor functions and prototype objects, not a separate mechanism.
+
+**Distinguish the two names**, because the question usually hinges on it: `obj.__proto__` (properly `Object.getPrototypeOf(obj)`) is the link the lookup follows; `Func.prototype` is the object that *instances of* `Func` will get as their prototype. They are different things that share a word.
+
+```js
+function Dog(name) { this.name = name; }
+Dog.prototype.speak = function () { return this.name + " barks"; };
+
+const d = new Dog("Rex");
+Object.getPrototypeOf(d) === Dog.prototype;            // true
+Object.getPrototypeOf(Dog.prototype) === Object.prototype;  // true
+Object.getPrototypeOf(Object.prototype) === null;      // end of the chain
+```
+
+`new` does four things: create an object, set its prototype to `Dog.prototype`, run the constructor with `this` bound to it, and return it (unless the constructor returns an object).
+
+**Reads walk the chain; writes do not.** `d.speak` is found on the prototype, but `d.speak = ...` creates an **own** property that shadows it — the prototype is untouched. That asymmetry explains most prototype confusion, including why mutating a shared prototype property from an instance appears to work for objects and not for primitives.
+
+**The contrast with C++** is worth stating: this is delegation at *runtime* between live objects, not a compile-time class hierarchy. The prototype of an object can be replaced after creation (`Object.setPrototypeOf`) — which works, and which V8 punishes severely because it invalidates the hidden-class optimisation. Avoid it in hot code.
+
+**Why it matters in practice:** `hasOwnProperty` versus `in` (own property vs anywhere on the chain); `for...in` walking inherited enumerable properties while `Object.keys` does not; and monkey-patching built-ins by writing to `Array.prototype`, which is the reason `for...in` over an array is unsafe.
+
+**`class` adds real things**, not just sugar: methods are non-enumerable, the body is strict mode, calling a class without `new` throws, `extends` sets up both prototype links correctly, and `#private` fields are genuinely inaccessible — something the prototype model alone cannot express.
 
 [↑ Back to question index](#question-index)
 
@@ -296,6 +386,39 @@ An `async` function always returns a Promise.
 
 Continuation is scheduled through the microtask mechanism.
 
+**It is a transformation, not a new concurrency model.** `async`/`await` is syntax over promises and generators: the function body is split at each `await` into a continuation that is scheduled as a microtask when the awaited promise settles ([JS-007](#question-js-007)).
+
+```js
+async function f() {
+  console.log(1);          // runs SYNCHRONOUSLY when f() is called
+  await something();       // everything after this is a microtask continuation
+  console.log(2);
+}
+f(); console.log(3);       // 1, 3, 2
+```
+
+The body up to the first `await` runs immediately — a detail that matters when the function has side effects before the first suspension point.
+
+**`await` on a non-promise still yields.** `await 5` wraps the value and defers the continuation by a microtask tick, so it is not a no-op ([JS-010](#question-js-010)).
+
+**Error handling becomes ordinary `try/catch`**, which is the main readability win over `.then/.catch`. But two rejection traps follow:
+
+```js
+// sequential: 2 seconds, and a rejection of a() leaves b() unstarted
+const x = await a(); const y = await b();
+
+// concurrent: 1 second - start both, then await
+const [x, y] = await Promise.all([a(), b()]);
+```
+
+Awaiting in a loop when the operations are independent is the most common performance bug in async JavaScript. And a promise created but awaited *later* can raise an unhandled-rejection warning in the gap.
+
+**`await` inside a `forEach` does nothing** — `forEach` ignores the returned promise. Use `for...of` for sequential, or `Promise.all(map(...))` for concurrent.
+
+**Top-level `await`** works in ES modules only, and it delays the module's evaluation for everything importing it.
+
+**The framing for a C++ engineer**: this is cooperative, single-threaded concurrency — a coroutine that suspends and resumes on one thread, closer to C++20 coroutines than to `std::async`. Nothing runs in parallel, and nothing blocks; `await` releases the thread back to the event loop ([JS-009](#question-js-009)).
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -322,6 +445,33 @@ The event loop coordinates execution of:
 - asynchronous I/O completions
 
 JavaScript executes application code on one main thread, while runtime facilities can perform I/O or work elsewhere.
+
+**The loop, stated as an algorithm:**
+
+```text
+1. take one task (macrotask) from the task queue and run it to completion
+2. drain the ENTIRE microtask queue - including microtasks queued by microtasks
+3. (browser) render if it is time to paint
+4. repeat
+```
+
+**"Run to completion" is the defining property.** A task is never pre-empted, so no other JavaScript can observe a half-finished operation — which is why JavaScript needs no locks and has no data races on ordinary objects. The price is that a long task blocks *everything*: input handling, rendering, timers ([JS-014](#question-js-014)).
+
+**The two queues are not the same queue**, and the distinction is the most common interview question in this area:
+
+| Macrotasks (one per turn) | Microtasks (drained fully) |
+|---|---|
+| `setTimeout`, `setInterval` | promise reactions (`.then`, `await` continuations) |
+| I/O callbacks, `setImmediate` (Node) | `queueMicrotask` |
+| DOM events, `MessageChannel` | `MutationObserver` (browser), `process.nextTick` (Node, even earlier) |
+
+So a promise chain always completes before the next timer, and **an unbounded microtask chain starves the loop completely** — the page hangs, timers never fire. That is a genuine hang, not slowness.
+
+**Rendering is a budget, not an event.** The browser paints at most once per frame (~16 ms at 60 Hz) and only between tasks, so a 50 ms task drops frames regardless of how fast the rest of the code is. Splitting long work across tasks (`setTimeout(…, 0)`, `scheduler.yield`) is what keeps a UI responsive.
+
+**Node differs in structure** — it has phases rather than one task queue, plus `process.nextTick` ahead of promises ([JS-012](#question-js-012)) — but the run-to-completion and microtask-drain rules are identical.
+
+**For a C++ engineer**: it is the message-pump model, the same shape as a Win32 `GetMessage`/`DispatchMessage` loop or an STA's COM dispatch — and it fails the same way when one handler blocks.
 
 [↑ Back to question index](#question-index)
 
@@ -407,6 +557,21 @@ But runtimes such as browsers and Node.js use:
 
 The important point is that the main JS event loop can still be blocked by CPU-heavy synchronous code.
 
+**Precise answer: the *language* is single-threaded; the *runtime* is not.** One JavaScript execution context runs one piece of code at a time, so ordinary objects need no locks and cannot be seen half-updated. Everything else around it is threaded:
+
+- **libuv's thread pool** — four threads by default — runs filesystem work, `dns.lookup`, and async crypto/zlib ([JS-013](#question-js-013));
+- **the kernel** does socket I/O via epoll/kqueue/IOCP, with no thread at all;
+- **V8's own threads** handle optimising compilation and garbage collection concurrently;
+- **Worker Threads** and browser Web Workers run real JavaScript in parallel — but in **separate isolates** with no shared objects ([JS-015](#question-js-015)).
+
+**So the concurrency model is: parallel I/O, concurrent-but-not-parallel JavaScript.** Ten thousand open sockets cost no threads; one 200 ms computation stalls all ten thousand.
+
+**The one place real shared-memory concurrency exists** is `SharedArrayBuffer` plus `Atomics`, which gives genuine data races and needs the same reasoning as `std::atomic` — and even then only raw bytes are shared, never objects.
+
+**Why this design was chosen**: it removes an entire class of bugs. For a C++ engineer the trade is explicit — you give up parallelism within one context and get, in exchange, no mutexes, no data races on application state, and no need to reason about memory ordering. What you must reason about instead is **not blocking**, which is a different and usually easier discipline ([JS-014](#question-js-014)).
+
+**And the caveat that makes it not entirely free:** the guarantee is per *turn*, not per function. Code before and after an `await` is in two different turns, so other code runs in between and can change shared state — a logical race condition, without a data race. That is exactly the same distinction C++ draws ([JS-008](#question-js-008)).
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -432,6 +597,38 @@ Node.js executes JavaScript callbacks through an event loop.
 Many I/O operations are asynchronous and are handled through OS mechanisms and libuv.
 
 When results are ready, callbacks are queued for execution on the JavaScript thread.
+
+**Node's loop has phases**, unlike the browser's single task queue, and each iteration visits them in order:
+
+```text
+timers          -> setTimeout / setInterval callbacks whose time has come
+pending         -> some deferred system callbacks (e.g. TCP errors)
+idle, prepare   -> internal
+poll            -> wait for I/O; run I/O callbacks (this is where the loop spends its time)
+check           -> setImmediate callbacks
+close           -> 'close' events (socket.on('close'), etc.)
+```
+
+**Between every phase — and between individual callbacks — two queues are drained**, in this order: `process.nextTick` first, then promise microtasks. `nextTick` running ahead of promises is Node-specific and is why a recursive `process.nextTick` can starve the loop entirely, while a recursive `setImmediate` cannot.
+
+**The classic question is `setImmediate` versus `setTimeout(fn, 0)`:**
+
+```js
+// at top level: order is NON-deterministic - it depends on how long startup took
+setTimeout(() => console.log('timeout'), 0);
+setImmediate(() => console.log('immediate'));
+
+// inside an I/O callback: 'immediate' ALWAYS wins
+fs.readFile(f, () => { setTimeout(()=>console.log('timeout'),0); setImmediate(()=>console.log('immediate')); });
+```
+
+The second case is deterministic because an I/O callback runs in the poll phase, and `check` comes immediately after it in the same iteration, whereas `timers` has already passed.
+
+**`setTimeout(fn, 0)` is really 1 ms** in Node, and timers fire *no earlier* than their delay — the loop may be busy elsewhere, so the guarantee is a lower bound only.
+
+**Watch the loop, don't guess at it.** `perf_hooks.monitorEventLoopDelay()` gives a histogram of loop lag, which is the single most useful production metric for a Node service: rising lag means something is blocking ([JS-014](#question-js-014)). `--prof`/`--cpu-prof` finds what.
+
+**The browser loop is the same idea with different machinery** — one task queue plus a rendering step, and no `nextTick` ([JS-009](#question-js-009)).
 
 [↑ Back to question index](#question-index)
 
@@ -491,6 +688,31 @@ Solutions can include:
 - child processes
 - native C++ worker threads
 - chunking/batching work
+
+**The mechanism, stated plainly:** a task runs to completion and is never pre-empted ([JS-009](#question-js-009)). While a 500 ms `JSON.parse` of a large payload runs, *nothing else happens* — no timers, no I/O callbacks, no new connections accepted, no health-check response. In a server handling 1 000 requests per second, that one request adds up to 500 ms of latency to **every** other in-flight request. That is the part that makes it a systems problem rather than a slow function.
+
+**The usual culprits are not obviously "computation":**
+
+- `JSON.parse`/`stringify` on megabyte payloads;
+- synchronous `fs` calls — `readFileSync`, and `existsSync` in a loop;
+- synchronous crypto: `crypto.pbkdf2Sync`, `randomBytes` without a callback;
+- a catastrophically backtracking regex on attacker-supplied input (ReDoS) — a genuine denial-of-service vector;
+- big `Array.sort`, `map`/`filter` chains over hundreds of thousands of elements;
+- template rendering and image processing in pure JavaScript.
+
+**Choosing the fix:**
+
+| | When |
+|---|---|
+| **Worker Threads** | CPU work in JS; keep a bounded pool, and transfer `ArrayBuffer`s instead of cloning ([JS-015](#question-js-015)) |
+| **Native addon (N-API)** | the work is already C++ — run it on a libuv pool thread and call back; this is the natural route for a C++ engineer |
+| **Child process / separate service** | heavy, isolated, or crash-prone work; also gives you independent scaling |
+| **Chunking** | the work is divisible and must stay in the main isolate — yield every N items with `setImmediate` so the loop breathes |
+| **Async alternatives** | use the callback form: `crypto.pbkdf2`, `zlib.gzip`, streaming JSON ([JS-016](#question-js-016)) |
+
+**Measure it rather than guessing**: `perf_hooks.monitorEventLoopDelay()` gives a lag histogram, and a P99 loop delay above a few milliseconds means something is blocking ([JS-012](#question-js-012)). `--cpu-prof` or `clinic doctor` identifies what.
+
+**Note that the libuv thread pool does not solve this** — it handles I/O-style work, has only four threads by default, and saturating it delays unrelated filesystem and DNS operations ([JS-013](#question-js-013)).
 
 [↑ Back to question index](#question-index)
 
@@ -558,5 +780,26 @@ Useful for:
 - real-time pipelines
 
 Types include readable, writable, duplex and transform streams.
+
+**The argument for them is memory and latency, together.** `fs.readFile` on a 2 GB file allocates 2 GB before the first byte is usable; a stream processes it in 64 KB chunks with constant memory and produces output immediately. On a server, ten concurrent whole-file reads is twenty gigabytes; ten streams is a few megabytes.
+
+```js
+const { pipeline } = require('node:stream/promises');
+await pipeline(
+  fs.createReadStream('in.csv'),
+  zlib.createGzip(),
+  fs.createWriteStream('out.csv.gz')
+);
+```
+
+**Use `pipeline`, not `.pipe()`.** `.pipe()` does not forward errors and does not clean up the other streams when one fails — a failed write leaves the read stream open, which is how file-descriptor leaks happen. `pipeline` propagates errors and destroys every stream in the chain.
+
+**Backpressure is the concept the question is really testing** (see the C++ Core bank): `writable.write()` returns `false` when its internal buffer exceeds `highWaterMark`, and a correct producer stops until the `'drain'` event. `pipe`/`pipeline` handle this automatically — which is precisely why hand-rolling the loop is a mistake. Ignore it and a fast reader feeding a slow writer buffers the whole file in memory, defeating the point of streaming.
+
+**The four kinds**: **Readable** (source), **Writable** (sink), **Duplex** (both, independently — a TCP socket), **Transform** (a duplex whose output is a function of its input — gzip, a cipher, a CSV parser).
+
+**Modes**: object mode passes arbitrary values instead of buffers, which makes streams a general pipeline abstraction; and a readable stream is async-iterable, so `for await (const chunk of stream)` is often more readable than events and gets backpressure right by construction.
+
+**Where they fit in a hybrid stack**: streaming is how a Node front end handles large payloads without stalling the loop ([JS-014](#question-js-014)), and it is the same producer/consumer-with-backpressure design as a native feed handler — bounded buffer, flow control, incremental processing.
 
 [↑ Back to question index](#question-index)
