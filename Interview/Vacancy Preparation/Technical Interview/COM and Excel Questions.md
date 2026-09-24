@@ -104,19 +104,21 @@ It allows components compiled with different languages/tools to interact through
 
 **Details and nuances**
 
-`IUnknown` is the three-method binary contract at the start of every COM interface:
+`IUnknown` is the whole COM contract in three methods. Every COM interface derives from it, so its vtable always starts with these slots:
 
 ```cpp
-HRESULT QueryInterface(REFIID iid, void** out);
-ULONG   AddRef();
-ULONG   Release();
+HRESULT QueryInterface(REFIID riid, void** ppv);  // discovery: "do you also support this?"
+ULONG   AddRef();                                 // +1 reference
+ULONG   Release();                                // -1; the object destroys itself at zero
 ```
 
-`QueryInterface` performs capability discovery by IID. On success it returns an interface pointer with one owned reference; the caller must eventually `Release` it. `AddRef` creates another ownership claim, and `Release` gives one up, normally destroying the object when the last claim disappears. In C++, a COM smart pointer should express that ownership so exceptions and early returns cannot leak it ([COM-004](#question-com-004)). Reference counting does not collect cycles and says nothing by itself about method thread safety.
+**`QueryInterface` defines COM identity.** The rules are not optional and interviewers do ask for them: the answer must be *reflexive* (QI for the interface you already hold succeeds), *symmetric* (if A can reach B, B can reach A), *transitive* (if A reaches B and B reaches C, A reaches C), and *stable* (an interface that succeeded once must never later fail). On top of that, QI for `IID_IUnknown` must return the **same pointer value** from every interface on the object—that identical `IUnknown*` is how COM decides whether two interface pointers refer to one object. Comparing any other pair of interface pointers proves nothing, because multiple-inheritance and tear-off implementations legitimately return different addresses for different interfaces.
 
-The subtle contract is **COM identity**. Querying any interface of one object for `IID_IUnknown` must produce the same physical pointer value. Other interface pointers may have different addresses, so compare their controlling `IUnknown` pointers—not their raw interface pointers—to ask whether they represent the same COM identity. The supported interface set must also behave consistently: a successful query should remain available, and reachability should be reflexive, symmetric and transitive ([COM-003](#question-com-003)).
+**`AddRef`/`Release` are per-interface-pointer bookkeeping, not per-object.** A successful `QueryInterface` has already called `AddRef` for you, so every successful QI needs a matching `Release` ([COM-004](#question-com-004)). The return value is a debugging aid only; it is not reliable for control flow.
 
-Aggregation is the advanced exception worth naming: an inner object can delegate identity and reference counting to an outer object's controlling `IUnknown`, while keeping a non-delegating implementation for its own internal management.
+**Aggregation** is where "the controlling `IUnknown`" matters: an aggregated inner object delegates its `IUnknown` calls to the outer object, so the client sees one identity. This is why a class factory takes a `pUnkOuter` parameter and must return `CLASS_E_NOAGGREGATION` if it does not support it ([COM-008](#question-com-008)).
+
+In practice you should not be writing these calls by hand. `CComPtr`/`CComQIPtr` (ATL) or `_com_ptr_t` (`#import`) make acquisition and release RAII, which removes the single most common COM bug—an early return that skips a `Release`.
 
 [↑ Back to question index](#question-index)
 
@@ -306,11 +308,22 @@ Cons:
 
 **Details and nuances**
 
-A class factory creates COM objects.
+A class factory is the object that knows how to construct instances of one CLSID. It is a separate object from the thing it creates, which is what allows COM to activate a class without the client ever linking against its implementation.
 
-The standard interface is `IClassFactory`.
+```cpp
+HRESULT CreateInstance(IUnknown* pUnkOuter, REFIID riid, void** ppv);
+HRESULT LockServer(BOOL fLock);
+```
 
-COM may obtain a class factory and ask it to create instances of a requested COM class.
+**`CoCreateInstance` is a convenience wrapper.** What it actually does is `CoGetClassObject` to obtain the factory, then `CreateInstance` on it, then `Release` the factory. Calling `CoGetClassObject` yourself is worth it when you create many instances of the same class—you pay the activation lookup once instead of per object.
+
+**How the factory is found depends on the server type.** An in-process server exports `DllGetClassObject(rclsid, riid, ppv)`, and COM calls it after loading the DLL. A local (out-of-process) server starts, then calls `CoRegisterClassObject` for each CLSID it implements, publishing its live factories in the running-object table of class objects.
+
+**`LockServer` and lifetime.** A DLL server is unloaded when `DllCanUnloadNow` returns `S_OK`, which it may only do when no objects *and* no server locks are outstanding. `LockServer(TRUE)` lets a client hold the server in memory while it holds no objects—useful to avoid repeatedly loading and unloading a heavy server.
+
+**`pUnkOuter`** is the aggregation hook ([COM-002](#question-com-002)). If it is non-null and you do not support aggregation, the correct response is `CLASS_E_NOAGGREGATION`; if you do support it, the only interface you may return at that point is `IID_IUnknown`.
+
+For an Excel COM Add-In you rarely write the factory yourself—ATL's object map generates it—but you do need to know it exists, because registration failures and `DllGetClassObject` returning `CLASS_E_CLASSNOTAVAILABLE` are exactly the symptoms of an add-in that Excel refuses to load ([COM-032](#question-com-032)).
 
 [↑ Back to question index](#question-index)
 
@@ -458,13 +471,21 @@ The `vt` tag and active union member must always agree. In production C++, prefe
 
 **Details and nuances**
 
-A COM-managed array representation that stores metadata such as:
+`SAFEARRAY` is self-describing: unlike a C array it carries its own element type, dimension count, and per-dimension lower bound and length, so it can cross a marshaling boundary without a separate length parameter.
 
-- element type
-- dimensions
-- bounds
+```cpp
+struct SAFEARRAYBOUND { ULONG cElements; LONG lLbound; };
+```
 
-Frequently used together with `VARIANT` for Automation and Excel range data.
+**Three details bite people working with Excel specifically.**
+
+*Lower bounds are not zero.* Excel returns arrays with `lLbound == 1` for both dimensions, so you must read the actual bounds with `SafeArrayGetLBound`/`SafeArrayGetUBound` rather than assuming 0-based indexing.
+
+*Two-dimensional arrays are column-major.* `SafeArrayAccessData` gives you a flat pointer in which the first dimension varies fastest, so a row-major traversal over Excel data walks the buffer with a stride—bad for cache. If you are converting to a row-major native structure, iterate in the array's own order and transpose once.
+
+*The element type may not be what you expect.* Excel gives you `VT_ARRAY | VT_VARIANT`, meaning every element is itself a `VARIANT` that can be `VT_R8`, `VT_BSTR`, `VT_BOOL`, `VT_ERROR` (for `#N/A` and friends) or `VT_EMPTY` for a blank cell. Assuming `VT_R8` everywhere is a crash waiting for the first text cell.
+
+**Access and ownership.** `SafeArrayAccessData`/`SafeArrayUnaccessData` pin the data and must be paired—the lock count blocks destruction, so a missed unaccess leaks the array. Ownership follows the container: an array inside a `VARIANT` is freed by `VariantClear`, and you call `SafeArrayDestroy` only on an array you own outright. Never do both. If the data must outlive the COM call, copy it into native storage (`std::vector`) rather than holding the `SAFEARRAY` ([COM-027](#question-com-027)).
 
 [↑ Back to question index](#question-index)
 
@@ -484,13 +505,24 @@ Frequently used together with `VARIANT` for Automation and Excel range data.
 
 **Details and nuances**
 
-`IDispatch` extends `IUnknown` with a standard late-binding protocol. A client normally calls `GetIDsOfNames` once to map a textual member name such as `"Value"` to a numeric `DISPID`, caches that ID, then calls `Invoke`. This is how scripting languages and generic Automation clients can drive Office objects without compiling direct calls against every concrete vtable ([COM-014](#question-com-014)).
+`IDispatch` adds four methods on top of `IUnknown`: `GetTypeInfoCount`, `GetTypeInfo`, `GetIDsOfNames` and `Invoke`. A client that has no compile-time knowledge of the interface can still call it—that is how VBA, JScript and every scripting host drive Office.
 
-`Invoke` is more than "call by name". The caller supplies flags such as `DISPATCH_METHOD`, `DISPATCH_PROPERTYGET`, `DISPATCH_PROPERTYPUT` or `DISPATCH_PROPERTYPUTREF`, and packs arguments into `DISPPARAMS` as `VARIANT`s. Positional arguments appear in **reverse order**. Named arguments use a parallel DISPID array, and a property put normally requires the special named argument `DISPID_PROPERTYPUT`.
+The two-step pattern is name → DISPID → call:
 
-The result also follows Automation conventions: a return value arrives as a `VARIANT`; ordinary failure arrives as an `HRESULT`; an exception raised by the target may be reported through `DISP_E_EXCEPTION` plus `EXCEPINFO`; and type/argument errors can identify the offending argument. Correct code therefore checks all of these and clears every owned `VARIANT`, `BSTR` and exception field, preferably through RAII wrappers ([COM-009](#question-com-009), [COM-010](#question-com-010), [COM-011](#question-com-011)).
+```cpp
+OLECHAR* name = L"Value2";
+DISPID dispid;
+disp->GetIDsOfNames(IID_NULL, &name, 1, LOCALE_USER_DEFAULT, &dispid);
+DISPPARAMS dp = {};
+disp->Invoke(dispid, IID_NULL, LOCALE_USER_DEFAULT,
+             DISPATCH_PROPERTYGET, &dp, &result, &excep, &argErr);
+```
 
-Late binding improves language interoperability and version flexibility, but it shifts name lookup, conversion and many errors to runtime. It does not relax COM apartment, marshaling or lifetime rules.
+**The `DISPPARAMS` traps are the classic interview follow-up.** Positional arguments in `rgvarg` are in **reverse** order—`rgvarg[0]` is the *last* argument. A property put passes its value as a named argument with `DISPID_PROPERTYPUT`, and you must use `DISPATCH_PROPERTYPUTREF` instead of `DISPATCH_PROPERTYPUT` when assigning an object reference. `wFlags` distinguishes method call, property get and property put, and some Office members legitimately answer to more than one.
+
+**Error reporting is two-layer.** `Invoke` returns an `HRESULT` for dispatch-level problems (`DISP_E_MEMBERNOTFOUND`, `DISP_E_TYPEMISMATCH`, `DISP_E_BADPARAMCOUNT`, with `argErr` naming the offending index), but a failure *inside* the called method comes back as `DISP_E_EXCEPTION` with the real message in `EXCEPINFO`—and those `BSTR`s must be freed ([COM-009](#question-com-009)).
+
+**Cost and the dual-interface alternative.** Every call is a name lookup (cacheable), a `VARIANT` packing step and a runtime type check, so late binding is measurably slower than a vtable call. A *dual* interface derives from `IDispatch` but also exposes the methods as vtable slots, so a C++ client can early-bind while a script host still works ([COM-014](#question-com-014)). Against Excel, early binding through `#import`ed type libraries is the normal choice; late binding earns its keep when you must tolerate several Office versions with different type libraries.
 
 [↑ Back to question index](#question-index)
 
@@ -639,11 +671,13 @@ Office applications commonly expose automation objects associated with STA behav
 
 **Details and nuances**
 
-In an MTA, multiple threads can receive COM calls concurrently.
+A thread joins the MTA with `CoInitializeEx(nullptr, COINIT_MULTITHREADED)`. There is at most **one MTA per process**, and every MTA thread shares it—so interface pointers move freely between MTA threads with no marshaling at all.
 
-Objects used there must be designed for concurrency.
+**No message pump is required**, which is the structural difference from an STA ([COM-017](#question-com-017)). Incoming calls are dispatched on RPC worker threads drawn from a pool, so two clients can be inside your object simultaneously and an object can be re-entered on a thread that never called `CoInitializeEx` itself. Everything the object touches must therefore be thread-safe: its own state, any cached interface pointers, and any library it calls into.
 
-MTA avoids some STA dispatch constraints but requires thread-safe components.
+**Registration decides where an object actually lives.** The `ThreadingModel` value under the CLSID controls it: `Apartment` means the object is created in an STA regardless of the caller, `Free` means the MTA, `Both` means it is created in the caller's apartment, and a missing value means the legacy single-threaded apartment. So calling `CoCreateInstance` from an MTA thread on an `Apartment`-model object does **not** give you a direct pointer—COM spins up or picks an STA, creates the object there, and hands you a proxy.
+
+**This is the trap for Excel work.** The Excel object model is STA-bound and single-threaded ([COM-021](#question-com-021)). Being in the MTA does not remove that constraint; it just means every call you make is marshaled to Excel's main STA, where it serializes behind Excel's own UI work. You gain the ability to do your own computation in parallel—you do not gain parallel access to the workbook. The workable design is: pull the data across once on the correct thread, compute in the MTA, push results back in one marshaled call.
 
 [↑ Back to question index](#question-index)
 
@@ -687,21 +721,24 @@ When crossing apartment boundaries, the interface may need to be marshaled so CO
 
 **Details and nuances**
 
-An interface pointer is meaningful in the apartment where it was obtained unless the interface is explicitly agile. Marshaling exports that reference into a form COM can import in another apartment or process. The receiver normally gets a **proxy** implementing the same interface; the proxy serializes parameters, sends the call through COM/RPC, and a stub or channel invokes the real object in its owning context. Interface definitions and Automation type information tell the marshaler how parameters cross the boundary; components can also provide custom marshaling.
+Marshaling is how COM keeps a method call's semantics intact when caller and callee are not in the same apartment. The client ends up holding a **proxy** that has the same vtable as the real interface; the proxy packages the arguments, the call is transported, and a **stub** on the other side unpacks them and makes the real call on the object's own thread.
 
-For a one-time thread handoff, the common pair is:
+**Standard vs custom.** Standard marshaling is generated for you from IDL—either a proxy/stub DLL built by MIDL, or type-library marshaling (`oleautomation`), which is why Automation is restricted to the `VARIANT`-compatible types ([COM-011](#question-com-011)). Custom marshaling means the object implements `IMarshal` and decides its own wire representation; that is how COM implements pass-by-value optimisations for things like `IStream` on shared memory.
+
+**Getting a pointer across a thread boundary correctly.** You may not simply copy an interface pointer to another thread ([COM-019](#question-com-019)). The two supported routes are:
 
 ```cpp
-CoMarshalInterThreadInterfaceInStream(iid, source, &stream);
-// transfer stream ownership to the destination thread
-CoGetInterfaceAndReleaseStream(stream, iid, &destination);
+// one-shot handoff
+CoMarshalInterThreadInterfaceInStream(IID_IFoo, pFoo, &pStream);   // source thread
+CoGetInterfaceAndReleaseStream(pStream, IID_IFoo, (void**)&pFoo);  // target thread
+
+// repeated use from many threads
+IGlobalInterfaceTable::RegisterInterfaceInGlobal / GetInterfaceFromGlobal
 ```
 
-The destination thread must initialize COM and receives the apartment-appropriate pointer. The Global Interface Table is useful when several apartments need to retrieve their own valid proxies repeatedly. Copying the raw pointer bits skips all of this and is not a substitute ([COM-019](#question-com-019)).
+The GIT is the right tool when a background thread needs the same Excel interface repeatedly, because the stream form is consumed by a single `CoGetInterfaceAndReleaseStream`.
 
-Marshaling preserves the interface and lifetime contract, not local-call behavior. A cross-apartment call can block, fail because the server disappeared, and re-enter the caller while COM pumps messages. Calls into an STA object are dispatched on its owning thread, so that thread must keep processing messages. Cross-process calls additionally pay IPC and serialization costs.
-
-The performance consequence is architectural: avoid chatty property-by-property traffic. With Excel, read or write a whole range as a `SAFEARRAY`/`VARIANT`, do pure computation off-thread, then marshal a small number of batched results back to the Excel-owning thread ([COM-021](#question-com-021)).
+**What it costs.** Latency per call, because a cross-apartment call is a context switch at best and an RPC at worst—which is exactly why chatty loops over the Excel object model are catastrophic and a single bulk transfer is not ([COM-026](#question-com-026)). It also introduces **reentrancy**: while an STA thread waits inside a marshaled outbound call, it keeps pumping messages, so your own code can be re-entered before the call returns ([COM-022](#question-com-022)). And it adds failure modes a local call does not have—`RPC_E_DISCONNECTED`, `RPC_E_SERVERFAULT`, `CO_E_OBJNOTCONNECTED`—which must be handled rather than asserted away.
 
 [↑ Back to question index](#question-index)
 
@@ -852,7 +889,17 @@ Worksheet
 Range
 ```
 
-`Range` is especially important for reading and writing cell blocks efficiently.
+Around that spine sit the objects that real add-ins touch: `Names` (defined names), `ListObjects` (tables), `Charts`/`ChartObjects`, `Windows`/`Panes` for view state, and the event sources—`Application`, `Workbook` and `Worksheet` each raise their own events, which is where an add-in hooks `SheetChange`, `SheetSelectionChange` and `WorkbookBeforeClose`.
+
+**`Range` is the one that matters for performance**, because it is the only place you can move a block of cells in a single crossing. `Value2` returns a `VARIANT` holding a 2-D `SAFEARRAY` for a multi-cell range and a plain scalar for one cell—the shape difference has to be handled explicitly ([COM-027](#question-com-027)). `Value` additionally applies Currency/Date conversion and `Text` returns what the cell *displays*, including `####` when the column is too narrow ([COM-034](#question-com-034)).
+
+**Two habits that prevent most Excel add-in bugs.**
+
+*Never rely on `ActiveWorkbook`/`ActiveSheet`/`Selection`.* They follow the user's focus, so an add-in that reads them races against whatever the user clicks. Qualify fully: `app->Worksheets->Item["Data"]->Range["A1:C100"]`.
+
+*Release every intermediate object.* Each dot in that chain returns a separate reference-counted interface pointer, and in C++ nothing releases them for you—this is where `CComPtr` stops being a nicety. A leaked `Application` reference is the classic reason an invisible EXCEL.EXE stays in Task Manager after the host closes.
+
+**Caching a `Range` is only safe while the geometry is stable.** Inserting or deleting rows, or the sheet being deleted, can leave a cached `Range` pointing somewhere else or failing outright, so cache the *address* and re-resolve, rather than holding the object across user edits ([COM-041](#question-com-041)).
 
 [↑ Back to question index](#question-index)
 
@@ -914,9 +961,30 @@ VARIANT / SAFEARRAY
 process locally in C++
 ```
 
-instead of one COM call per cell.
+instead of one COM call per cell. Each per-cell access is a marshaled cross-apartment call ([COM-026](#question-com-026)); one bulk read is a single crossing regardless of size, so the difference on a 100 000-cell block is typically three orders of magnitude.
 
-This reduces boundary crossings drastically.
+```cpp
+CComVariant v;
+range->get_Value2(&v);                         // one crossing
+
+if (v.vt != (VT_ARRAY | VT_VARIANT)) { /* single cell: v is the scalar */ }
+
+SAFEARRAY* sa = v.parray;
+LONG r1, r2, c1, c2;
+SafeArrayGetLBound(sa, 1, &r1); SafeArrayGetUBound(sa, 1, &r2);  // 1-based!
+SafeArrayGetLBound(sa, 2, &c1); SafeArrayGetUBound(sa, 2, &c2);
+
+VARIANT* data = nullptr;
+SafeArrayAccessData(sa, reinterpret_cast<void**>(&data));
+// column-major: element (row i, col j) is data[(j - c1) * (r2 - r1 + 1) + (i - r1)]
+SafeArrayUnaccessData(sa);                     // CComVariant's dtor frees the array
+```
+
+**The checks that are not optional.** A one-cell range returns a scalar, not a 1×1 array. Bounds are 1-based. Every element is a `VARIANT` whose `vt` may be `VT_R8`, `VT_BSTR`, `VT_BOOL`, `VT_EMPTY` for a blank cell or `VT_ERROR` carrying `#N/A`/`#DIV/0!`—so decide up front whether an error cell is a skip, a NaN or a hard failure ([COM-012](#question-com-012)).
+
+**Convert, then let go.** Copy into contiguous native storage (`std::vector<double>` plus a separate string table) and release the `VARIANT` before doing the real work, so you are not holding COM resources—or blocking Excel's thread—during computation.
+
+**Chunk only when you must.** A `VARIANT` array of a full column is roughly 16 bytes per element before the string payloads, so a million rows is real memory; chunking by row bands also keeps the UI responsive and lets you report progress. Measure the chunk size—too small and you are back to paying per-crossing overhead. Also bound the range first: `UsedRange` or `SpecialCells(xlCellTypeLastCell)` rather than reading to row 1 048 576.
 
 [↑ Back to question index](#question-index)
 
@@ -1418,3 +1486,4 @@ feed  →  coalescing store  →  scheduler (injected clock)  →  ISink  →  r
 The Excel-hosted part is prepared knowledge. What is production experience is the shape of the argument: on the phone platform the unit and integration tests ran headless on the target device precisely because hardware-dependent behavior cannot be proven anywhere else, and everything that did not need the device was tested where it was fast to run.
 
 [↑ Back to question index](#question-index)
+
