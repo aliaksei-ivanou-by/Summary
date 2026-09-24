@@ -632,6 +632,22 @@ T&& + &  -> T&
 T&& + && -> T&&
 ```
 
+Only `&& + &&` gives an rvalue reference; **an lvalue reference anywhere wins**. That single rule is what makes `T&&` bind to everything: pass an lvalue `int x` and `T` deduces to `int&`, so the parameter collapses to `int&`; pass `42` and `T` deduces to `int`, so the parameter stays `int&&`. Deducing `T` as a reference type happens *only* in this context—which is why the deduced `T` is not the argument's type and `std::forward<T>` needs `T` spelled explicitly.
+
+**It is a syntactic pattern, not a type**, and the exceptions are the interview follow-up:
+
+```cpp
+template<class T> void f(T&& x);              // forwarding reference
+template<class T> void g(std::vector<T>&& x); // NOT: T is not the whole parameter type
+template<class T> void h(const T&& x);        // NOT: const disqualifies it
+template<class T> struct S { void m(T&& x); };// NOT: T is the class's parameter, not deduced here
+auto&& r = expr;                              // IS - auto follows the same deduction
+```
+
+**Why it matters:** it is the only way to write one overload that preserves constness *and* value category, instead of `f(T&)` + `f(const T&)` + `f(T&&)` growing as 2ⁿ in the number of parameters. It must be paired with `std::forward` inside ([CPP-006](#question-cpp-006)), because the named parameter is itself an lvalue.
+
+**Two hazards to mention.** A forwarding-reference constructor is greedier than the copy constructor for a non-`const` lvalue of the same class, hijacking copies—constrain it with `requires`/`enable_if` on `std::decay_t<T>`. And a forwarded argument is *moved from* if the callee takes it by value, so forwarding the same parameter twice uses a moved-from object. In C++20, `template<class T> void f(T&&)` is spelled `void f(auto&&)`.
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -661,7 +677,26 @@ void wrapper(T&& value) {
 }
 ```
 
-Without `std::forward`, the named variable `value` is always an lvalue inside the function.
+Without `std::forward`, the named variable `value` is always an lvalue inside the function—**anything with a name is an lvalue, including a parameter declared `T&&`**. So a wrapper that omits it silently turns every rvalue argument into a copy, and the bug is invisible: the code compiles and works, just slower.
+
+**How it works** is a conditional cast, which is the one-line contrast with `std::move` ([CPP-002](#question-cpp-002)):
+
+```cpp
+template<class T> T&& forward(std::remove_reference_t<T>& t) noexcept
+{ return static_cast<T&&>(t); }
+```
+
+If `T` deduced to `int&` (the caller passed an lvalue), `static_cast<int& &&>` collapses to `int&`—an lvalue comes out. If `T` deduced to `int`, the cast is to `int&&`—an rvalue comes out. Hence the mnemonic: **`move` casts unconditionally, `forward` casts conditionally, based on `T`**.
+
+**The template argument is mandatory.** `std::forward(value)` without `<T>` fails to compile by design—the non-deduced parameter forces you to name the type that carries the value category. Writing `std::forward<decltype(value)>(value)` is the correct spelling in a generic lambda.
+
+**Forward exactly once per argument.** Using it twice means the first call may have moved from the object:
+
+```cpp
+template<class T> void bad(T&& v) { a(std::forward<T>(v)); b(std::forward<T>(v)); } // b may get a husk
+```
+
+**Where you meet it in practice:** `make_unique`, `make_shared`, `emplace_back` and `std::thread`'s constructor are all perfect-forwarding factories ([CPP-049](#question-cpp-049)). "Perfect" is slightly overstated—forwarding does not preserve bit-fields or braced initialiser lists, and it cannot deduce `{1,2,3}` at all.
 
 [↑ Back to question index](#question-index)
 
@@ -976,6 +1011,26 @@ auto a = ref;          // int
 decltype(auto) b = ref; // int&
 ```
 
+**The problem `decltype(auto)` exists to solve is the perfect-forwarding return type.** A wrapper that returns `auto` silently strips the reference, so this compiles and returns a dangling copy—or worse, breaks assignment through the result:
+
+```cpp
+template<class C, class I>
+auto          get1(C& c, I i) { return c[i]; }   // returns a COPY: get1(v,0) = 5 won't compile
+template<class C, class I>
+decltype(auto) get2(C& c, I i) { return c[i]; }  // returns C::reference, as intended
+```
+
+**The trap is the extra parentheses**, and it is a standard interview follow-up:
+
+```cpp
+decltype(auto) f() { int x = 0; return  x;  }   // int  - fine
+decltype(auto) g() { int x = 0; return (x); }   // int& - returns a reference to a local. Dangling.
+```
+
+`return x;` uses the declared type; `return (x);` is an expression, and an lvalue expression yields `T&` ([CPP-013](#question-cpp-013)).
+
+**Summary of the three deducers:** `auto` uses template deduction—decays, drops references and top-level `const`; `auto&&` is a forwarding reference and preserves everything ([CPP-005](#question-cpp-005)); `decltype(auto)` uses `decltype` rules on the initialiser and preserves exactly. Use `auto` by default, `decltype(auto)` only for a generic return type or a generic variable that must mirror an expression's exact type.
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -1010,7 +1065,33 @@ But:
 decltype((x))
 ```
 
-uses expression category rules and usually gives `T&` for an lvalue.
+uses expression category rules and gives `T&` for an lvalue.
+
+**The full rule** for an expression `e` that is not a plain unparenthesized name or member access:
+
+| value category of `e` | `decltype(e)` |
+|---|---|
+| lvalue | `T&` |
+| xvalue (e.g. `std::move(x)`) | `T&&` |
+| prvalue (e.g. `42`, `f()` by value) | `T` |
+
+So `decltype(x)` is `int`, `decltype((x))` is `int&`, `decltype(std::move(x))` is `int&&`, and `decltype(x + 0)` is `int`.
+
+**It is unevaluated**, like `sizeof`: the expression is type-checked but never run, so `decltype(f())` needs only a declaration of `f`, no definition, and no side effects occur. That is what makes `decltype(std::declval<T>().foo())` the standard idiom for "does `T` have `foo`"—`declval` produces a `T&&` in an unevaluated context without requiring `T` to be constructible.
+
+**The main uses:**
+
+```cpp
+template<class T, class U>
+auto add(T a, U b) -> decltype(a + b) { return a + b; }   // trailing return: a and b are in scope
+
+template<class T>                                          // SFINAE / detection
+auto has_size(T& t) -> decltype(t.size(), std::true_type{});
+```
+
+C++14's `decltype(auto)` covers most of the trailing-return cases ([CPP-012](#question-cpp-012)), and C++20 concepts cover most of the detection cases far more readably—but `decltype` is still what they are built on.
+
+**Compared to `auto`:** `auto` deduces from an initialiser and decays; `decltype` reports an expression's exact type including reference and `const`. `decltype` also works with no initialiser at all, which is why it appears in member declarations and type traits.
 
 [↑ Back to question index](#question-index)
 
@@ -1153,7 +1234,24 @@ Examples:
 - data race
 - out-of-bounds access
 
-Compilers may optimize under the assumption that UB never happens.
+Compilers may optimize under the assumption that UB never happens—and that is the part worth explaining, because it is why UB is not "it does something weird at that line".
+
+**The compiler reasons backwards from the assumption.** Given
+
+```cpp
+void f(int* p) {
+    *p = 1;              // if p were null this would be UB
+    if (p) do_work();    // ...therefore p is not null...
+}                        // ...therefore the branch is dead and the check is deleted
+```
+
+the null check disappears. The symptom then appears *before* the offending line, in code that looks unrelated. Similarly, signed overflow being UB is what lets `i + 1 > i` fold to `true`, and lets a loop with `int i` be assumed not to wrap so it can be vectorised. This is called time-travel UB, and it is why "it worked in debug" means nothing.
+
+**Why the standard has UB at all:** it buys performance (no bounds checks, no overflow checks, aliasing-based optimisation) and portability of the *specification* (the standard need not describe every CPU's behaviour on a bad operation). The cost is that a single UB anywhere makes the whole program's behaviour unconstrained—the standard says "no requirements on the program", not "on that statement".
+
+**Additions to the list worth naming:** strict-aliasing violations (reading an object through an unrelated type—`std::bit_cast` or `memcpy` is the legal route), uninitialised reads, invalid downcasts with `static_cast`, modifying a `const` object, returning nothing from a non-`void` function, and infinite loops with no side effects.
+
+**How you actually defend against it**, which is the answer an interviewer is listening for: UBSan and ASan in CI, `-Werror` with a real warning set, `-fno-strict-aliasing` only as a stopgap on legacy code, `std::vector::at` or assertions at boundaries, `-D_GLIBCXX_ASSERTIONS` for debug container checks, and fuzzing for input-driven paths. Sanitizers catch it at the moment it happens, which is the only time the stack is still meaningful ([CPP-017](#question-cpp-017)).
 
 [↑ Back to question index](#question-index)
 
@@ -1177,7 +1275,23 @@ Compilers may optimize under the assumption that UB never happens.
 - **Unspecified behavior** — one of several valid behaviors, implementation does not need to document which
 - **Implementation-defined behavior** — implementation chooses and documents behavior
 
-Example of implementation-defined behavior: exact size of some integer types.
+| | Standard requires | Must be documented | Can differ per run |
+|---|---|---|---|
+| **Undefined** | nothing at all | no | yes — anything may happen |
+| **Unspecified** | one of several valid behaviours | no | yes |
+| **Implementation-defined** | one of several valid behaviours | **yes** | no — fixed for the implementation |
+
+The practical difference: implementation-defined behaviour is something you can *look up and rely on* for your target; unspecified behaviour is something you may not rely on even after observing it, because the same compiler may choose differently in another build or optimisation level; undefined behaviour poisons the whole program ([CPP-016](#question-cpp-016)).
+
+**Examples to have ready:**
+
+- *Implementation-defined*: `sizeof(int)`, whether `char` is signed, the number of bits in a byte, the layout of `bool`, how `reinterpret_cast` between pointer types behaves, the underlying type of an unscoped enum.
+- *Unspecified*: the order in which function arguments are evaluated; the value of a moved-from standard object; whether two identical string literals share storage; the amount `vector` grows by on reallocation.
+- *Undefined*: signed overflow, null dereference, out-of-bounds access, data race, use after lifetime.
+
+**A fourth category is worth naming because interviewers use it to separate candidates: *ill-formed, no diagnostic required* (IFNDR).** An ODR violation is the classic case—two different definitions of the same inline function across translation units ([CPP-093](#question-cpp-093)). The program is invalid, but no compiler or linker is obliged to tell you, so it behaves like UB that survives all your sanitizers.
+
+**C++20 removed one famous item from this list**: signed integers are now guaranteed two's complement, so the *representation* is fixed—though signed **overflow** is still undefined, which surprises people.
 
 [↑ Back to question index](#question-index)
 
@@ -1237,6 +1351,25 @@ It is **not** a synchronization primitive and does not make code thread-safe.
 
 Use `std::atomic`, mutexes, or other synchronization tools for concurrency.
 
+**What `volatile` actually guarantees** is narrow: the compiler must not elide, duplicate or reorder accesses *to that object relative to other volatile accesses*, and must issue exactly the loads and stores you wrote. That is all. It does **not** emit memory barriers, does not make the operation atomic, and does not stop the *CPU* or other threads' caches from reordering anything.
+
+So all three of the things people expect from it are absent:
+
+```cpp
+volatile int counter;
+++counter;          // still load-modify-store: NOT atomic, still a data race
+volatile bool ready;
+ready = true;       // no release semantics: prior writes may still be invisible to another thread
+```
+
+A `volatile` flag used as a thread handshake is a data race by definition, and therefore undefined behaviour ([CPP-016](#question-cpp-016))—even though it usually appears to work, which is what keeps the myth alive. The myth comes from Java and C#, where `volatile` *does* imply acquire/release, and from MSVC, whose `/volatile:ms` mode adds those semantics as an extension (`/volatile:iso` is the standard behaviour and the right setting for portable code).
+
+**What it is legitimately for:** memory-mapped hardware registers, where a read has a side effect and must actually be issued; a variable modified by a signal handler (`volatile std::sig_atomic_t`); and `setjmp`/`longjmp` locals. Embedded and driver work, essentially.
+
+**In multithreaded C++ the replacement is `std::atomic`**, which gives atomicity *and* ordering ([CPP-060](#question-cpp-060), [CPP-065](#question-cpp-065)). `std::atomic<T>` with `memory_order_relaxed` is the closest correct analogue of what people wanted from `volatile`.
+
+**`volatile` on member functions** and much of `volatile`'s use in compound expressions were deprecated in C++20 (P1152), precisely because the semantics were confusing and almost every use was wrong. Note also that `volatile` and `const` are orthogonal—`const volatile` is a meaningful combination for a read-only hardware register.
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -1262,6 +1395,37 @@ Adding declarations to `std` is undefined behavior unless the standard explicitl
 One notable historical exception is specializing certain standard templates for user-defined types where the standard allows it, for example some `std::hash` specializations.
 
 You should not add new overloads of standard functions to `std`.
+
+**What *is* allowed**, precisely: you may add a **full specialization of a class template** from `std` for a program-defined type, unless the standard forbids it for that particular template. `std::hash`, `std::numeric_limits`, `std::formatter` and (pre-C++20) `std::iterator_traits` are the ones you actually use. Partial specializations are allowed under the same conditions; adding *declarations*, new functions, new overloads, or anything at all to `std::chrono`, `std::literals` or the namespaces reserved for future standardisation is not.
+
+```cpp
+struct Point { int x, y; };
+
+template<>                                    // legal: full specialization for a user type
+struct std::hash<Point> {
+    size_t operator()(const Point& p) const noexcept {
+        return std::hash<int>{}(p.x) ^ (std::hash<int>{}(p.y) << 1);
+    }
+};
+```
+
+**Specializing a function template in `std` is explicitly not allowed since C++20** (P0551), which caught a lot of code that specialized `std::swap`. The correct mechanism was always ADL anyway:
+
+```cpp
+namespace mylib {
+    struct Buf { /* ... */ };
+    void swap(Buf& a, Buf& b) noexcept { /* ... */ }   // found by ADL
+}
+
+using std::swap;     // the two-step idiom: std::swap as fallback...
+swap(a, b);          // ...ADL picks mylib::swap if it exists
+```
+
+C++20's `std::ranges::swap` is a customization point object that does this two-step for you, which is the modern pattern for all such hooks.
+
+**Why the rule exists:** the standard library may add overloads, change signatures or rely on internal declarations in any release, so an addition of yours can collide silently. And violations are **IFNDR**—ill-formed, no diagnostic required—so nothing has to warn you; it may simply link to the wrong thing ([CPP-017](#question-cpp-017), [CPP-093](#question-cpp-093)).
+
+**Related rule:** names beginning with an underscore followed by a capital, or containing a double underscore, are reserved to the implementation everywhere—so `_Foo` and `my__type` are yours to lose, not yours to use.
 
 [↑ Back to question index](#question-index)
 
@@ -1336,7 +1500,20 @@ The object points to the table for its dynamic type.
 
 Virtual calls use the table to select the final override at runtime.
 
-This is an implementation strategy, not something mandated exactly by the C++ standard.
+This is an implementation strategy, not something mandated exactly by the C++ standard—the standard specifies only that the *final overrider* is called; vtables are how every mainstream ABI achieves it.
+
+**Cost of a virtual call**, which is what the question is really probing: load the `vptr` from the object, load the function address from a fixed offset in the table, call through it. Two dependent loads and an indirect branch. The arithmetic is cheap; what costs is that it is **opaque to the optimizer**—the callee is unknown, so it cannot be inlined, and losing inlining usually costs more than the indirection itself. Modern CPUs predict the indirect branch well when the dynamic type is stable at a call site, and badly when it alternates.
+
+**Object-layout consequences:**
+
+- One `vptr` per polymorphic object—8 bytes on a 64-bit ABI—so a class with two `int`s goes from 8 to 16 bytes the moment it gains a virtual function ([CPP-028](#question-cpp-028)).
+- Multiple inheritance needs multiple vptrs and *thunks* that adjust `this` before dispatching.
+- Virtual inheritance adds another indirection to reach the shared base ([CPP-027](#question-cpp-027)).
+- The vtable also carries the RTTI pointer used by `dynamic_cast` and `typeid`.
+
+**The rules that fall out of "the vptr is set by the constructor":** a virtual call from a constructor or destructor dispatches to the *current* class's version, because the vptr is updated as each level of construction completes—a pure virtual call there is an immediate crash. And a base class with virtual functions needs a virtual destructor, or `delete` through a base pointer is undefined behaviour.
+
+**When it is elided:** `final` on a class or method lets the compiler devirtualize, as does calling on an object of known concrete type, or link-time optimization with full visibility. The alternatives when dispatch cost genuinely matters are CRTP (static polymorphism), `std::variant` + `std::visit` (closed set, no allocation), or a function-pointer table you control.
 
 [↑ Back to question index](#question-index)
 
@@ -1447,9 +1624,29 @@ Derived d;
 Base b = d;
 ```
 
-The derived-specific part is lost.
+The derived-specific part is lost—and crucially, **so is the dynamic type**: `b`'s vptr is `Base`'s, so virtual calls on `b` resolve to `Base`'s overrides. The object is not a broken `Derived`; it is a genuine `Base` that was initialised from part of a `Derived`. There is no warning, no crash, and the class invariant may now be violated in a way nothing detects.
 
-Use references or pointers for polymorphic behavior.
+**Where it actually happens** is rarely the textbook line—it is parameters and containers:
+
+```cpp
+void log(Base b);                 // by value: every derived argument is sliced
+std::vector<Base> v;
+v.push_back(Derived{});           // sliced on insertion
+
+void log(const Base& b);          // fixed
+std::vector<std::unique_ptr<Base>> v;   // fixed
+```
+
+Assignment slices too, and worse: `base = derived;` copies only the base subobject into an existing `Base`, which is the same loss plus a partially-updated object.
+
+**How to make it impossible** rather than remembering not to do it:
+
+- Make the polymorphic base non-copyable: `Base(const Base&) = delete;` — then slicing does not compile.
+- Or make the base abstract (a pure virtual, or a protected destructor), so a `Base` by value cannot exist at all.
+- Or make copy/assignment `protected` in the base, so derived classes can still implement their own.
+- Store polymorphic objects by pointer or reference; use a *clone* virtual function when you need value semantics.
+
+**The C++ Core Guidelines version** (C.67) is "a polymorphic class should suppress public copy/move"—that is the answer to give, because it converts a silent runtime bug into a compile error. `-Wextra` gives `-Wsuggest-override` but not slicing; clang has `-Wpotentially-evaluated-expression` and clang-tidy has checks, but the language will not stop you.
 
 [↑ Back to question index](#question-index)
 
@@ -1474,6 +1671,38 @@ Use references or pointers for polymorphic behavior.
 **Overriding**: derived class provides a new implementation of a virtual function from a base class.
 
 Use `override` to let the compiler verify correctness.
+
+| | Overloading | Overriding |
+|---|---|---|
+| Relationship | same scope, different signatures | base ↔ derived, **same** signature |
+| `virtual` needed | no | yes on the base |
+| Resolved | compile time, by overload resolution | run time, through the vtable |
+| Return type | free | must match, or be covariant |
+
+**Signature must match exactly**—parameter types, `const`, ref-qualifier, and (since C++20) the noexcept-ness is checked too. A mismatch does not error; it creates a *new* virtual function that hides nothing and overrides nothing:
+
+```cpp
+struct B { virtual void f(int) const; };
+struct D : B { void f(int); };            // NOT an override: missing const. Silently compiles.
+struct E : B { void f(int) const override; };  // compiler enforces the match
+```
+
+That silent failure is the entire reason `override` exists, and it is the one-word answer to "why use `override`".
+
+**The third mechanism people conflate with these is *hiding*.** Declaring *any* `f` in a derived class hides *every* base `f`, overloads included:
+
+```cpp
+struct B { void g(int); void g(double); };
+struct D : B { void g(int); };
+D{}.g(3.14);        // calls D::g(int) - B::g(double) is hidden, not overloaded
+struct E : B { using B::g; void g(int); };   // `using` brings the base overloads back in
+```
+
+Overload sets do not merge across scopes, so this bites in every class hierarchy sooner or later.
+
+**Covariant return types** are the one permitted difference: an override may return `Derived*` where the base returns `Base*`, which is what makes a virtual `clone()` usable without a cast. Reference types work the same way; smart pointers do **not**—`unique_ptr<Derived>` is not covariant with `unique_ptr<Base>`.
+
+**`final`** is the complement: on a method it forbids further overriding, on a class it forbids derivation, and both let the compiler devirtualize ([CPP-022](#question-cpp-022)).
 
 [↑ Back to question index](#question-index)
 
@@ -1507,7 +1736,19 @@ Without virtual inheritance:
 
 `D` can contain two separate `A` subobjects.
 
-With virtual inheritance, `B` and `C` share one `A` subobject.
+With virtual inheritance, `B` and `C` share one `A` subobject—`class B : virtual public A`, written on `B` and `C`, not on `D`.
+
+**What the duplicate actually breaks**: without it, `D` has `A::x` twice, so `d.x` is ambiguous and must be spelled `d.B::x`, and a `D*` cannot convert to `A*` without saying which one. Two independent copies of the base state also means an invariant held in `A` can disagree with itself.
+
+**The rule that surprises everyone: the *most derived* class initialises the virtual base.** `D`'s constructor calls `A`'s constructor directly; the initialisers for `A` written in `B` and `C` are ignored. So a virtual base with no default constructor forces every most-derived class in the hierarchy to name it explicitly—and adding a virtual base to a library class breaks every derived class downstream. Construction order is also different: all virtual bases first, in depth-first left-to-right order, before any non-virtual base.
+
+**The costs**, which is why this is a design question and not just a syntax question:
+
+- The offset from a `D*` to its `A` subobject is not a compile-time constant, so access goes through a virtual-base-pointer or offset table—an extra indirection per access.
+- Objects grow by that pointer per virtually-derived base.
+- `static_cast` from `A*` back down to `D*` is **forbidden**; you must use `dynamic_cast`, which needs RTTI and is far more expensive.
+
+**When it is actually right:** interface classes with no state—then there is no duplicated data to worry about and no constructor argument to thread through, and the cost is mostly theoretical. That is exactly how `std::basic_iostream` uses it to join `istream` and `ostream` over one `basic_ios`. For anything with state, composition is usually the better answer, and in modern code the diamond is more often a design smell than a requirement.
 
 [↑ Back to question index](#question-index)
 
@@ -1538,6 +1779,33 @@ Factors include:
 - platform ABI
 
 An empty class normally has size at least 1 so distinct objects can have distinct addresses.
+
+**Work through an example**, because that is what the interviewer will ask for:
+
+```cpp
+struct S {          // sizeof == 24 on a typical 64-bit ABI, not 13
+    char  a;        // offset 0
+                    // 7 bytes padding
+    double b;       // offset 8  (alignof(double) == 8)
+    int   c;        // offset 16
+                    // 4 bytes tail padding, so alignof(S) == 8 divides sizeof(S)
+};
+struct T { double b; int c; char a; };   // sizeof == 16: same members, reordered
+```
+
+Two rules generate all of it: every member sits at an offset that is a multiple of its alignment, and `sizeof` is rounded up to a multiple of `alignof` so arrays stay aligned. **Ordering members from largest to smallest alignment** is therefore a free size win—and it matters for cache footprint, not just memory ([CPP-044](#question-cpp-044)).
+
+**Other contributors:**
+
+- A `vptr` costs one pointer per object the moment any function is virtual; multiple inheritance can mean more than one ([CPP-022](#question-cpp-022)).
+- Virtual inheritance adds further per-object bookkeeping ([CPP-027](#question-cpp-027)).
+- **Empty base optimization**: an empty base contributes 0 bytes, which is why `std::vector` can hold a stateless allocator for free and why policy classes are inherited rather than held. C++20's `[[no_unique_address]]` extends the same saving to *members*.
+- Bit-fields pack within an allocation unit, with implementation-defined layout.
+- `alignas` can raise alignment and therefore size; over-aligned types need `operator new` with an alignment argument (C++17).
+
+**Check rather than guess:** `sizeof`, `alignof` and `offsetof` in a `static_assert`, or `-Wpadded` / clang's `-Xclang -fdump-record-layouts` / MSVC's `/d1reportSingleClassLayoutS` to see the actual layout. On a struct held in a million-element vector, this is a real memory and bandwidth decision.
+
+**One caveat:** layout is ABI, not standard. `sizeof` is only guaranteed stable for a given compiler and target, so it must never be baked into a serialized format or a cross-compiler binary interface.
 
 [↑ Back to question index](#question-index)
 
@@ -1622,6 +1890,32 @@ It:
 
 Ownership transfer is explicit through `std::move`.
 
+**It is a zero-overhead abstraction.** With the default deleter, `sizeof(unique_ptr<T>) == sizeof(T*)`: the deleter is an empty class held by empty-base optimization, so there is no space cost and, with inlining, no time cost versus a raw pointer plus a correct `delete`. That is the sentence that answers "why not just use a raw pointer".
+
+**Non-copyable is the design, not a limitation.** The copy constructor is `= delete`, so exclusive ownership is enforced at compile time; `std::move` makes every transfer visible in the source. A moved-from `unique_ptr` is guaranteed null—one of the few move operations with a *specified* post-state ([CPP-003](#question-cpp-003)).
+
+**The API worth knowing precisely:**
+
+| | |
+|---|---|
+| `get()` | borrow the raw pointer, ownership unchanged |
+| `release()` | give up ownership, return the pointer, **you** must delete it |
+| `reset(p)` | delete the current object, take `p` |
+| `operator bool` | non-null test |
+
+`release()` versus `reset()` is a standard trap—`release` deletes nothing.
+
+**The custom deleter is part of the type**, which has two consequences: `unique_ptr<T, D1>` and `unique_ptr<T, D2>` are different types, and a stateful deleter (a lambda, a function pointer) makes the object bigger than a pointer. This is the natural wrapper for C and OS handles:
+
+```cpp
+auto closer = [](FILE* f){ if (f) std::fclose(f); };
+std::unique_ptr<FILE, decltype(closer)> file(std::fopen("x","r"), closer);
+```
+
+**The array form `unique_ptr<T[]>`** is a separate specialization: it calls `delete[]`, provides `operator[]`, and drops `operator*`/`->`. Use `std::make_unique<T[]>(n)`—but prefer `std::vector` unless you genuinely need a fixed-size buffer.
+
+**Prefer `make_unique`** ([CPP-033](#question-cpp-033)): it is exception-safe in argument lists, it avoids writing `new`, and it value-initialises. Its one limitation is that it cannot take a custom deleter.
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -1662,6 +1956,24 @@ means non-owning and nullable.
 
 Avoid passing `unique_ptr&` unless the function specifically needs to modify or replace the smart pointer itself.
 
+**The rule in one line: the parameter type should state the ownership contract, and nothing else.**
+
+| Parameter | Contract | Caller writes |
+|---|---|---|
+| `unique_ptr<T> p` | **takes** ownership | `f(std::move(p))` — forced, so the transfer is visible |
+| `const T&` / `T&` | uses the object, no ownership, never null | `f(*p)` |
+| `T*` | uses the object, no ownership, **may be null** | `f(p.get())` |
+| `unique_ptr<T>& p` | will **reseat** the caller's pointer | `f(p)` |
+| `const unique_ptr<T>&` | almost always wrong — see below | |
+
+**`const unique_ptr<T>&` is the one to call out.** It says "I will not take ownership and I will not reseat it", which is exactly what `const T&` says—but it additionally forces the caller to *have* a `unique_ptr`, so the function cannot be called with a stack object, a member, or a `shared_ptr`. It couples the callee to a storage decision that is none of its business.
+
+**The same reasoning for `shared_ptr`:** take `shared_ptr<T>` by value only when the function genuinely extends the object's lifetime—storing it, or launching an async task that outlives the call. Taking `const shared_ptr<T>&` as a habit is the common C++ performance bug in this area, because a by-value copy is an atomic increment and decrement, and passing it down four layers that merely *read* the object pays that four times for nothing ([CPP-038](#question-cpp-038)).
+
+**Returning is simple**: return `unique_ptr<T>` by value. It is a move, and guaranteed copy elision (C++17) means a returned prvalue is constructed in place—so a factory returning `unique_ptr` costs nothing over returning a raw pointer, and cannot leak.
+
+**This is Core Guideline F.7**: "prefer `T*` or `T&` to a smart pointer parameter unless you need ownership semantics"—it keeps functions usable with any storage strategy and makes the ownership intent readable at the call site.
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -1691,6 +2003,23 @@ The managed object is destroyed when the strong count reaches zero.
 
 The control block survives until weak references are also gone.
 
+```text
+shared_ptr ──┬──► control block { strong, weak, deleter, allocator }
+             └──► T
+```
+
+**`shared_ptr` is two pointers wide**—one to the object, one to the control block—so it is twice the size of `unique_ptr` and cannot be passed in a single register. The separate object pointer is what makes the aliasing constructor possible: a `shared_ptr<Member>` can keep the *parent* alive while pointing at a subobject.
+
+**The two counts do different jobs.** Strong reaching zero destroys the **object** (running the deleter); weak reaching zero—with strong already zero—frees the **control block**. The weak count is effectively strong-plus-one internally, which is why a `weak_ptr` never keeps the object alive but does keep the bookkeeping alive ([CPP-036](#question-cpp-036)).
+
+**The counts are atomic; that is the cost.** Every copy is an atomic increment and every destruction an atomic decrement—tens of nanoseconds uncontended, far worse when several threads copy the same `shared_ptr` and the cache line ping-pongs between cores ([CPP-068](#question-cpp-068)). Hence: pass by `const&` or by raw pointer when you are only observing ([CPP-031](#question-cpp-031)).
+
+**Type erasure lives in the control block.** The deleter and allocator are stored there, not in the type, so `shared_ptr<T>` with a custom deleter is still `shared_ptr<T>`—unlike `unique_ptr`. That is also why `shared_ptr<void>` can correctly destroy a `Derived`: the deleter captured the real type at construction. A consequence worth knowing: `shared_ptr` does **not** need a virtual destructor to delete a derived object through a base pointer, provided it was constructed from a `Derived*`.
+
+**Two allocations by default**—object and control block—which `make_shared` collapses into one ([CPP-033](#question-cpp-033)).
+
+**Use it only when ownership is genuinely shared.** `shared_ptr` as the default smart pointer is a design smell: it makes lifetime nondeterministic, invites cycles ([CPP-035](#question-cpp-035)), and costs atomics. Prefer `unique_ptr`, and reach for `shared_ptr` when several independent owners really do exist—caches, observers, async continuations.
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -1718,7 +2047,28 @@ in one allocation.
 
 That improves locality and reduces allocation overhead.
 
-A caveat: when `weak_ptr`s remain, memory containing the combined allocation may remain allocated even after the object itself is destroyed.
+A caveat: when `weak_ptr`s remain, memory containing the combined allocation may remain allocated even after the object itself is destroyed—the destructor has run, but the block cannot be freed until the last `weak_ptr` goes, so a large object plus a long-lived `weak_ptr` holds its whole footprint. With two separate allocations only the small control block lingers.
+
+**The exception-safety argument is the one that is often the real answer.** Before C++17 this could leak:
+
+```cpp
+f(std::shared_ptr<T>(new T), g());     // if g() throws after `new T` but before the ctor, T leaks
+f(std::make_shared<T>(), g());         // cannot leak
+```
+
+C++17 tightened argument evaluation so that the interleaving is no longer allowed, but `make_shared` still expresses the intent and leaves no raw `new` in sight.
+
+**Performance**: one allocation instead of two, and the object sits next to its reference counts, so touching the object and touching the count share a cache line—which matters exactly where `shared_ptr` is hot ([CPP-032](#question-cpp-032)).
+
+**When you cannot use `make_shared`:**
+
+- you need a **custom deleter** (`shared_ptr<T>(p, del)`) or a specific allocator (`allocate_shared` covers the allocator case);
+- you are adopting a pointer from a C API or a factory that already called `new`;
+- the constructor is **private**—`make_shared` is not a friend, which is the usual reason a factory falls back to `new` or a pass-key idiom;
+- you need `new (std::nothrow)` semantics;
+- the object is large and long-lived `weak_ptr`s are expected, per the caveat above.
+
+**`make_shared` also value-initialises**, so `make_shared<int>()` gives 0 where `shared_ptr<int>(new int)` gives garbage. And note the asymmetry: `make_unique` has none of these trade-offs, so for `unique_ptr` it is simply always preferred ([CPP-030](#question-cpp-030)).
 
 [↑ Back to question index](#question-index)
 
@@ -1873,7 +2223,31 @@ Without it, doing:
 std::shared_ptr<T>(this)
 ```
 
-would create another unrelated control block and can cause double deletion.
+would create another unrelated control block and can cause double deletion ([CPP-034](#question-cpp-034)).
+
+```cpp
+class Session : public std::enable_shared_from_this<Session> {
+public:
+    void start() {
+        socket.async_read([self = shared_from_this()](auto ec, auto n) { self->on_read(ec, n); });
+    }                    // the lambda keeps `this` alive until the callback runs
+};
+```
+
+That is the canonical use: an asynchronous operation must keep its owner alive for the duration of the call, and there is no other way to get a `shared_ptr` from inside a member function.
+
+**How it works:** the base holds a `weak_ptr<T>`. When the *first* `shared_ptr` takes ownership of the object, the `shared_ptr` constructor detects the base and initialises that weak member with its own control block. `shared_from_this()` then just does `weak.lock()`.
+
+**Which explains the two rules that trip people up:**
+
+- **Never call it in the constructor.** No `shared_ptr` owns the object yet, the weak member is empty, and since C++17 it throws `std::bad_weak_ptr` (before C++17 it was undefined behaviour). The idiom is a private constructor plus a static `create()` that returns `shared_ptr` and does post-construction work afterwards.
+- **The object must already be owned by a `shared_ptr`.** A stack object, or one held by `unique_ptr`, will throw. So inheriting from `enable_shared_from_this` is a public statement that instances of this class are always heap-allocated and shared.
+
+**Inherit publicly and exactly once.** Private inheritance makes the `shared_ptr` constructor unable to see the base, so it silently never enables the mechanism—and `shared_from_this()` then throws at runtime. Two `enable_shared_from_this` bases in one hierarchy is ambiguous.
+
+**C++17 added `weak_from_this()`**, which returns an empty `weak_ptr` instead of throwing when the object is not owned—useful when a callback may legitimately fire after the owner is gone.
+
+**Watch for cycles**: a captured `shared_ptr` to self inside a member of self is a cycle; capture `weak_from_this()` and `lock()` in the callback when the operation should *not* extend lifetime ([CPP-035](#question-cpp-035)).
 
 [↑ Back to question index](#question-index)
 
@@ -1898,6 +2272,34 @@ The control block reference counting operations are thread-safe across different
 But the managed object itself is not automatically thread-safe.
 
 Two threads can safely copy/destroy separate `shared_ptr`s referring to the same object, but concurrent unsynchronized mutation of the object still causes a data race.
+
+**Three separate things get confused here; separate them explicitly:**
+
+1. **The control block** — thread-safe. Reference counts are atomic, so copying and destroying `shared_ptr` *instances* from multiple threads is safe by design.
+2. **The pointed-to object** — not thread-safe. `shared_ptr` says nothing about it; you need a mutex or atomics as you would for any shared object ([CPP-054](#question-cpp-054)).
+3. **A single `shared_ptr` *instance*** — **not** thread-safe. Two threads writing the same `shared_ptr` variable, or one writing while another reads it, is a data race:
+
+```cpp
+std::shared_ptr<T> g;
+// thread A: g = make_shared<T>();     // writes both members of g
+// thread B: auto local = g;           // reads both members - RACE
+```
+
+Point 3 is the one candidates miss. The pointer and the control-block pointer are two words updated non-atomically, so a reader can see a torn pair: the new object with the old control block.
+
+**How to share a `shared_ptr` variable safely:**
+
+```cpp
+std::atomic<std::shared_ptr<T>> g;     // C++20: proper atomic specialization
+auto local = g.load();                 // safe snapshot
+g.store(std::make_shared<T>(next));    // safe publish
+```
+
+Before C++20 the route was the free functions `std::atomic_load(&g)` / `std::atomic_store(&g, p)`, deprecated in C++20 and removed in C++26. A mutex around the variable also works and is often simpler.
+
+**The idiom that follows**: copy the `shared_ptr` into a local once, then use the local. That makes the reference count guarantee do its job—the object cannot die under you—while avoiding repeated atomic traffic ([CPP-032](#question-cpp-032)).
+
+**`weak_ptr::lock()` is atomic** with respect to the object's destruction, so it is the correct way to test-and-acquire from another thread ([CPP-036](#question-cpp-036)). Checking `expired()` and then locking is a race.
 
 [↑ Back to question index](#question-index)
 
@@ -1928,6 +2330,29 @@ It tracks roughly:
 - capacity
 
 When size exceeds capacity, it allocates a larger block and moves or copies existing elements.
+
+**Three pointers, in practice**: `begin`, `end`, `end_of_capacity`—so `sizeof(vector)` is 24 bytes on a 64-bit ABI and `size()`/`capacity()` are subtractions.
+
+**"Moves or copies" hides an important rule.** Reallocation uses `std::move_if_noexcept`: elements are moved only if the move constructor is `noexcept` (or the type is not copyable). Otherwise they are **copied**, because a throwing move halfway through reallocation would leave both buffers in a broken state and the strong guarantee could not be honoured ([CPP-091](#question-cpp-091)). This is the concrete reason to mark move constructors `noexcept`—forget it and your vector of a heavy type silently copies on every growth.
+
+**Growth is geometric**—×2 in libstdc++ and MSVC uses ×1.5—which is what makes `push_back` amortized O(1) ([CPP-043](#question-cpp-043)). The factor is unspecified, so never rely on it.
+
+**Invalidation, which is the practical half of the question:**
+
+| Operation | Invalidates |
+|---|---|
+| reallocation (any growth past capacity) | **everything** — iterators, pointers, references |
+| `insert`/`erase` in the middle | everything from that position onward |
+| `push_back` within capacity | `end()` only |
+| `reserve`, `shrink_to_fit` | everything, if capacity changes |
+
+The classic bug is holding a reference or iterator across a `push_back`—including the self-referential `v.push_back(v[0])`, which the standard requires to work, so implementations handle it explicitly.
+
+**Capacity is never reduced automatically.** `clear()` leaves capacity intact; `shrink_to_fit` is a non-binding request; the guaranteed way to release memory is `vector<T>(v).swap(v)`.
+
+**`vector<bool>` is the famous exception**: a bit-packed specialization whose `operator[]` returns a proxy, not a `bool&`, so `auto&` on it misbehaves and it is not a real container. Use `std::vector<char>`, `std::deque<bool>` or `std::bitset` when you need one.
+
+**`reserve` vs `resize`**: `reserve` allocates capacity only—no objects are constructed and `size()` is unchanged. `resize` changes `size()` and value-initialises (or destroys) elements. Reserving before a known-size fill removes every intermediate reallocation, which is the single cheapest vector optimisation there is.
 
 [↑ Back to question index](#question-index)
 
@@ -2071,6 +2496,22 @@ Occasionally `vector` reallocates and moves O(n) elements.
 
 Because capacity typically grows geometrically, the total cost of many insertions is linear, so average amortized cost per insertion is O(1).
 
+**The arithmetic, since the question invites it.** With growth factor 2, inserting n elements triggers reallocations at capacities 1, 2, 4, …, and the elements moved total
+
+```text
+1 + 2 + 4 + ... + n/2 + n  <  2n
+```
+
+—a geometric series, so **under 2n moves for n insertions**, i.e. a constant average. The generalisation for factor k is `n·k/(k-1)` moves, so ×2 averages 2 moves per element and ×1.5 averages 3.
+
+**Why geometric and not additive**: growing by a fixed +C would reallocate n/C times, moving `C + 2C + 3C + …` ≈ n²/2C elements in total—**O(n) per insertion amortized**, quadratic overall. That is exactly the difference the word "amortized" is buying.
+
+**What "amortized" does and does not promise.** It bounds the *total* over a sequence, not any single call: one individual `push_back` is still O(n) and allocates. So for a latency-sensitive path—a UI thread, a market-data handler—the tail latency is what you feel, and `reserve()` up front is how you move that cost to a moment you choose ([CPP-073](#question-cpp-073)).
+
+**The trade-off of the growth factor** is a nice detail to have ready: ×1.5 (MSVC) can reuse previously freed blocks, because the sum of all prior allocations eventually exceeds the next request—with ×2 it never does, so the allocator keeps advancing into fresh memory. ×2 does fewer reallocations. Neither is mandated.
+
+**The same amortized argument applies to `unordered_map`'s rehashing** ([CPP-047](#question-cpp-047)) and to any geometrically-grown buffer. `deque` avoids it differently: it adds fixed-size blocks, so `push_back` is O(1) worst case and existing elements never move—which is why `deque` is the better choice when references must stay valid across growth.
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -2098,6 +2539,21 @@ Despite `list` having O(1) insertion at a known position, `vector` benefits from
 - lower pointer chasing overhead
 
 Modern CPU behavior often dominates theoretical operation counts.
+
+**Put numbers on it**, because that is what makes the argument land: an L1 hit is ~1 ns, a main-memory miss is ~100 ns. A `list` traversal is a dependent load per node—the next address is not known until the current node arrives, so the prefetcher cannot help and the misses cannot overlap. A `vector` traversal reads a 64-byte cache line at a time (8 doubles, or 16 ints) and the hardware prefetcher runs ahead of you. That is a difference of roughly two orders of magnitude on the same "O(n) traversal".
+
+**Memory overhead compounds it.** A `std::list<int>` node is two pointers plus the `int` plus padding—24 bytes and a separate allocation for 4 bytes of payload. So the list touches six times the memory and allocates n times; the vector allocates O(log n) times.
+
+**The O(1) insertion is usually not the operation you are actually doing.** `list::insert` is O(1) *given an iterator*—but finding that position is an O(n) traversal at ~100 ns per step, while `vector::insert` in the middle is an O(n) `memmove` at streaming bandwidth. The linear scan dominates the shift, which is why the crossover where `list` wins is much further out than the complexity table suggests—often never, for small trivially-copyable elements.
+
+**So state the honest conditions under which `list` does win:**
+
+- elements are **large or expensive to move**, so shifting is costly;
+- you already hold iterators to the insertion/erase points and mutate heavily;
+- you need **references and iterators to stay valid** across insertion and erasure ([CPP-039](#question-cpp-039)) — `deque` or a node-based container is often the real requirement here, not list's complexity;
+- you need O(1) `splice` between lists.
+
+**The general principle**, worth saying out loud: for data structures on modern hardware, *contiguity beats asymptotics at realistic n*. The same reasoning explains why a sorted `vector` with binary search often beats `std::map`, and why a small `vector` beats `unordered_map` ([CPP-045](#question-cpp-045)). And it is a claim to *measure*, not to assert—the answer depends on element size and access pattern.
 
 [↑ Back to question index](#question-index)
 
@@ -2130,7 +2586,27 @@ Modern CPU behavior often dominates theoretical operation counts.
 - worst-case O(n)
 - no ordering guarantee
 
-Choice depends on ordering needs, key type, hash quality, memory usage and access pattern.
+| | `std::map` | `std::unordered_map` |
+|---|---|---|
+| Structure | balanced tree (red-black) | buckets + chaining |
+| Lookup | O(log n) guaranteed | O(1) average, **O(n) worst** |
+| Iteration | sorted by key | unspecified order |
+| Requires | `operator<` / comparator (strict weak ordering) | `std::hash` **and** `operator==` |
+| Range queries | `lower_bound`, `upper_bound` — yes | no |
+| Iterator invalidation | only the erased element | **rehashing invalidates iterators** (references survive) |
+| Per-element overhead | 3 pointers + colour | 1 pointer + bucket array |
+| Latency profile | uniform | occasional O(n) rehash spike |
+
+**Choose `map` when you need ordering**—iteration in key order, `lower_bound` for a range or a nearest-key lookup, or a key type with a natural order but no good hash. Choose `unordered_map` for pure lookup by exact key at large n.
+
+**The non-obvious points that make a good answer:**
+
+- **`map` has no pathological case.** `unordered_map` degrades to O(n) with a bad or adversarial hash, and C++ does not randomise its hash seed, so untrusted keys are a real hash-flooding risk ([CPP-046](#question-cpp-046)).
+- **Latency versus throughput.** `map` is uniformly O(log n); `unordered_map` is faster on average but rehashes in O(n) at unpredictable moments. On a UI or feed thread that tail can matter more than the mean ([CPP-073](#question-cpp-073)).
+- **Both chase pointers.** Neither is cache-friendly: a tree walk is log n dependent loads, a hash lookup is a bucket load plus a chain walk. For **small n—up to roughly a hundred—a sorted `std::vector` with `std::lower_bound` usually beats both**, and a flat vector of pairs with a linear scan beats them at very small n ([CPP-044](#question-cpp-044)).
+- **`std::string` keys** are the common case, and `unordered_map` must hash the whole string on every lookup while `map` often decides on the first few characters. Measure rather than assume.
+
+**Also on the table**: `std::flat_map` (C++23) — a sorted vector pair with map's interface, fast lookup and iteration, slow insertion; and for a fixed key set known at compile time, a perfect hash or a `switch` beats everything.
 
 [↑ Back to question index](#question-index)
 
@@ -2222,7 +2698,34 @@ Properties include:
 - transitive
 - consistent equivalence relation
 
-Incorrect comparators can make algorithms behave unpredictably and may violate library preconditions.
+A comparator `comp(a, b)` meaning "a comes strictly before b" must satisfy:
+
+1. **Irreflexive** — `comp(a, a)` is false.
+2. **Asymmetric** — if `comp(a, b)` then not `comp(b, a)`.
+3. **Transitive** — `comp(a, b)` and `comp(b, c)` imply `comp(a, c)`.
+4. **Transitive equivalence** — with "equivalent" defined as `!comp(a,b) && !comp(b,a)`, that relation must itself be transitive.
+
+Rule 4 is the one people have never heard of, and it is where real comparators break. Compare only a person's *surname*: Smith~Ann and Smith~Bob are equivalent, but if the comparator also sometimes inspects the first name inconsistently, equivalence stops being transitive and the ordering is incoherent.
+
+**The classic bug is `<=`:**
+
+```cpp
+std::sort(v.begin(), v.end(), [](int a, int b){ return a <= b; });  // WRONG
+```
+
+It is reflexive—`comp(a,a)` is true—so it is not a strict weak ordering. The consequence is not "slightly wrong order": `std::sort`'s partition loop relies on the comparator to stop, so it runs **past the end of the array**. Real out-of-bounds writes, real crashes, and typically only on inputs above the introsort threshold, which is why it survives small tests.
+
+**Same hazard from:**
+
+```cpp
+[](const auto& a, const auto& b){ return a.p < b.p || a.q < b.q; }   // not transitive
+```
+
+The correct form is lexicographic, and `std::tie` writes it for you: `return std::tie(a.p, a.q) < std::tie(b.p, b.q);` — or in C++20, `auto operator<=>(const S&) const = default;`.
+
+**NaN breaks it silently.** `operator<` on `double` is not a strict weak ordering when NaN is present, because NaN compares false against everything, so *every* NaN is "equivalent" to *every* other value—destroying transitivity of equivalence. Filter NaNs, or use a total order.
+
+**Where it applies:** `sort`, `stable_sort`, `nth_element`, `lower_bound`, `binary_search`, `set`/`map` and the priority queue. Violating it is undefined behaviour, not a wrong answer. `_GLIBCXX_DEBUG` and MSVC's debug iterators actually check this, which makes them worth enabling in CI.
 
 [↑ Back to question index](#question-index)
 
@@ -2248,7 +2751,30 @@ Incorrect comparators can make algorithms behave unpredictably and may violate l
 
 `emplace_back` is not automatically faster.
 
-If you already have a `T`, `push_back(std::move(t))` can be equally good.
+If you already have a `T`, `push_back(std::move(t))` can be equally good—identical, in fact: both construct one `T` in place by moving.
+
+**Where `emplace_back` genuinely wins** is when the object does not exist yet and constructing it separately would cost a temporary:
+
+```cpp
+v.push_back(std::string(10, 'x'));   // construct temporary, move-construct into the vector
+v.emplace_back(10, 'x');             // construct once, directly in the vector's storage
+```
+
+For a type that is expensive to move, or not movable at all, `emplace_back` is the only option.
+
+**Three reasons not to make it the default**, which is the real content of the question:
+
+*It bypasses explicit constructors.* `emplace_back` calls direct-initialisation, so `std::vector<std::unique_ptr<T>> v; v.emplace_back(new T);` compiles—`push_back` would not, because the conversion is `explicit`. And if the vector then reallocates and throws, that raw pointer leaks. This is a safety regression, not a stylistic one.
+
+*Overload resolution gets surprising.* `v.emplace_back(10)` on a `vector<vector<int>>` creates a vector of ten elements, not a vector containing 10. With `push_back` the intent is unambiguous.
+
+*It can be slower.* `push_back` may check reallocation and construct in one path; `emplace_back` must handle the self-referential and aliasing cases generically. The difference is small, but "emplace is faster" is not something to assert without a measurement.
+
+**`emplace_back` returns a reference to the new element since C++17**, which `push_back` does not—useful for building in place.
+
+**Note the family:** `emplace` on `map`/`set` always constructs the node, even when the key turns out to be present, so it can allocate and throw away. `try_emplace` (C++17) constructs the value only if the key is absent—and also does not move from its arguments on failure, which `emplace` does. For a map, `try_emplace` is usually the correct default.
+
+**Practical rule:** use `push_back` when you have an object, `emplace_back` when you have constructor arguments, and `try_emplace` for maps. Readability decides the rest.
 
 [↑ Back to question index](#question-index)
 
@@ -2392,7 +2918,31 @@ A **race condition** is a broader logical problem where behavior depends on timi
 
 A **data race** has a precise C++ memory-model definition involving unsynchronized memory accesses.
 
-You can have a race condition without a data race.
+**Data race** has an exact definition: two accesses to the same memory location, from different threads, at least one a write, not ordered by a happens-before relationship, and not both atomic ([CPP-066](#question-cpp-066)). It is **undefined behaviour**—not "you might read a stale value", but the whole program becomes meaningless, which is why the compiler is entitled to optimise on the assumption it cannot happen ([CPP-016](#question-cpp-016)).
+
+**Race condition** is a design-level statement: the outcome depends on timing. Not a language term, and not automatically UB.
+
+**Race condition without a data race** — every access properly locked, still wrong:
+
+```cpp
+if (!map.contains(k))     // lock taken and released
+    map.insert(k, v);     // lock taken again - another thread may have inserted in between
+```
+
+Check-then-act across two critical sections. No UB, no sanitizer report, just a wrong answer sometimes. The fix is to widen the critical section, not to add more locks—or use an atomic operation like `try_emplace` that does both under one lock.
+
+**Data race without a meaningful race condition** — a benign-looking unsynchronized flag:
+
+```cpp
+bool stop = false;                     // thread A writes, thread B reads in a loop
+while (!stop) work();                  // UB: the compiler may hoist the load out of the loop
+```
+
+"It works in practice" until the optimizer caches `stop` in a register and the loop never exits. The fix is `std::atomic<bool>` ([CPP-060](#question-cpp-060)). There is no such thing as a benign data race in C++.
+
+**Why the distinction earns its keep in an answer:** the tools differ. TSan finds data races—it checks the happens-before relation mechanically. Nothing finds race conditions for you; they need reasoning about invariants, and stress or deterministic-scheduling tests. So "TSan is clean" means the memory model is satisfied, not that the logic is correct.
+
+**Related terms worth separating**: a *deadlock* is the opposite failure—too much locking ([CPP-057](#question-cpp-057)); a *TOCTOU* bug is a race condition across a security boundary.
 
 [↑ Back to question index](#question-index)
 
@@ -2457,7 +3007,30 @@ A mutex gives you two things, and candidates usually name only the first.
 - unlock/relock
 - required by `condition_variable`
 
-It has slightly more overhead because it stores additional state.
+It has slightly more overhead because it stores additional state: a mutex pointer plus a bool, versus `lock_guard`'s reference alone. In practice the difference is negligible next to the lock itself—choose on semantics, not cost.
+
+**`unique_lock` is movable**, which is what makes the extra state worth having: it can be returned from a function, stored in a container, or handed to a condition variable.
+
+```cpp
+std::unique_lock lock(m, std::defer_lock);   // construct without locking
+std::unique_lock lock(m, std::try_to_lock);  // try, then check lock.owns_lock()
+std::unique_lock lock(m, std::adopt_lock);   // already locked - just take ownership
+```
+
+**The condition-variable requirement is not arbitrary.** `cv.wait` must atomically release the mutex and suspend, then reacquire on wake—so it needs an object it can unlock and relock, which `lock_guard` cannot do ([CPP-059](#question-cpp-059)).
+
+**The full family, since the interviewer may push:**
+
+| | Use |
+|---|---|
+| `std::lock_guard` | the default: one mutex, whole scope, no flexibility needed |
+| `std::scoped_lock` (C++17) | **two or more mutexes**, deadlock-avoiding acquisition; also works with one, so it can be the default in C++17 code ([CPP-056](#question-cpp-056)) |
+| `std::unique_lock` | deferred/timed/try locking, manual unlock, moving, condition variables |
+| `std::shared_lock` (C++14) | reader side of a `shared_mutex` |
+
+**The classic bug both prevent** is the unnamed temporary: `std::lock_guard(m);` declares nothing—it creates a temporary that is destroyed at the end of the statement, so the mutex is unlocked immediately and the following code runs unprotected. It compiles cleanly. `std::lock_guard lock(m);` with a name is correct, and C++17 CTAD means you no longer write the template argument.
+
+**Manual unlocking is a smell.** If you find yourself calling `lock.unlock()` halfway through a function, the usual right answer is a smaller scope—`{ std::lock_guard g(m); ... }`—which is harder to get wrong on an exception path.
 
 [↑ Back to question index](#question-index)
 
@@ -2523,6 +3096,20 @@ Typical prevention techniques:
 - `std::scoped_lock`
 - smaller critical sections
 - avoiding nested locking
+
+**Break at least one Coffman condition, deliberately.** In practice the one you attack is **circular wait**, because the other three are usually inherent to mutexes.
+
+*Global lock ordering* is the primary technique: define a total order over your mutexes—by address, by a documented level number, by module layering—and always acquire in that order. Documented and enforced, this makes a cycle impossible by construction.
+
+*`std::scoped_lock`* handles the case where you need several at once and cannot impose an order at the call site: it uses a lock-and-back-off algorithm rather than a fixed sequence ([CPP-056](#question-cpp-056)). `std::lock` is the pre-C++17 spelling.
+
+*Timed acquisition* (`try_lock_for`) breaks *no preemption*: you give up and retry rather than waiting forever. It converts a deadlock into a livelock risk, so it needs backoff and a bound.
+
+**The deadlock people actually hit is not two mutexes**, and this is worth saying: it is **calling unknown code while holding a lock**—a callback, a virtual function, an I/O operation, or a COM call that pumps messages and re-enters your code (see the COM and Excel bank). You no longer control what locks that code takes, so you cannot reason about ordering at all. The rule is to compute under the lock and *call out* after releasing it.
+
+**Others that qualify as deadlock in practice:** self-deadlock on a non-recursive `std::mutex` (undefined behaviour, usually a hang); a thread waiting on a condition variable whose notifier has exited without a terminal predicate ([CPP-059](#question-cpp-059)); and lock-order inversion between your code and a library's internal locks.
+
+**How to find one after the fact:** attach a debugger and dump all thread stacks—the cycle is visible as two threads each blocked in `lock` ([CPP-084](#question-cpp-084)). ThreadSanitizer detects lock-order inversions even when they do not deadlock on that run, which makes it far more useful than waiting for the hang; and Clang's thread-safety annotations can enforce an order at compile time.
 
 [↑ Back to question index](#question-index)
 
@@ -2622,6 +3209,31 @@ It can be used for counters, flags and lock-free algorithms.
 
 Atomicity alone does not solve every synchronization problem.
 
+**It gives you two things, and they are separable:** indivisibility (no torn reads or lost updates) and *ordering* (what other memory becomes visible around it). The default `memory_order_seq_cst` gives both; `memory_order_relaxed` gives only the first ([CPP-065](#question-cpp-065)).
+
+```cpp
+std::atomic<int> n{0};
+n++;                                       // atomic read-modify-write, seq_cst
+n.fetch_add(1, std::memory_order_relaxed); // atomic, but no ordering guarantees
+int old = n.exchange(5);                   // atomic swap
+n.compare_exchange_weak(expected, desired);// CAS ([CPP-062](#question-cpp-062))
+```
+
+**`is_lock_free()` is the question to ask about any `atomic<T>`.** Integral types and pointers up to the machine word are lock-free on every mainstream platform; `atomic<T>` for a larger struct compiles fine but is implemented with a hidden lock, so it is *not* usable in a signal handler and gives none of the performance you were after. `std::atomic<T>::is_always_lock_free` is a `constexpr` you can `static_assert` on.
+
+**Atomic does not mean composable**, which is the "atomicity alone" point made concrete:
+
+```cpp
+if (n.load() < limit)   // two separate atomic operations...
+    n.store(n + 1);     // ...another thread can act in between. Not atomic as a whole.
+```
+
+The fix is one operation: `fetch_add`, or a CAS loop. Anything spanning **two** variables needs a mutex or a lock-free algorithm designed for it ([CPP-182](#question-cpp-182)).
+
+**Cost.** An uncontended atomic RMW is a locked instruction—on x86, roughly 10–20 ns, an order of magnitude more than a plain load. Under contention it is far worse, because the cache line must be acquired exclusively by each core in turn ([CPP-068](#question-cpp-068)). So "atomic counter instead of a mutex" is a win for a single counter and a loss if many threads hammer it—a sharded or thread-local counter summed at the end beats both.
+
+**`atomic_flag`** is the only type guaranteed lock-free everywhere, and C++20 added `wait`/`notify_one` to atomics, so you can block on one without a condition variable. `volatile` is not a substitute for any of this ([CPP-019](#question-cpp-019)).
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -2687,6 +3299,33 @@ compare_exchange_strong
 
 It is a fundamental building block for many lock-free algorithms.
 
+**Note the signature detail that catches people:** `expected` is passed **by reference and is updated on failure** with the value actually found. That is what makes the retry loop natural—you do not re-read.
+
+```cpp
+std::atomic<int> v{0};
+int expected = v.load(std::memory_order_relaxed);
+while (!v.compare_exchange_weak(expected, expected * 2)) {
+    // on failure, `expected` now holds the current value - just loop
+}
+```
+
+Semantically it is:
+
+```text
+if (v == expected) { v = desired; return true; }
+else               { expected = v; return false; }
+```
+
+executed indivisibly. On x86 it is `lock cmpxchg`; on ARM and POWER it is an LL/SC pair (`ldaxr`/`stlxr`), which is exactly why the `weak` form exists ([CPP-063](#question-cpp-063)).
+
+**Two memory orders, not one.** `compare_exchange_*(expected, desired, success_order, failure_order)`—the failure order may not be stronger than the success order, and a common correct choice is `acq_rel` on success, `acquire` on failure.
+
+**Why CAS rather than a lock:** progress. A CAS loop is lock-free—if a thread is suspended mid-loop, others still make progress—whereas a thread suspended holding a mutex blocks everyone ([CPP-182](#question-cpp-182)). That property, not raw speed, is the reason to use it.
+
+**The ABA problem is the standard follow-up.** CAS compares *values*, not history: a pointer can change A → B → A between your read and your CAS, so the CAS succeeds while the world has changed underneath—the node you are about to link may have been freed and recycled. Mitigations are a tagged/versioned pointer (a counter packed alongside, via `compare_exchange` on a double-width value), hazard pointers, or epoch-based reclamation. Plain reference counting does not solve it.
+
+**And the honest caveat:** under heavy contention a CAS loop can spin and retry repeatedly, burning cache-coherence traffic, and a well-implemented mutex may beat it outright. Lock-free is a progress guarantee, not a performance guarantee—measure it ([CPP-184](#question-cpp-184)).
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -2710,6 +3349,27 @@ It is a fundamental building block for many lock-free algorithms.
 It is commonly used inside retry loops and can map more efficiently to some hardware.
 
 `strong` does not allow this spurious-failure behavior.
+
+**Where the spurious failure comes from**: on architectures with load-linked/store-conditional—ARM, POWER, RISC-V—the store-conditional can fail because of a context switch, an interrupt, or an unrelated write to the same cache line, even though the compared value was correct. `weak` exposes that directly and compiles to a single LL/SC pair. `strong` must hide it, so the compiler wraps the pair in its own retry loop. On x86 there is no such distinction—`lock cmpxchg` never fails spuriously—so both compile to the same instruction and the choice is free.
+
+**The rule follows mechanically:**
+
+```cpp
+// in a loop that must retry anyway -> weak (you would loop on failure regardless)
+int expected = v.load();
+while (!v.compare_exchange_weak(expected, expected + 1)) { }
+
+// a single attempt whose result you branch on -> strong
+if (!head.compare_exchange_strong(expected, node)) { take_slow_path(); }
+```
+
+Using `weak` outside a loop is a bug: you would take the failure path on a value that actually matched. Using `strong` inside a loop is merely wasteful—a nested retry loop inside your retry loop.
+
+**One extra subtlety**: if recomputing `desired` after a failure is expensive, `strong` may win even in a loop, because `weak` can force that recomputation for no reason. So the fuller rule is: `weak` in a loop *when the loop body is cheap*.
+
+**The `expected` reference is updated on failure** in both forms, which is what makes the loop above correct without a re-load ([CPP-062](#question-cpp-062)).
+
+**Practical note:** on x86-64 this whole distinction is academic, so do not over-claim a performance difference. On ARM—increasingly common in servers and on Apple silicon—it is real and measurable in a hot CAS loop.
 
 [↑ Back to question index](#question-index)
 
@@ -2780,6 +3440,25 @@ if (ready.load(std::memory_order_acquire)) {
 
 If B observes the released value, writes before the release become visible to B after the acquire.
 
+**The mental model**: release is "publish everything I did before this point"; acquire is "subscribe to everything the publisher did". The synchronization is established by the *pairing*—a release alone guarantees nothing, and an acquire that reads a value written by a relaxed store guarantees nothing either. Both sides must use the ordering, and B must actually **observe the value A stored**.
+
+**What each one forbids, precisely:**
+
+| | Prevents |
+|---|---|
+| `memory_order_release` (store) | earlier reads and writes moving **after** it |
+| `memory_order_acquire` (load) | later reads and writes moving **before** it |
+
+Each is a one-way barrier, which is why they are cheaper than a full fence. Neither prevents movement in the other direction—a later store may sink below an acquire—and that is fine, because the guarantee you need is only about the data the publisher wrote.
+
+**Cost.** On x86 the ordering is nearly free: loads are already acquire and stores already release in the hardware model, so `acquire`/`release` cost no extra instructions—only `seq_cst` stores need an `mfence` or `xchg` ([CPP-067](#question-cpp-067)). On ARM and POWER they emit real barriers (`ldar`/`stlr` on ARMv8), so the difference between `relaxed`, `acq_rel` and `seq_cst` is measurable there.
+
+**`memory_order_acq_rel`** is for read-modify-write operations that both consume and publish—the CAS in a lock-free stack push, for example. **`memory_order_consume`** exists on paper for data-dependent ordering, but every mainstream compiler promotes it to `acquire`, so treat it as unusable.
+
+**This is the same relationship a mutex gives you**: unlock is a release, lock is an acquire ([CPP-054](#question-cpp-054)). Which is the honest framing to offer—if you understand acquire/release you understand what a mutex is doing, and if you do not need lock-free code you already have these semantics for free.
+
+**The formal statement of "becomes visible" is happens-before** ([CPP-066](#question-cpp-066)): the release store *synchronizes with* the acquire load, which puts everything sequenced before the store in a happens-before relation with everything sequenced after the load.
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -2800,7 +3479,25 @@ If B observes the released value, writes before the release become visible to B 
 
 A happens-before relationship guarantees ordering and visibility between operations in the C++ memory model.
 
-If write A happens-before read B, B is guaranteed to observe effects consistent with that ordering.
+If write A happens-before read B, B is guaranteed to observe effects consistent with that ordering—and if no such relation exists between a write and a read of the same location, that is precisely the definition of a **data race**, hence undefined behaviour ([CPP-053](#question-cpp-053)).
+
+**It is built from two ingredients:**
+
+1. **Sequenced-before** — ordering within a single thread, from the program text.
+2. **Synchronizes-with** — a cross-thread edge, created by a release operation being observed by an acquire operation on the same variable, by a mutex unlock being observed by a subsequent lock, by a thread's constructor relative to the new thread's start, or by a thread's end relative to a successful `join` ([CPP-065](#question-cpp-065)).
+
+Happens-before is the **transitive closure** of those two, and transitivity is what makes it useful: A writes data, A releases a flag, B acquires the flag, B reads the data. There is no direct edge between the two data accesses—the relation is assembled through the flag.
+
+**It is a partial order, not a timeline.** Two operations in different threads with no synchronizing edge between them are simply *unordered*; asking which happened "first" in wall-clock terms is not a question the model answers, and the answer would not be useful because different cores can observe different orders. That is the conceptual jump from single-threaded reasoning.
+
+**Consequences worth stating:**
+
+- Adding a `sleep` creates no happens-before edge. Timing is not synchronization.
+- `std::thread`'s constructor and `join()` are synchronization points, which is why data handed to a thread at construction and collected after `join` needs no further locking.
+- `static` local initialisation is thread-safe and establishes happens-before—the "magic statics" guarantee that makes the Meyers singleton correct.
+- `memory_order_relaxed` operations are atomic but create **no** happens-before edges, so they can be used for counters but not for publishing data.
+
+**This is the formal machinery underneath everything else in this section**, and it is what TSan actually checks: it builds the happens-before graph at runtime and reports any unordered conflicting pair—which is why it finds races that did not manifest on that particular run.
 
 [↑ Back to question index](#question-index)
 
@@ -2826,6 +3523,24 @@ Operations behave as if they participate in one global order consistent with eac
 
 It is easiest to reason about but may impose more constraints on optimization/hardware.
 
+**What it adds over acquire/release** is a *single total order over all seq_cst operations in the program*, which every thread agrees on. Acquire/release gives you pairwise publication; it does **not** guarantee that two threads observing two independent variables see them in the same order. The standard demonstration is IRIW (independent reads of independent writes): with `acq_rel`, thread C can see `x` set before `y` while thread D sees `y` before `x`, and both are legal. With `seq_cst` they cannot disagree.
+
+**The classic case it fixes** is Dekker-style mutual exclusion:
+
+```cpp
+// thread 1                       // thread 2
+x.store(true, seq_cst);           y.store(true, seq_cst);
+if (!y.load(seq_cst)) critical(); if (!x.load(seq_cst)) critical();
+```
+
+With `seq_cst` at most one enters. Weaken the stores to `release` and the loads to `acquire` and **both** can enter—because a store may be buffered past a subsequent load of a different variable. That StoreLoad reordering is the one x86 permits, and it is exactly what `seq_cst` costs money to prevent.
+
+**The cost, concretely.** On x86-64, `seq_cst` **loads** are free (a plain `mov`), but a `seq_cst` **store** needs an `mfence` or `xchg`—roughly 20–30 cycles. On ARMv8 it is `stlr`/`ldar` plus stronger fences. So the practical advice is: if you are storing in a hot loop, `release` may be a real win; if you are mostly loading, `seq_cst` costs nothing on x86.
+
+**It is the default for a reason.** `x.store(v)` and `x.load()` without an order argument are `seq_cst`, because the weaker orders are genuinely hard to get right and the failures are non-deterministic and platform-specific ([CPP-065](#question-cpp-065)). The defensible position in an interview is: start at `seq_cst`, weaken only where a profile shows it matters and the reasoning has been written down—and note that even experts get relaxed orderings wrong, which is why the standard's own examples come with proofs.
+
+**Note it is not "no reordering".** Non-atomic operations around it can still move; the total order constrains the seq_cst operations themselves, plus the happens-before edges they create ([CPP-066](#question-cpp-066)).
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -2848,7 +3563,34 @@ False sharing occurs when threads modify different variables that happen to resi
 
 The variables are logically independent, but cache coherence causes the cache line to bounce between cores.
 
-This can severely reduce performance.
+This can severely reduce performance—an order of magnitude on a hot counter is routine.
+
+**Why it costs so much.** Coherence works at cache-line granularity, typically **64 bytes**. When core A writes any byte of a line, the MESI protocol must invalidate that line in every other core's cache. If core B then writes a *different* variable in the same line, it must first acquire the line exclusively—pulling it back across the interconnect. Two logically independent counters thus serialize on the cache line, at roughly 100 ns per bounce instead of 1 ns.
+
+**The canonical shape:**
+
+```cpp
+struct Counters { std::atomic<long> a; std::atomic<long> b; };   // same 64-byte line
+// thread 1 hammers c.a, thread 2 hammers c.b -> the line ping-pongs
+
+struct alignas(64) Padded { std::atomic<long> v; };              // one per line
+Padded counters[N];
+```
+
+C++17 gives you the portable constant: `std::hardware_destructive_interference_size` for padding apart, and `std::hardware_constructive_interference_size` for deliberately packing together.
+
+**Where it hides in real code:**
+
+- an array of per-thread accumulators, indexed by thread id — the textbook case;
+- a lock-free queue whose head and tail indices are adjacent members, so producer and consumer fight over one line;
+- a mutex sitting next to the data it protects — every lock acquisition invalidates the data's line;
+- `shared_ptr` reference counts, when many threads copy pointers to the same object ([CPP-032](#question-cpp-032)).
+
+**How to detect it**, which is the part that separates a memorised answer from experience: it does not show up in a normal profile as a single hot line—it shows up as **poor scaling**, where adding cores does not add throughput. `perf c2c` on Linux attributes cache-line contention to specific lines and offsets; VTune has a Memory Access analysis; `perf stat` showing high `HITM` events is the signature.
+
+**Fixes, in order of preference:** don't share—give each thread its own accumulator and combine at the end; pad or align what must be shared; reorder struct members so read-mostly and write-hot fields sit in different lines ([CPP-028](#question-cpp-028)). Padding costs memory, so apply it where a measurement says to, not everywhere.
+
+**True sharing** is the sibling problem: threads contending on the *same* variable. Padding does not help there—only reducing the sharing does.
 
 [↑ Back to question index](#question-index)
 
@@ -2885,7 +3627,50 @@ Use:
 - queue
 - shutdown flag
 
-For very high throughput, consider batching, bounded queues and backpressure.
+```cpp
+template<class T>
+class Queue {
+    std::mutex m_;
+    std::condition_variable not_empty_, not_full_;
+    std::queue<T> q_;
+    size_t cap_;
+    bool closed_ = false;
+public:
+    bool push(T v) {
+        std::unique_lock lk(m_);
+        not_full_.wait(lk, [&]{ return q_.size() < cap_ || closed_; });
+        if (closed_) return false;
+        q_.push(std::move(v));
+        lk.unlock();                 // unlock before notifying: the woken thread
+        not_empty_.notify_one();     // would otherwise immediately block on the mutex
+        return true;
+    }
+    std::optional<T> pop() {
+        std::unique_lock lk(m_);
+        not_empty_.wait(lk, [&]{ return !q_.empty() || closed_; });
+        if (q_.empty()) return std::nullopt;          // closed and drained
+        T v = std::move(q_.front()); q_.pop();
+        lk.unlock(); not_full_.notify_one();
+        return v;
+    }
+    void close() { { std::lock_guard lk(m_); closed_ = true; } 
+                   not_empty_.notify_all(); not_full_.notify_all(); }
+};
+```
+
+**The four details that make it correct**, and each is a likely follow-up:
+
+*Predicates, not bare waits.* Spurious and lost wakeups both require the condition to be rechecked under the mutex ([CPP-059](#question-cpp-059)).
+
+*`closed_` is part of every predicate.* Without it, consumers block forever at shutdown—the single most common bug in this code. `close()` must `notify_all`, because every waiter needs to re-evaluate, and `pop` must drain remaining items before returning `nullopt`.
+
+*Two condition variables, not one.* One CV for both "not empty" and "not full" means producers wake consumers and vice versa, and you must use `notify_all` to be safe—wasteful. Separate CVs let you use `notify_one`.
+
+*Bounded capacity is the backpressure* ([CPP-077](#question-cpp-077)). An unbounded queue turns a slow consumer into unbounded memory growth; blocking the producer pushes the problem back to where it can be handled.
+
+**Scaling it.** At high rates the mutex itself becomes the bottleneck, and the answers are: **batch**—pop everything available in one lock acquisition rather than item by item ([CPP-074](#question-cpp-074)); shard into per-consumer queues with work stealing; or move to a lock-free ring buffer (SPSC is genuinely simple and needs only acquire/release on two indices; MPMC is not) ([CPP-183](#question-cpp-183)). Pad head and tail apart to avoid false sharing ([CPP-068](#question-cpp-068)).
+
+**For an Excel feed** the consumer side is the constrained one: the Excel thread must be the only one touching the object model, so the queue drains there and coalesces before writing (see the COM and Excel bank).
 
 [↑ Back to question index](#question-index)
 
@@ -3015,6 +3800,26 @@ measure again
 
 Always verify that the optimization changed the actual bottleneck.
 
+**Define the target first.** "Make it faster" is not actionable; "P99 update-to-screen latency under 50 ms at 20 000 ticks/second" is. The metric and the percentile both matter, because optimising the mean can make the tail worse ([CPP-073](#question-cpp-073)).
+
+**Then find out what kind of problem it is**, because the tools differ:
+
+| Symptom | Likely cause | Tool |
+|---|---|---|
+| one core pinned at 100% | CPU-bound hot path | sampling profiler: `perf`, VTune, WPA |
+| all cores busy, no throughput gain | lock contention or false sharing | `perf c2c`, VTune Threading, lock profiler |
+| low CPU, high wall time | I/O, syscalls, or waiting | strace/ETW, wait analysis |
+| memory grows, then stalls | allocation churn or fragmentation | heaptrack, VTune Memory, `massif` |
+| high IPC but slow | cache misses, branch misprediction | `perf stat` counters |
+
+**Sampling beats instrumentation** for finding the hot path: instrumentation distorts small functions and can hide the very inlining you depend on. A flame graph from `perf record` answers "where is the time" in one picture.
+
+**Change one thing at a time and re-measure**, on a machine that is quiet, with the workload that matters, across enough runs to see the variance. Report a distribution, not a single number. Keep the baseline so the claim is falsifiable.
+
+**Algorithmic before micro.** An O(n²) loop over a workbook range is not fixed by tighter inner-loop code; reducing boundary crossings or changing the data structure is where the order-of-magnitude lives ([CPP-044](#question-cpp-044), and reducing COM crossings in the COM and Excel bank).
+
+**The honest closing point for an interview** is the one candidates skip: check that the fix is worth its cost. An optimisation that adds a cache, a pool or a lock-free structure adds a class of bug; if the profile says it buys 3%, it is not worth it.
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -3041,6 +3846,19 @@ Optimizations can improve one while hurting the other.
 
 Batching often improves throughput but may increase latency.
 
+**They are not opposites, but they trade against each other.** A simple relation, Little's Law, connects them: `concurrency = throughput × latency`. So a system at fixed concurrency that doubles throughput has halved per-item latency only if nothing queues; in practice, pushing throughput toward saturation makes queues grow and latency rises sharply—the classic hockey-stick curve.
+
+**Where the trade-off shows up concretely:**
+
+- **Batching** amortises fixed cost over many items: higher throughput, and the first item in a batch waits for the batch to fill ([CPP-074](#question-cpp-074)).
+- **Buffering / larger queues** absorb bursts and raise throughput, at the cost of queueing delay—bufferbloat is this mistake at network scale.
+- **Threading** raises throughput but adds synchronization and context-switch cost to each individual operation.
+- **Compression or caching** may cut I/O throughput requirements while adding per-request latency.
+
+**Which one you optimise is a product question, not a technical one.** A batch ETL job cares only about throughput. A trading UI cares about the tail. A market-data add-in in Excel is interesting precisely because it is both: the feed side is throughput-bound at 20 000 updates a second, and the display side is latency-bound but only needs to be correct at human refresh rates—which is exactly why coalescing and throttling work there ([CPP-075](#question-cpp-075), [CPP-076](#question-cpp-076)).
+
+**State the number you are optimising.** "Latency" without a percentile is ambiguous, and mean latency hides the behaviour users actually notice ([CPP-073](#question-cpp-073)).
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -3066,6 +3884,23 @@ Percentiles describe latency distribution.
 - P99 — 99% are faster than this
 
 Tail latency is often more important than average latency in real-time systems.
+
+**Why the mean is misleading.** Latency distributions are right-skewed: a few very slow operations pull the mean up without describing anything a user experiences. Worse, averaging away the tail hides the failures—if P99 is 2 seconds, one request in a hundred is unacceptable, and a user making a hundred interactions hits it.
+
+**Tail amplification** is the point that makes this concrete. If a single operation fans out to N independent sub-operations and must wait for all of them, the chance of hitting the tail is `1 - (1-p)^N`. With a per-call P99, twenty calls means about **18%** of operations exceed that "1%" bound. That is why the tail is the metric in any system that composes calls—and why reducing the number of crossings helps more than speeding each one up.
+
+**Where the tail comes from**, which is usually the follow-up question:
+
+- allocation and GC-like pauses—in C++, a `vector` reallocation or a page fault ([CPP-043](#question-cpp-043));
+- rehashing in a hash container ([CPP-047](#question-cpp-047));
+- lock contention and convoying;
+- an OS scheduling quantum, a context switch, or another process on the machine;
+- a cold cache or TLB miss after a period of idleness;
+- in Excel specifically, a full recalculation triggered by a write.
+
+**Measuring it properly**: record a histogram, not a running average—HdrHistogram or `t-digest`, because percentiles cannot be averaged across intervals. And beware **coordinated omission**: a load generator that waits for a response before sending the next request stops measuring exactly when the system is slowest, understating the tail by orders of magnitude. Send at a fixed rate and measure against intended send time.
+
+**P99.9 and max matter too** when the operation is user-visible or has a deadline. For a real-time feed, the honest statement of a requirement is a percentile and a bound: "P99 under 50 ms, no update older than 250 ms".
 
 [↑ Back to question index](#question-index)
 
@@ -3097,6 +3932,23 @@ Benefits:
 
 Tradeoff: increased delay before the batch is processed.
 
+**It works whenever cost has a large fixed component.** If one operation costs `f + v·n` where `f` is fixed overhead and `n` is items, then processing items one at a time costs `n·(f + v)` and batching costs `f + n·v`. The saving is `(n-1)·f`—so the larger `f` is relative to `v`, the bigger the win. That is why batching is transformative for COM crossings and syscalls (huge `f`) and marginal for arithmetic (tiny `f`).
+
+**Bounding the added latency is the design decision.** Two triggers, whichever fires first:
+
+```text
+flush when:  batch size >= N   (throughput bound)
+         or  age of oldest item >= T   (latency bound)
+```
+
+Without the timer, a quiet period leaves the first item sitting indefinitely—the bug that turns a batching optimisation into a user-visible stall. `T` comes from the latency requirement (a UI refresh at 100–250 ms), `N` from memory and from the point where the per-item cost stops falling.
+
+**Batching composes with coalescing** and the two are often confused: batching sends *n* updates in one operation; coalescing reduces *n* by discarding superseded updates for the same key ([CPP-076](#question-cpp-076)). In a market-data feed you do both—coalesce into a dirty map, then flush the map as one batch.
+
+**Where it costs you:** memory proportional to batch size; a partial failure now affects a whole batch, so error handling must decide between all-or-nothing and per-item results; and debugging is harder because the correlation between an input and its effect is deferred.
+
+**The Excel case is the extreme one**: a per-cell write is dominated by fixed cost, so one `Range` assignment of a 2-D array replaces a million crossings with one (see the COM and Excel bank). That is three orders of magnitude, not a percentage.
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -3125,6 +3977,21 @@ UI refresh: 10/sec
 ```
 
 The system may process incoming data continuously but refresh the UI only every 100 ms.
+
+**The distinction to draw is between rate-limiting the *work* and rate-limiting the *output*.** In a feed, you must consume every tick—that is correctness—but you need not *render* every tick, because the display cannot show more than the refresh rate and the human eye cannot use it. Throttling the output side costs nothing real and removes most of the load.
+
+**Two common shapes, and they behave differently:**
+
+- **Throttle**: run at most once per interval — emits *during* a burst, at a steady rate. Right for a live price display.
+- **Debounce**: run only after quiet for T — emits *after* the burst ends. Right for "recalculate when the user stops typing", wrong for a feed, because a continuous stream never goes quiet and nothing is ever emitted.
+
+Mixing them up is the classic bug: a debounced market-data view shows nothing while the market is busy.
+
+**Where the limit comes from.** Excel's RTD mechanism throttles for you—`Application.RTD.ThrottleInterval`, in milliseconds—so a well-behaved RTD server pushes updates and lets Excel pull at its own tempo (see the COM and Excel bank). If you are pushing to the object model yourself, a 100–250 ms timer on the Excel thread is the equivalent, and it must run on that thread.
+
+**Related but distinct** are rate limiters for fairness and protection—token bucket (allows a burst up to the bucket size, then a steady rate) and leaky bucket (strictly smooths output). Those bound *resource use*; throttling a UI bounds *wasted work*.
+
+**Combine it with coalescing** ([CPP-076](#question-cpp-076)): throttling decides *when* to flush, coalescing decides *what* is in the flush. Either alone is half the solution—throttling without coalescing means you either render stale data or still carry the full backlog.
 
 [↑ Back to question index](#question-index)
 
@@ -3156,6 +4023,27 @@ AAPL: 102
 
 Before the next UI refresh, only `102` may matter.
 
+**The data structure is a map keyed by the logical item**, not a queue:
+
+```cpp
+std::unordered_map<SymbolId, Quote> dirty_;   // last value wins
+void on_tick(SymbolId s, const Quote& q) {
+    std::lock_guard lk(m_);
+    dirty_[s] = q;                            // overwrite in place - O(1), no growth
+}
+// on the UI/Excel thread, every 100 ms: swap out `dirty_` and write it as one block
+```
+
+That single line—overwrite rather than append—is what bounds memory by the number of *symbols* rather than the number of *ticks*. A queue under a 20 000/sec feed with a 10/sec consumer grows without limit; the dirty map cannot exceed the universe size, whatever the burst.
+
+**It is lossy by design, and that must be a deliberate decision.** Coalescing is correct when the consumer needs *current state* (a price display, a position, a progress bar) and wrong when it needs *every event* (a trade log, an audit trail, anything that must be replayed or summed). Some fields are coalescable and others are not in the same message—last price coalesces, cumulative volume must be taken from the newest tick rather than summed, and individual trades may need to go to a separate non-lossy path.
+
+**Swap, don't drain.** Flushing by swapping the map with an empty one under the lock keeps the critical section O(1) and lets the write happen outside the lock ([CPP-054](#question-cpp-054)).
+
+**It pairs with throttling and batching**: throttling sets the flush interval ([CPP-075](#question-cpp-075)), coalescing collapses the content, batching writes the result in one operation ([CPP-074](#question-cpp-074)). Together they turn a 20 000/sec feed into ten bounded writes per second—which is exactly the architecture an Excel real-time add-in needs, because the object model is the scarce resource (see the COM and Excel bank).
+
+**It is also a form of backpressure** ([CPP-077](#question-cpp-077))—one that never blocks the producer, at the cost of dropping intermediate states.
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -3184,6 +4072,24 @@ Techniques include:
 - flow control
 - slowing producer
 - batch processing
+
+**Without it, the system fails in the worst possible way.** An unbounded queue turns "the consumer is 10% too slow" into unbounded memory growth, increasing latency, swapping, and eventually a bad_alloc or an OOM kill—hours after the real problem started, and with no signal until then ([CPP-085](#question-cpp-085)). Backpressure converts a resource failure into a visible, bounded behaviour.
+
+**There are only three things you can do when the queue is full**, and choosing among them is a product decision:
+
+| | Behaviour | Right when |
+|---|---|---|
+| **Block** the producer | throughput matches the consumer; the pressure propagates upstream | the producer can slow down — a file reader, an internal pipeline |
+| **Drop** | bounded memory and latency; data is lost | the producer cannot be slowed — a UDP market-data feed, telemetry |
+| **Coalesce** | bounded memory, no *state* lost, intermediate steps lost | the consumer needs current state, not every event ([CPP-076](#question-cpp-076)) |
+
+For a live feed the answer is usually coalesce, then drop the oldest if even that is not enough; blocking is wrong there because you cannot slow the exchange down, and blocking your reader thread just moves the queue into the OS socket buffer.
+
+**Dropping must be explicit and counted.** A dropped-message counter surfaced in telemetry is what distinguishes designed loss from a silent bug, and it is the first thing to look at when users report stale data.
+
+**It has to propagate end to end.** A bounded queue in front of a component with an unbounded queue behind it only moves the accumulation. That is what "flow control" means—TCP's window, HTTP/2's flow control and reactive streams' request(n) are all this same idea made explicit across a boundary.
+
+**Blocking producers can deadlock** if the producer and consumer ever depend on each other, so a bounded blocking queue needs the same lock-ordering discipline as anything else ([CPP-057](#question-cpp-057)), and its waits must include a shutdown predicate ([CPP-069](#question-cpp-069)).
 
 [↑ Back to question index](#question-index)
 
@@ -3244,6 +4150,26 @@ Possible techniques:
 
 Always profile first.
 
+**Know what you are paying for** ([CPP-078](#question-cpp-078)): a general-purpose allocation is a few tens of nanoseconds uncontended, involves bookkeeping and potentially a lock, and—more importantly—costs a likely cache miss when you touch the new memory. So the wins come from *removing* allocations, not from making them faster.
+
+**In order of leverage:**
+
+*Reserve.* `v.reserve(n)` before a known-size fill removes every intermediate reallocation and the moves that go with them ([CPP-043](#question-cpp-043)). The same for `unordered_map::reserve` ([CPP-047](#question-cpp-047)). Cheapest change in the list.
+
+*Reuse the buffer.* A `std::string` or `std::vector` declared **outside** the loop and `clear()`ed inside keeps its capacity, so the loop allocates once instead of n times. `clear()` does not release capacity, which is exactly what you want here.
+
+*Avoid temporaries at API boundaries.* `void f(std::string_view)` instead of `const std::string&` removes an allocation per call from every `const char*` caller ([CPP-050](#question-cpp-050)). `std::span` does the same for sequences ([CPP-051](#question-cpp-051)).
+
+*Move, and mark moves `noexcept`.* A move constructor that is not `noexcept` makes `vector` **copy** on reallocation ([CPP-039](#question-cpp-039)) — a silent, large regression.
+
+*Rely on SSO, and know its limit.* Short strings avoid the heap entirely — around 15 characters on libstdc++ and MSVC, 22 on libc++ ([CPP-042](#question-cpp-042)). Concatenating in a loop defeats it; `reserve` on the target restores it.
+
+*Batch the lifetime.* An arena or monotonic buffer for objects that all die together turns n allocations and n frees into one of each; `std::pmr::monotonic_buffer_resource` with `std::pmr::vector` gives this from the standard library, optionally over a stack array. A fixed-size **pool** is the right tool when objects are uniform and churn constantly.
+
+*Compute in place.* `emplace_back` when you have constructor arguments ([CPP-049](#question-cpp-049)); algorithms that write into an existing buffer rather than returning a new container.
+
+**Then measure again**: heaptrack, VTune's memory analysis, or simply counting allocations with a global `operator new` hook in a debug build. Allocation counts are a stable, low-noise metric — much easier to reason about than wall time, and often the fastest way to see whether a change did anything ([CPP-071](#question-cpp-071)).
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -3274,7 +4200,25 @@ Dynamic libraries enable:
 - plugin architecture
 - independent deployment
 
-but introduce ABI/versioning concerns.
+but introduce ABI/versioning concerns ([CPP-095](#question-cpp-095)).
+
+| | Static (`.lib` / `.a`) | Dynamic (`.dll` / `.so`) |
+|---|---|---|
+| Linked | at build time, into the binary | at load time or on demand |
+| Deployment | one file, no version skew | separate files that must match |
+| Memory | a copy per process | shared text across processes |
+| Update | relink and reship everything | replace one file |
+| Optimization | LTO/inlining across the boundary | limited; calls go through the PLT/import table |
+| Symbol resolution | at link time — missing symbols are build errors | at load or call time — **runtime** failures |
+| Plugins | impossible | the whole point |
+
+**Static libraries are not archives of code that all gets included.** The linker pulls in only the object files that resolve a referenced symbol, which is why a symbol defined in a `.lib` object nobody references is silently absent—and why static initialisers in a static library may never run. That is the classic "my plugin registers itself in a static initialiser and the registry is empty" bug; `--whole-archive` / `/WHOLEARCHIVE` is the blunt fix.
+
+**Dynamic loading has two forms:** load-time linking through an import library, and runtime loading via `LoadLibrary`/`GetProcAddress` or `dlopen`/`dlsym` ([CPP-081](#question-cpp-081)). The second is what makes plugins possible and what a COM in-process server uses.
+
+**The version problems are real and specific:** two modules each statically linking a different version of the same library end up with two copies of its globals; two modules dynamically linking incompatible versions of the same DLL collide. Allocating in one module and freeing in another is undefined if they use different heaps—which is why a DLL boundary should expose a `free` of its own. And on Windows the CRT linkage (`/MT` vs `/MD`) must match across the boundary or you get exactly that heap mismatch ([CPP-093](#question-cpp-093)).
+
+**For an Excel COM Add-In this is not a choice:** the add-in is an in-process DLL loaded into EXCEL.EXE, its bitness must match the host, and its dependencies must resolve at load time—a missing runtime is one of the standard reasons an add-in fails to load with no useful error (see the COM and Excel bank).
 
 [↑ Back to question index](#question-index)
 
@@ -3344,6 +4288,32 @@ Avoid:
 
 Keep `DllMain` minimal.
 
+**The loader lock is the whole explanation.** Windows holds a process-wide lock while running `DllMain`, so anything that needs the loader—or that waits for a thread which needs the loader—deadlocks. And the same lock is held during `LoadLibrary`, so the deadlock can be formed by two unrelated threads.
+
+**The canonical deadlock**, worth being able to draw:
+
+```text
+Thread A: LoadLibrary(X)  -> takes loader lock -> X's DllMain -> waits on event E
+Thread B: signals E ... but B is inside a DllMain of its own, or needs the loader lock
+```
+
+Neither can proceed. In particular, `WaitForSingleObject` on a thread handle inside `DllMain` is a guaranteed hang, because `DLL_THREAD_DETACH` for that thread also needs the loader lock.
+
+**The forbidden list, and why each item is on it:**
+
+- `LoadLibrary`/`FreeLibrary` — reentrant loader lock;
+- `CoInitializeEx` and any COM call — COM loads DLLs and may pump messages;
+- creating a thread *and waiting for it* — the new thread's `DLL_THREAD_ATTACH` needs the lock;
+- any synchronization that can block on another thread;
+- registry, networking, or anything that may load a DLL indirectly (including the CRT's lazy initialisation of some facilities);
+- calling into another DLL whose `DllMain` has not run yet — **initialisation order across DLLs is not guaranteed**.
+
+**What is safe:** `DisableThreadLibraryCalls` (to stop `DLL_THREAD_ATTACH`/`DETACH` noise), storing the module handle, and trivial variable initialisation. Everything else belongs in an explicit init function that the host calls later.
+
+**For a COM Add-In that is exactly the design**: `DllMain` does nothing, and real initialisation happens in `IDTExtensibility2::OnConnection`, which Excel calls on its own thread with COM already up (see the COM and Excel bank). Shutdown symmetrically belongs in `OnBeginShutdown`/`OnDisconnection`, not in `DLL_PROCESS_DETACH`—which may not even run, and runs with the process already tearing down.
+
+**C++ static initialisers in a DLL run from `DllMain`** under the same lock, so a global object whose constructor takes a lock, starts a thread or touches COM has the same problem without any `DllMain` of your own being visible. That is a strong argument for lazy, function-local statics at a DLL boundary.
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -3375,6 +4345,27 @@ Typical workflow:
 9. verify heap corruption / race possibilities
 10. reproduce under sanitizers or diagnostic builds where possible
 
+**Getting the dump is step zero, and it has to be arranged in advance.** Windows Error Reporting can be configured to write full dumps to a directory (`HKLM\...\Windows Error Reporting\LocalDumps`), or the add-in can install `SetUnhandledExceptionFilter` and call `MiniDumpWriteDump` itself—with `MiniDumpWithFullMemory` if you want heap contents. Without symbols the dump is nearly useless, so **archive the PDBs for every shipped build** and keep a symbol server; matching is by GUID and age, not by filename.
+
+**Reading it in WinDbg**, with the commands that actually get used:
+
+```text
+!analyze -v        ; first-pass triage: exception code, faulting module, likely cause
+~*k                ; all thread stacks - essential, the crashing thread often is not the cause
+!locks             ; critical section ownership
+lm                 ; loaded modules and whether symbols matched
+.ecxr              ; switch to the exception context before walking the stack
+!heap -p -a <addr> ; who allocated this block, if page heap is on
+```
+
+**Interpret the exception code rather than just reporting it.** `0xC0000005` at a small address is a null dereference; at `0xDDDDDDDD`/`0xFEEEFEEE` it is use-after-free with debug heap fill patterns; `0xC0000374` is heap corruption, which means the damage happened *earlier* and the stack is innocent. Corruption is the case where the dump tells you the least—that is when you turn on **Application Verifier / page heap** (`gflags /p /enable excel.exe /full`), which makes the crash happen at the moment of the bad write instead of later.
+
+**Then reproduce under instrumentation**: ASan is available in MSVC now and works on an add-in DLL; UBSan for the undefined-behaviour class; TSan on Linux if any part of the code can be built and exercised there ([CPP-016](#question-cpp-016)).
+
+**The plugin-specific hypotheses to check early**, because they are the usual causes: an exception escaping into the host's call stack ([CPP-089](#question-cpp-089)); an object-model call from the wrong thread (see the COM and Excel bank); a reference released twice, or used after release; a callback firing after shutdown began; and a CRT or ABI mismatch between the add-in and its dependencies ([CPP-095](#question-cpp-095)).
+
+**Say the non-technical part too:** a plugin crash lands on the *host's* reputation, so the shipped build needs a catch-all at every boundary, structured logging with a session id, and a version banner—so that the next report arrives with enough context to skip steps 1 to 8.
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -3402,6 +4393,31 @@ Look for:
 - COM apartment waits
 - UI thread blocked while another thread waits for UI
 - inconsistent lock ordering
+
+**A hang dump is the right artifact**, and the key is that all threads are already frozen in the deadlock—you do not need to catch it live. Attach non-invasively or use `procdump -ma -h` (which triggers on window hang) / Task Manager's "Create dump file".
+
+**What to do with it:**
+
+```text
+~*k                ; every thread's stack - look for two or more blocked in a lock/wait
+!locks             ; critical sections: owner thread and waiters -> read the cycle directly
+!cs -l             ; locked critical sections only
+!uniqstack         ; collapse identical stacks in a large thread pool
+```
+
+Two threads each sitting in `RtlEnterCriticalSection`, each owning what the other wants, is the textbook picture. On Linux the equivalent is `gdb -p`, `thread apply all bt`, and looking for `__lll_lock_wait`.
+
+**The shapes that are not two mutexes**, and which you should scan for by name:
+
+- the **UI/STA thread blocked in a wait** while a worker waits for a marshaled call into that apartment—COM's `CoWaitForMultipleHandles` frames and `OleMainThreadWndClass` in the stack are the tell (see the COM and Excel bank);
+- a lock held across a callback into unknown code, so the ordering is not yours to control ([CPP-057](#question-cpp-057));
+- a condition variable whose predicate never becomes true because the notifier exited and no terminal state is in the predicate ([CPP-059](#question-cpp-059)) — this looks like a deadlock but no lock is held;
+- self-deadlock on a non-recursive mutex;
+- a thread pool exhausted by tasks that wait on other tasks in the same pool.
+
+**Prevention beats diagnosis**, and this is the part worth saying: ThreadSanitizer reports lock-order inversions *even on runs that do not deadlock*, so it turns a rare production hang into a deterministic CI failure. Clang's thread-safety annotations enforce an order at compile time. And `try_lock` with a timeout plus a log line converts a silent hang into a diagnosable error ([CPP-057](#question-cpp-057)).
+
+**Instrument for it in shipped builds**: a watchdog that dumps all stacks when a heartbeat stops is often the only way to get the artifact from a user's machine.
 
 [↑ Back to question index](#question-index)
 
@@ -3441,6 +4457,29 @@ Use:
 - periodic dumps
 - structured logs
 - stress testing
+
+**The framing that gets you to the answer: what accumulates?** A bug that takes hours is almost always a monotonic quantity crossing a threshold, or a rare event whose probability per operation is tiny. So the first move is not debugging—it is **measuring the trend**.
+
+**Instrument and graph over time:**
+
+| Metric | Points at |
+|---|---|
+| private bytes / RSS | leak or fragmentation |
+| handle count, GDI/user objects | handle leak — a hard 10 000 limit per process on Windows |
+| thread count | threads created and never joined |
+| queue depth | consumer falling behind ([CPP-077](#question-cpp-077)) |
+| COM reference counts / object counts | a reference never released — the usual cause of a lingering EXCEL.EXE |
+| allocation count vs free count | churn and imbalance |
+
+**Leak versus fragmentation is a real distinction**: a flat allocation count with growing RSS is fragmentation, not a leak, and the fix is different—arena or pool allocation for the churning size class ([CPP-079](#question-cpp-079)).
+
+**Then take the artifacts.** Two dumps an hour apart, diffed, show what grew: `!heap -s` for heap summaries, `!heap -flt s <size>` to list blocks of the suspicious size, UMDH or Application Verifier's leak tracking for allocation stacks. On Linux, heaptrack or `valgrind --leak-check` on a scaled-down run.
+
+**Compress time rather than waiting.** Accelerate the clock, raise the event rate, shrink the buffers and thresholds, and run the scenario in a loop overnight. A bug that needs eight hours at production rate may need eight minutes at fifty times the rate—and if it does not reproduce under acceleration, that itself is information: the trigger is wall-clock or calendar-based (a timer wraparound, a daily rollover, a certificate, a `time_t` boundary).
+
+**Non-accumulating candidates** that also look like this: an integer or counter overflow at a specific count; a rare race whose window is nanoseconds but which fires once every few million operations ([CPP-053](#question-cpp-053)); a timer or sequence number wrapping; and a scheduled event—a midnight rollover, a DST change—that happens to coincide with "after several hours".
+
+**The practical prerequisite** is that the shipped build can tell you any of this: counters exposed for sampling, structured logs with timestamps and a session id, and a way to request a dump from a user's machine without a developer present. Adding that instrumentation is usually the first real task, not a distraction from the bug.
 
 [↑ Back to question index](#question-index)
 
@@ -3685,7 +4724,36 @@ A classic assignment technique:
 2. swap with current object
 3. temporary destroys old state
 
-It can provide strong exception safety, though move semantics and modern designs often reduce the need for manual use.
+```cpp
+class Buffer {
+    char* data_ = nullptr;
+    size_t n_ = 0;
+public:
+    friend void swap(Buffer& a, Buffer& b) noexcept {   // never throws - that is the point
+        using std::swap;
+        swap(a.data_, b.data_);
+        swap(a.n_,    b.n_);
+    }
+    Buffer& operator=(Buffer rhs) noexcept {   // by VALUE: the copy happens in the parameter
+        swap(*this, rhs);
+        return *this;
+    }                                          // rhs destructs, taking the old state with it
+};
+```
+
+**Three properties fall out of those five lines:**
+
+*Strong exception safety.* Any allocation happens while constructing the parameter, **before** `*this` is touched. If it throws, the object is untouched ([CPP-091](#question-cpp-091)). Contrast the naive form—`delete data_; data_ = new char[rhs.n_];`—which destroys the old state first and leaves a wrecked object if the allocation throws.
+
+*Self-assignment works for free.* No `if (this != &rhs)` guard is needed, because the copy was already made.
+
+*One operator covers copy and move assignment.* Pass an lvalue and the parameter is copy-constructed; pass an rvalue and it is move-constructed. Which is also the catch: it is then a *unified* assignment operator, and you cannot declare a separate `operator=(Buffer&&)` alongside it—the call would be ambiguous.
+
+**The cost, and why it is not the automatic answer any more.** Copy-and-swap always allocates fresh storage, so assigning into an object that already has enough capacity cannot reuse it—`std::string`'s and `std::vector`'s assignment deliberately do not use this idiom for exactly that reason. And separate copy/move assignment operators, which is what the Rule of Five gives you, are usually faster.
+
+**So when to reach for it:** a class that owns a resource by hand, where correctness matters more than the last allocation, and where the strong guarantee is worth stating. If the class can instead be built from members that manage themselves—Rule of Zero ([CPP-001](#question-cpp-001))—you need none of this.
+
+**The `swap` must be `noexcept`** or the guarantee evaporates, and it should be a hidden friend found by ADL rather than a specialization of `std::swap` ([CPP-020](#question-cpp-020)).
 
 [↑ Back to question index](#question-index)
 
@@ -3709,7 +4777,32 @@ ODR = One Definition Rule.
 
 A program generally must have exactly one definition of entities requiring one, with special rules for inline functions/templates and equivalent definitions across translation units.
 
-Violations can cause linker errors or undefined behavior.
+**Two different rules wear this name**, and separating them is what a good answer does.
+
+*Rule 1 — one definition per translation unit*, for any entity used. Straightforward; violating it is a compile error.
+
+*Rule 2 — one definition per **program*** for non-inline functions and variables. Violating it is a link error: "multiple definition of". This is why a function body in a header needs `inline` and a variable needs `inline` (C++17) or `extern` plus one definition.
+
+*Rule 3 — where an entity may legally appear in several translation units* (inline functions, templates, class definitions, `constexpr` variables), **every definition must be token-for-token identical and mean the same thing**. This is the dangerous one, because violating it is **ill-formed, no diagnostic required**: the linker picks one definition arbitrarily and discards the rest, and the program silently does something else ([CPP-017](#question-cpp-017)).
+
+**How Rule 3 gets broken in practice:**
+
+```cpp
+// a.cpp
+#define NDEBUG
+#include "widget.h"     // struct Widget { int a; };           - sizeof 4
+
+// b.cpp
+#include "widget.h"     // struct Widget { int a; int debug_; }; - sizeof 8
+```
+
+Different macros, different compiler flags (`/MT` vs `/MD`, `-D_GLIBCXX_DEBUG` on one library only, different `-std`), or different packing pragmas across translation units all produce two incompatible layouts of one class. One object file allocates 4 bytes and the other writes 8. The crash appears somewhere unrelated, much later.
+
+**That is also the single most common cause of "it links but crashes" across a DLL boundary**, which makes it the practical companion to ABI ([CPP-095](#question-cpp-095)).
+
+**How to defend:** identical compiler flags and preprocessor definitions for every translation unit that shares a header; no macro-conditional class layout in public headers; `-Wodr` with LTO on GCC, and `-flto` generally, because LTO can actually see the mismatch; `-fvisibility=hidden` plus explicit exports to keep symbol collisions from silently merging different entities; and in a large codebase, one build system that guarantees consistency rather than per-target flag lists.
+
+**`inline` does not mean "inline me"**—it means "this definition may appear in multiple translation units, merge them" ([CPP-094](#question-cpp-094)). That linkage meaning is precisely an ODR mechanism.
 
 [↑ Back to question index](#question-index)
 
@@ -3769,6 +4862,29 @@ Application Binary Interface defines binary-level compatibility rules such as:
 
 ABI stability matters heavily across DLL/plugin boundaries.
 
+**API vs ABI is the distinction to lead with**: API compatibility means the code still *compiles*; ABI compatibility means an already-compiled binary still *runs* correctly against the new build. You can break ABI without breaking API, and that is the failure mode that produces no error at all—just corruption.
+
+**Changes that silently break ABI while the header still compiles:**
+
+- adding a data member, reordering members, changing a member's type — every offset moves;
+- adding the **first** virtual function (the object grows a vptr) or adding a virtual function anywhere but the end (vtable slots shift);
+- changing a default argument compiled into the caller;
+- changing an `inline` function's body that callers have already inlined;
+- changing anything about a type passed **by value** across the boundary;
+- switching compiler, standard library, or even `-D_GLIBCXX_USE_CXX11_ABI` — the `std::string` ABI change of GCC 5 is the standard war story.
+
+**Which is why the standard library is not ABI-stable across toolchains.** Passing `std::string`, `std::vector` or an exception across a DLL boundary requires both sides to have been built with the same compiler, the same standard-library version and the same flags. In practice that constraint is unrealistic, so a plugin boundary is designed to avoid it.
+
+**The techniques for a stable boundary**, which is what the interviewer is really after:
+
+- a **C ABI** at the seam: `extern "C"` functions, opaque handles, POD structs with explicit sizes, an integer error code instead of exceptions ([CPP-096](#question-cpp-096));
+- or a **pure-virtual interface** with a factory function, never adding to an existing interface—version it by adding `IFoo2`, which is exactly COM's model;
+- **pimpl** to keep private members out of the header so the object's size never changes ([CPP-040](#question-cpp-040));
+- allocate and free on the same side of the boundary, since the two sides may use different heaps;
+- never let an exception cross ([CPP-089](#question-cpp-089)).
+
+**For an Excel COM Add-In this is not academic**: the add-in DLL is loaded into Excel's process, and COM exists precisely because it defines a language-neutral, version-tolerant ABI over vtables and GUIDs (see the COM and Excel bank).
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -3792,6 +4908,34 @@ The compiler encodes C++ function/type information into linker symbol names.
 This supports overloading.
 
 `extern "C"` disables C++ name mangling for compatible declarations and uses C linkage rules.
+
+**Why it must exist:** C++ allows `void f(int)` and `void f(double)` in one program, so the linker needs distinct symbols. The mangled name therefore encodes the function's namespace, class, parameter types, `const`/ref qualifiers and template arguments—everything the signature contains except the return type (which is why you cannot overload on return type alone).
+
+```text
+void mylib::process(int, const char*)
+  → GCC/Clang (Itanium ABI): _ZN5mylib7processEiPKc
+  → MSVC:                     ?process@mylib@@YAXHPEBD@Z
+```
+
+The schemes are completely different and **not standardised**, which is one of the reasons a GCC-built object cannot link against an MSVC-built one ([CPP-095](#question-cpp-095)).
+
+**Where this becomes a practical skill:** decoding a linker error. `undefined reference to '_ZN5mylib7processEiPKc'` means the *declaration* you compiled against does not match any *definition* that was linked—a missing library, or the definition built with a different signature, namespace, or `const`. `c++filt` on Linux and `undname` on Windows turn the symbol back into a signature, and `nm -C` / `dumpbin /SYMBOLS` list what a binary actually exports.
+
+**`extern "C"` also implies no overloading**, since the symbol is just the bare name—so only one function of that name may have C linkage. The idiomatic header guard is:
+
+```cpp
+#ifdef __cplusplus
+extern "C" {
+#endif
+    int plugin_init(void* ctx);
+#ifdef __cplusplus
+}
+#endif
+```
+
+**What it does and does not change:** it changes linkage and name only. The function body is still C++—it can throw, use RAII, and call anything—so an `extern "C"` entry point must still catch everything before returning, because an exception crossing into C code is undefined ([CPP-089](#question-cpp-089)).
+
+**Where you meet it:** exporting a plugin or DLL entry point, calling into a C library, and `DllGetClassObject`/`DllRegisterServer` in a COM server—all of which must be `extern "C"` and are usually listed in a `.def` file as well.
 
 [↑ Back to question index](#question-index)
 
