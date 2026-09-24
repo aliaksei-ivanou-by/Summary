@@ -86,6 +86,18 @@ It defines:
 
 It allows components compiled with different languages/tools to interact through stable ABI-level interfaces.
 
+**The core idea in one sentence:** a COM interface is a pointer to a vtable with a fixed calling convention, so any language that can call through a function-pointer table can implement or consume it. That is why the same Excel object model is reachable from C++, C#, VBA and JavaScript.
+
+**What COM adds on top of a C++ abstract class**, and the reason it is not just "an interface with `virtual`":
+
+- **Identity by GUID, not by name.** Interfaces are named by IID and classes by CLSID, so there is no dependence on C++ name mangling, header layout or compiler version ([COM-005](#question-com-005)).
+- **Versioning by addition.** An interface is immutable once shipped; a new version is a new IID, and `QueryInterface` is how a client discovers which one it got ([COM-003](#question-com-003)). This is what lets an add-in built years ago keep working.
+- **Reference counting as the ownership contract**, because there is no shared runtime or garbage collector across language boundaries ([COM-004](#question-com-004)).
+- **`HRESULT` instead of exceptions**, because exceptions do not cross an ABI boundary ([COM-009](#question-com-009)).
+- **Location transparency.** The same interface works in-process, cross-apartment or cross-process, with COM inserting proxies where needed ([COM-020](#question-com-020)).
+
+**The costs that come with it** are the reference-counting discipline, the registry/activation machinery, apartment rules that constrain threading, and the `VARIANT`/`BSTR` type system for anything Automation-compatible. For an Excel add-in these are not optional background details—they are the failure modes you will actually debug.
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -143,6 +155,21 @@ It asks a COM object whether it supports a specific interface identified by IID.
 If supported, it returns an interface pointer and increments its reference count.
 
 It enables interface discovery without depending on concrete object types.
+
+```cpp
+IFoo* foo = nullptr;
+HRESULT hr = obj->QueryInterface(IID_IFoo, reinterpret_cast<void**>(&foo));
+if (SUCCEEDED(hr)) { /* foo is AddRef'd - you must Release it */ }
+else if (hr == E_NOINTERFACE) { /* not supported - a normal answer, not an error */ }
+```
+
+**`E_NOINTERFACE` is an expected result, not a failure.** Code that treats any non-`S_OK` as a fatal error gets this wrong; QI is how you *ask*, so "no" is part of the protocol. On failure the implementation must also set `*ppv` to null.
+
+**The four rules an implementation must satisfy** ([COM-002](#question-com-002)): reflexive, symmetric, transitive, and *stable over time*—an interface that succeeded once must never later fail, and one that failed must never later succeed. That stability is what allows a client to cache the answer.
+
+**Identity:** QI for `IID_IUnknown` must return the same pointer from every interface of the object, and that is the only valid way to test whether two interface pointers name the same object.
+
+**In C++ use `CComQIPtr`** rather than writing the cast by hand—it does the QI, holds the reference, and releases it, which removes the leak that a missing `Release` on an early return would cause.
 
 [↑ Back to question index](#question-index)
 
@@ -218,7 +245,17 @@ Common COM uses:
 - **IID** — identifies an interface
 - **CLSID** — identifies a COM class
 
+Also common: **LIBID** for a type library and **APPID** for the security/activation settings of an out-of-process server.
+
 These identifiers allow binary components to refer to interfaces/classes without relying on C++ names.
+
+**Why 128 bits rather than a registered name:** a GUID can be generated offline with no central authority and still be unique, so two vendors can ship interfaces without coordinating. `guidgen`/`uuidgen`, `CoCreateGuid` or Visual Studio's Create GUID tool produce them; the registry form is `{6B29FC40-CA47-1067-B31D-00DD010662DA}`.
+
+**In code they appear in three shapes** and the difference trips people up: `IID_IFoo` is a `const GUID` object, `__uuidof(IFoo)` is the compiler-attached UUID from `__declspec(uuid(...))` in a header or `#import`ed type library, and `CLSID_Foo` likewise for a class. Comparison is `IsEqualGUID` or `==`, never `memcmp` on a string form.
+
+**Registration is where they matter operationally.** A CLSID has a key under `HKCR\CLSID\{...}` pointing at `InprocServer32` (the DLL path and `ThreadingModel`), plus a `ProgID` such as `Excel.Application` for the human-readable route via `CLSIDFromProgID`. A per-user add-in registers under `HKCU\Software\Classes` instead of `HKLM`, and on 64-bit Windows a 32-bit server lands under `Wow6432Node`—which is the usual reason an add-in "is installed" and Excel still cannot find it ([COM-032](#question-com-032)).
+
+**Never reuse a GUID.** Changing an interface's methods or their order while keeping its IID is a silent ABI break: the client calls the old vtable slot and gets the new function.
 
 [↑ Back to question index](#question-index)
 
@@ -247,6 +284,21 @@ Inputs include:
 - requested IID
 
 COM locates and activates the corresponding server and returns the requested interface.
+
+```cpp
+CComPtr<Excel::_Application> app;
+HRESULT hr = app.CoCreateInstance(__uuidof(Excel::Application), nullptr, CLSCTX_LOCAL_SERVER);
+```
+
+**`CLSCTX` chooses where the object runs** and is not a formality: `CLSCTX_INPROC_SERVER` loads a DLL into your process, `CLSCTX_LOCAL_SERVER` launches or connects to an EXE on the same machine, and `CLSCTX_ALL` lets COM pick. Asking for `INPROC` on an EXE-only class fails with `REGDB_E_CLASSNOTREG`, which is the same error you get when the class simply is not registered—so check bitness and registry hive before assuming the code is wrong.
+
+**What it does internally** is `CoGetClassObject` → `IClassFactory::CreateInstance` → `Release` the factory ([COM-008](#question-com-008)). Creating many objects of one class is cheaper through `CoGetClassObject` directly, because the activation lookup happens once.
+
+**`CoInitializeEx` must have been called on the calling thread first**, or you get `CO_E_NOTINITIALIZED`—and the apartment you chose determines whether you receive a direct pointer or a proxy ([COM-018](#question-com-018)).
+
+**It creates a *new* instance.** To attach to an Excel that is already running you want `GetActiveObject`/`GetObject` against the running-object table instead; `CoCreateInstance` on `Excel.Application` starts a second, invisible instance—which is the classic cause of a stray EXCEL.EXE left behind in Task Manager.
+
+**Related errors worth recognising:** `E_NOINTERFACE` (class exists but does not implement the requested IID), `CLASS_E_NOAGGREGATION` (non-null `pUnkOuter` on a class that does not aggregate), `CO_E_SERVER_EXEC_FAILURE` (the EXE could not be launched, often a permissions or DCOM identity problem).
 
 [↑ Back to question index](#question-index)
 
@@ -289,6 +341,22 @@ Pros:
 Cons:
 
 - marshaling and IPC overhead
+
+**Concretely, the difference is a direct vtable call versus an RPC.** In-process, once you have the pointer and you are in the right apartment, a method call costs about what a C++ virtual call costs. Out-of-process, every call is marshaled, context-switched and, for a local server, routed through LRPC—typically microseconds rather than nanoseconds, which is why chatty interfaces are a design error across that boundary ([COM-020](#question-com-020)).
+
+**Other consequences that follow from the boundary:**
+
+| | In-process (DLL) | Out-of-process (EXE) |
+|---|---|---|
+| Failure isolation | an access violation kills the host | the client survives and sees `RPC_E_DISCONNECTED` |
+| Bitness | **must match the host exactly** | may differ; COM bridges it |
+| Security context | the host's | its own identity, configurable via DCOM/APPID |
+| Deployment | registry + DLL, no service | may need launch/activation permissions |
+| Debugging | attach to the host | attach to the server, or use the surrogate |
+
+**Bitness is the practical one for Office work.** A 32-bit Excel cannot load a 64-bit add-in DLL at all, so an add-in is normally built both ways or the installer picks. A DLL surrogate (`dllhost.exe`, via the `AppID`/`DllSurrogate` registry value) is the escape hatch: it hosts an in-process server out-of-process, which is how you isolate a crash-prone or mismatched component without rewriting it.
+
+**Excel itself is a local server**, which is why an external automation client pays marshaling on every object-model call while a COM Add-In loaded inside Excel does not ([COM-023](#question-com-023))—the single biggest reason an in-process add-in outperforms an external driver on the same work.
 
 [↑ Back to question index](#question-index)
 
@@ -403,6 +471,21 @@ SysFreeString
 ```
 
 It is not just a raw null-terminated `wchar_t*`.
+
+**Layout:** a 4-byte length in *bytes* sits immediately before the character data, and the pointer you hold points at the characters, not at the length. So `SysStringLen(b)` is O(1), the string may contain embedded `\0`, and it is *also* null-terminated at the end—which is why passing a `BSTR` to a `const wchar_t*` parameter usually appears to work and then fails on the first string with an embedded null.
+
+```cpp
+BSTR b = SysAllocString(L"hello");   // allocated by the COM allocator
+SysFreeString(b);                    // must be freed by it too
+```
+
+**Never `new`/`delete`, `free` or `LocalFree` a `BSTR`**, and never build one by casting a `wchar_t*`: the length prefix would not exist and `SysStringLen` would read whatever is in front of your buffer.
+
+**The ownership rules at a call boundary** are the ones that leak in practice: a `[in]` `BSTR` belongs to the caller; an `[out]` or `[out, retval]` `BSTR` becomes the **caller's** responsibility to free; and a `BSTR` inside a `VARIANT` is freed by `VariantClear`, not separately. Every Excel property that returns text—`Range::get_Formula`, `Worksheet::get_Name`—hands you one to free.
+
+**So use a wrapper.** `CComBSTR` (ATL) or `_bstr_t` (`#import`) make it RAII, and `_bstr_t` additionally converts to and from `char*`. Hand-written `SysFreeString` calls on every early-return path are exactly the code that leaks after the first exception.
+
+**A null `BSTR` is legal** and means the empty string by convention, so `SysStringLen(nullptr)` returns 0 and `wcslen` on it crashes—another reason not to treat it as a plain pointer.
 
 [↑ Back to question index](#question-index)
 
@@ -566,6 +649,27 @@ Cons:
 - weaker type checking
 - more overhead
 
+**In C++ the two look completely different at the call site:**
+
+```cpp
+// early: a vtable call, checked at compile time
+CComPtr<Excel::Range> r;
+sheet->get_Range(CComVariant(L"A1:C3"), &r);
+
+// late: name lookup then Invoke, checked at run time
+DISPID id; OLECHAR* n = L"Range";
+disp->GetIDsOfNames(IID_NULL, &n, 1, LOCALE_USER_DEFAULT, &id);
+disp->Invoke(id, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_PROPERTYGET, &params, &out, &ex, &argErr);
+```
+
+Early binding comes from a type library—`#import "excel.exe"` or the MIDL-generated headers—which gives you IntelliSense, compile-time errors for a misspelled member, and a direct call. Late binding needs nothing at build time, so it survives a different Office version whose type library you did not compile against.
+
+**The cost is real but often overstated**: the `GetIDsOfNames` lookup can be cached per DISPID, after which the remaining overhead is `VARIANT` packing and a runtime type check. Against a chatty loop over cells, both forms lose to a single bulk `Value2` transfer anyway ([COM-026](#question-com-026))—the binding style is a second-order effect next to the number of boundary crossings.
+
+**Dual interfaces give you both.** An interface derived from `IDispatch` that also exposes its methods as vtable slots lets a C++ client early-bind while VBA and script hosts still work; most of the Office object model is dual, which is why `Excel::_Application` has a vtable at all ([COM-013](#question-com-013)).
+
+**The practical rule for an add-in:** early-bind the members you use constantly, and keep a late-bound path for anything that exists only in newer Excel versions—asking `GetIDsOfNames` and handling `DISP_E_UNKNOWNNAME` is a cleaner version check than reading the application version number.
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -593,7 +697,28 @@ Common models:
 - STA — Single-Threaded Apartment
 - MTA — Multi-Threaded Apartment
 
-A thread joins an apartment when COM is initialized on that thread.
+A thread joins an apartment when COM is initialized on that thread, and stays in it until `CoUninitialize`.
+
+**An apartment is a synchronization boundary, not a thread.** Its purpose is to let a component declare "I am not thread-safe, protect me" or "I am, don't bother". The object's registered `ThreadingModel` and the caller's apartment together decide where the object is actually created and whether you get a raw pointer or a proxy.
+
+| | STA | MTA |
+|---|---|---|
+| Threads per apartment | exactly one | many |
+| Instances per process | many | at most one |
+| Calls serialized by COM | yes | no |
+| Message pump required | yes | no |
+| Object must be thread-safe | no | yes |
+| `CoInitializeEx` flag | `COINIT_APARTMENTTHREADED` | `COINIT_MULTITHREADED` |
+
+There is also the **neutral apartment (NA)**, entered via `ThreadingModel=Neutral`: calls run on the caller's own thread with no switch, but with no serialization either—useful for thread-safe objects that want to avoid proxy overhead from both sides.
+
+**The rules that follow:**
+
+- An interface pointer is valid only inside the apartment that obtained it; crossing requires marshaling ([COM-019](#question-com-019)).
+- A cross-apartment call is a proxy call with real cost and real reentrancy ([COM-020](#question-com-020), [COM-022](#question-com-022)).
+- `CoInitializeEx` calls must be balanced with `CoUninitialize` on the same thread, and calling it twice with a *different* model on one thread returns `RPC_E_CHANGED_MODE`—a real error to handle, not to assert away, because some host or library may already have initialised the thread.
+
+**For an Excel add-in this is not theoretical.** Excel's main thread is an STA and the object model is bound to it, so your worker threads live in the MTA and every object-model touch from them is marshaled back ([COM-021](#question-com-021)).
 
 [↑ Back to question index](#question-index)
 
@@ -627,7 +752,23 @@ or:
 CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 ```
 
-Each thread using COM must initialize it appropriately.
+Each thread using COM must initialize it appropriately, and balance it with exactly one `CoUninitialize`.
+
+**`CoInitialize(nullptr)` is just `CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED)`.** New code should call `CoInitializeEx` so the apartment choice is explicit rather than inherited from a legacy default.
+
+**Check the return value, and check it properly:**
+
+| Return | Meaning |
+|---|---|
+| `S_OK` | this call initialised COM on the thread |
+| `S_FALSE` | already initialised with the same model; the count was incremented |
+| `RPC_E_CHANGED_MODE` | already initialised with a **different** model — your request was refused |
+
+`S_FALSE` *succeeds*, so `SUCCEEDED(hr)` is true and you still owe a `CoUninitialize`. `RPC_E_CHANGED_MODE` does **not** succeed and you must **not** call `CoUninitialize`—doing so decrements someone else's count and tears COM down under them. Getting this wrong is a classic source of "COM stops working late in the session".
+
+**Inside an Excel COM Add-In you normally do not call it at all on the main thread**: Excel has already initialised its STA and your `IDTExtensibility2::OnConnection` runs there ([COM-024](#question-com-024)). You call it on *your own* worker threads, choosing `COINIT_MULTITHREADED`, and uninitialise before the thread exits.
+
+**Related:** `OleInitialize` is `CoInitializeEx` in STA mode plus the OLE subsystem (clipboard, drag-and-drop), which is what a UI thread wants; `CoInitializeSecurity` sets process-wide authentication defaults and can only be called once, before any interface is marshaled.
 
 [↑ Back to question index](#question-index)
 
@@ -652,6 +793,16 @@ In an STA, COM ensures calls into apartment-bound objects are serialized onto th
 STA often relies on a Windows message loop for call dispatch.
 
 Office applications commonly expose automation objects associated with STA behavior.
+
+**How the serialization actually works:** an incoming cross-apartment call does not run on the caller's thread. COM posts a private window message to a hidden window it created for the apartment; the STA thread picks it up in its message loop and executes the call there. That is why a missing or blocked message pump stalls calls that appear to have nothing to do with windows ([COM-022](#question-com-022)).
+
+**The consequence people miss is reentrancy.** Serialized does not mean atomic. While an STA thread is blocked inside an *outgoing* call, COM keeps pumping, so an incoming call can execute in the middle of your function—your own state can change under you between two statements. Guarding with a flag, or refusing reentrant work via `IMessageFilter`, is the standard defence.
+
+**`IMessageFilter`** is the STA's flow-control hook: `HandleInComingCall` lets you reject or defer a call that arrives at a bad moment, and `RetryRejectedCall` is what Excel uses to tell a caller "I'm busy, retry"—which surfaces as `RPC_E_CALL_REJECTED` / `VBA_E_IGNORE`. An add-in that automates Excel while the user is editing a cell or a modal dialog is open must expect and retry these rather than treat them as fatal.
+
+**Objects are thread-affine.** An STA object may only be touched on its own thread, and the object itself needs no internal locking against COM calls—but that guarantee vanishes for any of its state that non-COM code also touches from another thread.
+
+**For Excel:** the main thread is an STA, the object model is bound to it, and the practical design is a queue from worker threads onto that thread rather than direct calls ([COM-021](#question-com-021)).
 
 [↑ Back to question index](#question-index)
 
@@ -702,6 +853,33 @@ Not safely in the general case.
 COM interface pointers are subject to apartment rules.
 
 When crossing apartment boundaries, the interface may need to be marshaled so COM can provide an appropriate proxy.
+
+**Why raw sharing is wrong even though the pointer looks valid**: the pointer will dereference fine and the call will execute on the *wrong thread*, bypassing the apartment's serialization entirely. There is no diagnostic—you get data races inside an object that was written assuming single-threaded access, appearing later as corruption or a hang. Between two MTA threads it is legal, because they share one apartment; anywhere else it is not.
+
+**The two supported mechanisms:**
+
+```cpp
+// one-shot: source apartment
+IStream* s = nullptr;
+CoMarshalInterThreadInterfaceInStream(IID_IFoo, pFoo, &s);
+// ...hand `s` to the other thread...
+// target apartment - consumes the stream, gives you a proxy
+CoGetInterfaceAndReleaseStream(s, IID_IFoo, reinterpret_cast<void**>(&pFoo));
+```
+
+```cpp
+// repeated use, many threads: the Global Interface Table
+CComPtr<IGlobalInterfaceTable> git;
+git.CoCreateInstance(CLSID_StdGlobalInterfaceTable);
+DWORD cookie;
+git->RegisterInterfaceInGlobal(pFoo, IID_IFoo, &cookie);   // once
+git->GetInterfaceFromGlobal(cookie, IID_IFoo, (void**)&p); // per thread, per use
+git->RevokeInterfaceFromGlobal(cookie);                    // when done
+```
+
+The stream form is single-use: exactly one `CoGetInterfaceAndReleaseStream`, and if the handoff is abandoned you must `CoReleaseMarshalData` or the reference leaks. The GIT is the right tool when a background thread needs the same Excel interface repeatedly ([COM-021](#question-com-021)).
+
+**The proxy is apartment-bound too**, so you cannot then pass the proxy to a third thread—each apartment needs its own. And a `CComPtr` copied into a lambda captured by a `std::thread` is precisely the accident this rule forbids: the pointer travels, the marshaling does not.
 
 [↑ Back to question index](#question-index)
 
@@ -778,6 +956,20 @@ queue / batch
 Excel/UI/COM thread
 ```
 
+**The four failures, concretely.**
+
+*Apartment violation*: sharing the interface pointer directly runs object-model code on a thread Excel never expected ([COM-019](#question-com-019)). Marshaling it correctly fixes the legality but not the serialization—calls still queue onto Excel's one thread.
+
+*`RPC_E_CALL_REJECTED` / `VBA_E_IGNORE`*: Excel refuses calls while the user is editing a cell, a modal dialog is open, or a recalculation is running. This is normal and must be handled with a bounded retry (and an `IMessageFilter` if you also receive calls), not treated as a crash.
+
+*Deadlock*: the worker blocks on a marshaled call into Excel's STA while Excel's thread is blocked waiting on something the worker holds. The STA keeps pumping, which makes this worse rather than better—the pump can deliver a call that re-enters your own code mid-update ([COM-022](#question-com-022)).
+
+*Lifetime*: the workbook closes or Excel shuts down while work is in flight, so the marshaled pointer becomes `RPC_E_DISCONNECTED` or `CO_E_OBJNOTCONNECTED`. Shutdown has to cancel outstanding work and wait for it, not just release pointers ([COM-042](#question-com-042)).
+
+**So the design is: one owner thread for all object-model access.** Workers compute on plain data and post results; the Excel-side thread drains the queue, coalesces, and writes one `Range` per flush ([COM-028](#question-com-028)). For a streaming feed, an RTD server is the sanctioned version of exactly this pattern—Excel itself pulls on its own thread at its own tempo ([COM-035](#question-com-035)).
+
+**The one supported exception** is Excel's multithreaded recalculation, which may call thread-safe worksheet functions concurrently—but that applies to XLL/UDF code, not to the object model ([COM-030](#question-com-030)).
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -801,6 +993,26 @@ COM may dispatch cross-apartment calls through Windows messages.
 If the STA thread stops pumping messages, COM calls can stall or deadlock.
 
 This is particularly important for UI applications and Office automation.
+
+**The mechanism:** COM creates a hidden window for each STA, and a cross-apartment call is delivered as a message to that window. `DispatchMessage` is what actually invokes your method. No pump, no dispatch—the caller simply waits.
+
+**What "stops pumping" means in practice**, and these are all things ordinary code does:
+
+- a long synchronous computation on the STA thread;
+- `WaitForSingleObject` / `join()` / a condition-variable wait on the STA thread;
+- a lock held while another thread is inside a marshaled call to this apartment.
+
+All three look like normal blocking and all three freeze incoming COM calls for their duration. If a worker thread is waiting on a call into the STA at the same time, that is a deadlock, and it will not time out.
+
+**The correct wait on an STA thread** is one that keeps pumping:
+
+```cpp
+// pumps COM/window messages while waiting - safe on an STA
+DWORD r = CoWaitForMultipleHandles(COWAIT_DEFAULT, INFINITE, 1, &hEvent, &index);
+// MsgWaitForMultipleObjects + a manual pump is the lower-level equivalent
+```
+
+**But pumping is not free**, and this is the honest trade-off to state: pumping means reentrancy—your code can be re-entered before the wait returns ([COM-017](#question-com-017)). Both blocking and pumping are dangerous on an STA, which is why the real answer is to not wait on the STA thread at all: hand the work to a worker and let it post the result back.
 
 [↑ Back to question index](#question-index)
 
@@ -828,6 +1040,16 @@ It can integrate with Excel lifecycle and object model.
 
 Historically, Office COM Add-Ins often use interfaces such as `IDTExtensibility2`.
 
+**It runs in-process**, inside EXCEL.EXE, which is the whole performance argument for it: object-model calls are direct rather than marshaled across a process boundary ([COM-007](#question-com-007)). The flip side is that an access violation in your DLL takes Excel down with it, and the bitness must match the host exactly.
+
+**How Excel finds and loads it**: a registry entry under `HKCU\Software\Microsoft\Office\Excel\Addins\<ProgID>` (or `HKLM` for all users) with `LoadBehavior`, `FriendlyName` and `Description`, plus the usual CLSID registration pointing at your DLL. `LoadBehavior = 3` means load at startup; Excel demotes it to `2` if the add-in throws during connection, which is why a once-working add-in silently stops loading ([COM-032](#question-com-032)).
+
+**What it can do:** hook Excel's lifecycle and events, drive the object model, add ribbon UI via `IRibbonExtensibility`, and register worksheet functions—though for UDFs specifically an XLL through the C API is faster and supports multithreaded recalculation, so real products often ship both ([COM-029](#question-com-029), [COM-030](#question-com-030)).
+
+**The obligations that come with being in-process:** run everything object-model-related on Excel's STA thread ([COM-021](#question-com-021)), never let an exception escape into Excel's call stack, release every interface pointer deterministically, and shut down cleanly on `OnDisconnection`—an add-in that leaves a thread running or a reference held is why EXCEL.EXE lingers in Task Manager after the window closes.
+
+**The alternatives** are VSTO (managed, .NET runtime in-process, easier UI, heavier deployment) and Office.js (JavaScript, sandboxed, cross-platform, no native code and no direct object model) ([COM-029](#question-com-029)).
+
 [↑ Back to question index](#question-index)
 
 ---
@@ -854,6 +1076,25 @@ A classic Office extensibility interface used for add-in lifecycle callbacks suc
 - add-in updates
 
 The exact architecture depends on the add-in technology used.
+
+```cpp
+void OnConnection(IDispatch* Application, ext_ConnectMode ConnectMode,
+                  IDispatch* AddInInst, SAFEARRAY** custom);
+void OnStartupComplete(SAFEARRAY** custom);
+void OnDisconnection(ext_DisconnectMode RemoveMode, SAFEARRAY** custom);
+void OnAddInsUpdate(SAFEARRAY** custom);
+void OnBeginShutdown(SAFEARRAY** custom);
+```
+
+**`OnConnection` is where you capture the host.** The `Application` parameter is Excel's `IDispatch`—query it for `Excel::_Application` and hold it in a `CComPtr`. `ConnectMode` tells you *why* you were loaded (`ext_cm_AfterStartup` when the user enabled you from the add-ins dialog, `ext_cm_Startup` at launch), which matters because at `ext_cm_Startup` the object model is not fully ready yet.
+
+**That is exactly what `OnStartupComplete` is for**: heavy initialisation, ribbon state, opening workbooks or touching the UI belongs here, not in `OnConnection`. Doing it too early is a common cause of failures that only reproduce on a cold start.
+
+**`OnBeginShutdown` versus `OnDisconnection`.** `OnBeginShutdown` fires when Excel is closing and is your last chance to use the object model; by `OnDisconnection` with `ext_dm_HostShutdown` the host may already be tearing down, so object-model calls can fail. Stop your threads and cancel pending work in `OnBeginShutdown`, and release references in `OnDisconnection` ([COM-042](#question-com-042)).
+
+**Never let an exception escape any of these.** Excel treats a failure during connection as a broken add-in and demotes `LoadBehavior` from 3 to 2, disabling you on the next launch with no visible error ([COM-032](#question-com-032)). Wrap each callback in a catch-all that logs and returns a failed `HRESULT` at most.
+
+**It is not the whole story.** Ribbon UI comes from `IRibbonExtensibility`, custom task panes from `ICustomTaskPaneConsumer`, and real-time data from `IRtdServer` ([COM-035](#question-com-035))—`IDTExtensibility2` is only the lifecycle contract.
 
 [↑ Back to question index](#question-index)
 
@@ -932,6 +1173,22 @@ Doing:
 can be dramatically slower than fetching one large `Range`.
 
 The usual optimization is batching.
+
+**Break down what one `range.Cells(i,j).Value` actually costs**, and it is not one call: `Cells` is a property get that returns a new `Range` object (an `AddRef`ed interface pointer you must release), then `Value` is a second property get. So a naive loop is two or three cross-boundary operations plus an object allocation *per cell*.
+
+If the client is out-of-process, each of those is a marshaled LRPC—microseconds. Even in-process inside a COM Add-In, each is a late- or early-bound Automation call through Excel's dispatch layer with `VARIANT` packing, plus the reference-counting traffic. A million cells at even 5 µs per operation is minutes; the same data as one `Value2` read is a single crossing and a memory copy.
+
+```cpp
+// bad: ~2N crossings and N temporary Range objects
+for (long i = 1; i <= n; ++i) { CComVariant v; sheet->get_Cells(i,1,&cell); cell->get_Value2(&v); }
+
+// good: one crossing, one SAFEARRAY
+CComVariant block; range->get_Value2(&block);
+```
+
+**Excel-side costs compound it.** Each write can trigger recalculation, redraw and `Worksheet_Change` event handlers, so a per-cell write loop re-runs the dependency graph N times. Turning off `ScreenUpdating`, `EnableEvents` and setting `Calculation` to manual around a bulk operation removes that—and they must be restored in an RAII guard, because leaving Excel in manual calculation is a user-visible bug ([COM-033](#question-com-033)).
+
+**So the rule is: minimise crossings, not instructions.** Read once into native memory, compute in C++, write once ([COM-027](#question-com-027), [COM-028](#question-com-028)). Micro-optimising the loop body is irrelevant next to the boundary count.
 
 [↑ Back to question index](#question-index)
 
@@ -1014,6 +1271,38 @@ Use:
 - avoid unnecessary recalculation/redraw when possible
 
 For real-time feeds, intermediate values often do not need to be displayed individually.
+
+**One assignment writes a whole block.** Build a 2-D `SAFEARRAY` matching the target range exactly—same number of rows and columns—and assign it to `Value2` once:
+
+```cpp
+SAFEARRAYBOUND b[2] = { {rows, 1}, {cols, 1} };        // 1-based, like Excel
+SAFEARRAY* sa = SafeArrayCreate(VT_VARIANT, 2, b);
+// fill in column-major order, then:
+CComVariant v; v.vt = VT_ARRAY | VT_VARIANT; v.parray = sa;
+range->put_Value2(v);                                  // one crossing
+```
+
+A size mismatch does not error—Excel tiles or truncates—so resolve the target with `Resize(rows, cols)` from the top-left cell rather than trusting an address string.
+
+**Wrap the write in a settings guard** ([COM-033](#question-com-033)):
+
+```cpp
+struct FastMode {                     // RAII: restore even on exception
+    FastMode(Excel::_Application* a) : app(a) {
+        app->get_Calculation(&calc); app->get_ScreenUpdating(&screen); app->get_EnableEvents(&events);
+        app->put_Calculation(Excel::xlCalculationManual);
+        app->put_ScreenUpdating(VARIANT_FALSE);
+        app->put_EnableEvents(VARIANT_FALSE);
+    }
+    ~FastMode() { app->put_EnableEvents(events); app->put_ScreenUpdating(screen); app->put_Calculation(calc); }
+};
+```
+
+Restoring is not optional: leaving calculation on manual silently breaks the user's workbook long after your code has finished.
+
+**Coalescing is the part that matters for a live feed.** Keep a dirty map keyed by cell, overwrite in place as ticks arrive, and flush on a timer—say every 100–250 ms. Ten updates to one cell inside a window become one write, so the cost tracks the *screen refresh rate*, not the tick rate. That is also exactly what Excel's own RTD mechanism does with `ThrottleInterval`, which is the sanctioned route for streaming data and lets Excel pull on its own thread instead of you pushing onto its STA ([COM-035](#question-com-035)).
+
+**Write only what is visible or referenced** where you can, and keep every write on the Excel thread ([COM-021](#question-com-021)).
 
 [↑ Back to question index](#question-index)
 
