@@ -121,7 +121,7 @@ Use this table to choose evidence, not as a script to recite. `Adjacent` means t
 | Testing and quality assurance | Strong transferable | Qt Test, MSTest, developer scenarios, separate QA teams and validation on physical devices | Full on-device regression was not automated | Phone regression scenario |
 | Stakeholder communication and distributed delivery | Strong | QA/customer reports, international EPAM teams, code review, task planning, mentoring and technical-lead responsibilities | Frequent external-client presentation or business ownership is not established | Incomplete report to reproducible scenario |
 | Git and CI/CD | Partial to strong | Daily Git/GitLab use, Jenkins/GitLab CI in delivery projects, builds and packaging | Used and troubleshot delivery infrastructure; did not own the complete CI/CD platform design | Build/package issue |
-| English B2+ | Match | B2 graded at Streamline; working language throughout EPAM and Innowise | Keep the stated level at B2 and demonstrate it in the interview | Interview itself |
+| English B2+ | Match | Professional working English; Streamline certificates through B1, with a B2 course exam result of 60.5/100 below the 70/100 certificate threshold | Keep the stated current level at B2 and demonstrate it in the interview; do not claim a B2 certificate | Interview itself |
 | Finance, VBA, real-time trading integration and Office.js | Gap / nice-to-have | Numerical and industrial data-processing background only | No demonstrated professional experience in these named areas | State plainly |
 
 ## 04 Three Stories, Written Out
