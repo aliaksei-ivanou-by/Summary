@@ -31,11 +31,11 @@ Worth stating early: this is a return to Warsaw rather than a first move. Two ye
 |---|---|---|
 | Russian | Native | |
 | Belarusian | Native | |
-| English | B2 | Streamline language school, 2015-2017; graded exams |
-| Polish | A2 | Courses through B1+ at Accent School of Polish, 2023-2024; not regularly practised since September 2024 |
+| English | B2 | Streamline certificates through B1; B2 course exam 60.5/100, below the 70/100 certificate threshold; professional working language since 2021 |
+| Polish | A2 | Completed Accent School of Polish course modules through B1.2, 2022-2024; not a state B1 certificate; not regularly practised since September 2024 |
 | Swedish | A2 | Courses to B2 at The Centre for Swedish Studies, 2022-2023; unpractised since |
 
-English is the one that matters day to day: it has been the working language throughout EPAM and Innowise, across distributed teams in the US, India and Europe. The Polish courses reached B1+ in 2024, but I have not used the language regularly since September 2024, so A2 is the current level I would stand behind. Swedish courses reached B2 in 2023, but that language has also faded without practice, so my current Swedish level is A2 as well.
+English is the one that matters day to day: it has been the working language throughout EPAM and Innowise, across distributed teams in the US, India and Europe. Streamline issued course certificates through B1; the B2 course exam result was 60.5/100, below the 70/100 certificate threshold. The Polish course sequence completed A2 and continued through the B1.1 and B1.2 modules, without a state B1 examination; I have not used the language regularly since September 2024, so A2 is the current level I would stand behind. Swedish courses continued through B2 in 2023, but that language has also faded without practice, so my current Swedish level is A2 as well.
 
 ## 04 Career Timeline
 
