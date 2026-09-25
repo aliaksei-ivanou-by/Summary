@@ -10,7 +10,7 @@ The honest ordering of what is in this repository:
 
 1. **IT-Academy, C++ Fundamentals, 108 academic hours (2018).** Classroom course at the Educational Center of High-Tech Park Belarus, issued and signed institutionally. By an order of magnitude the most substantial C++ credential here.
 2. **EPAM C++ Mentoring Program (May 2020 - September 2021) and EPAM C++ Laboratory (March - September 2021).** Over a year of structured, mentored, employer-run training. No certificates were issued for either, so there is no document - but in substance these outweigh every online course on the list, and they are worth describing in an interview.
-3. **Language qualifications** - English with graded exam scores; Swedish and Polish as completed course levels. Taught and assessed by language schools, not self-reported.
+3. **Language course records** - English certificates through B1 with graded exams, plus a B2 course exam below the certificate threshold; Swedish and Polish as completed course modules. These are school records rather than self-reported study.
 4. **Samara State Aerospace University Summer Space School (2011, 2013), 3.5 ECTS each.** University credit, aerospace-specific.
 5. **Everything else** - LinkedIn Learning, Udemy, Coursera, AWS Skill Builder. Individually light. Collectively meaningful only as a trajectory, which is how this document presents them.
 
@@ -26,7 +26,7 @@ By cluster and total hours the light ones hold up: "roughly 40 hours of focused 
 | AI-assisted development | Claude Code 101 completion certificate and detailed course notes | [Claude Code 101](https://verify.skilljar.com/c/2vncnm8ifpk3), Anthropic Education, Sep 2026 | Completed official introductory training in agentic coding workflows; course completion, not a professional certification |
 | Cloud | Two verifiable AWS digital training badges, plus course completions. No certification exam | **AWS Well-Architected Proficient** badge - assessed, May 2024 | Two AWS training badges, cloud coursework, and production use of AWS/Azure. **Never "AWS Certified"** - see section 06 |
 | Databases / web | SQL, Ruby on Rails, REST, JSON, HTTP | Ruby on Rails, course.by 2015 | Working familiarity, backed by the PELENG satellite database project |
-| Languages | English with graded exams; Swedish and Polish course completions | English B2, exam-graded | Course records: Polish through B1+ in 2024 and Swedish through B2 in 2023; current self-assessment A2 for both after lack of practice |
+| Languages | English with graded exams; Swedish and Polish course completions | English B1 certificate, 82/100 | English certificates through B1; B2 exam 60.5/100 against a 70/100 certificate threshold, so no B2 certificate. Polish modules through B1.2 and Swedish courses through B2 are course records, not state proficiency certificates |
 | Aerospace | Two Samara space schools, 3.5 ECTS each | Summer Space School 2011 / 2013 | University-credited aerospace specialization |
 | Programming / instrumentation | LabVIEW Basics I, Data Acquisition | BSUIR, 2010-2011 | 72 hours of LabVIEW graphical programming and data-acquisition study |
 
@@ -158,13 +158,13 @@ The genuine cloud claim is the project one: the oil-and-gas system ran in Micros
 | English | A1 | Streamline | Sep - Dec 2015 | 98 / 100 |
 | English | A2 | Streamline | Jan - May 2016 | 98 / 100 |
 | English | B1 | Streamline | Sep - Dec 2016 | 82 / 100 |
-| English | B2 | Streamline | Jan - May 2017 | 60.5 / 100 |
+| English | B2 course | Streamline | Jan - May 2017 | 60.5 / 100; certificate threshold 70 / 100; no B2 certificate issued |
 | Swedish | A1, A2 | The Centre for Swedish Studies | 2022 | - |
 | Swedish | B1, B2 | The Centre for Swedish Studies | 2023 | - |
 | Polish | A1.1 - A2.2 | Accent School of Polish | 2023 | - |
 | Polish | A2.3, B1.1, B1.2 | Accent School of Polish | 2024 | - |
 
-These are worth keeping visible. They come from language schools rather than self-assessment, and they show sustained effort over a decade. Accent School names its courses by sub-level, so A2.3, B1.1 and B1.2 are course titles that document study progression rather than a permanent current CEFR claim. Polish has not been used regularly since September 2024, so the current self-assessed level is A2. Swedish stopped at the 2023 courses and has also faded to a current self-assessed A2 without use. Russian and Belarusian are native.
+These are worth keeping visible. They come from language schools rather than self-assessment, and they show sustained effort over a decade. Streamline issued certificates for English A1, A2 and B1. The B2 course exam result was 60.5 / 100 against a 70 / 100 certificate threshold, so no B2 certificate was issued. Accent School names its curriculum modules by sublevel. The certificates document completion of A1.1, A1.2, A2.1, A2.2, A2.3, B1.1 and B1.2 courses; they do not constitute a state CEFR proficiency certificate. In particular, B1.2 must not be presented as B1+, and the school's current sequence includes B1.3 before B2. Polish has not been used regularly since September 2024, so the current self-assessed level is A2. Swedish stopped at the 2023 courses and has also faded to a current self-assessed A2 without use. Russian and Belarusian are native.
 
 ## 08 Aerospace, Academic and Professional Events
 
