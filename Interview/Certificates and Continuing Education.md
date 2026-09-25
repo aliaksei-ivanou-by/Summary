@@ -28,7 +28,7 @@ By cluster and total hours the light ones hold up: "roughly 40 hours of focused 
 | Databases / web | SQL, Ruby on Rails, REST, JSON, HTTP | Ruby on Rails, course.by 2015 | Working familiarity, backed by the PELENG satellite database project |
 | Languages | English with graded exams; Swedish and Polish course completions | English B2, exam-graded | Course records: Polish through B1+ in 2024 and Swedish through B2 in 2023; current self-assessment A2 for both after lack of practice |
 | Aerospace | Two Samara space schools, 3.5 ECTS each | Summer Space School 2011 / 2013 | University-credited aerospace specialization |
-| Instrumentation | LabVIEW Basics I, Data Acquisition | BSUIR, 2010-2011 | Measurement and data-acquisition foundations |
+| Programming / instrumentation | LabVIEW Basics I, Data Acquisition | BSUIR, 2010-2011 | 72 hours of LabVIEW graphical programming and data-acquisition study |
 
 ## 03 C++ and Systems: The Trajectory
 
@@ -170,9 +170,9 @@ These are worth keeping visible. They come from language schools rather than sel
 
 | Date | Item | Issuer | Note |
 |---|---|---|---|
-| Oct 2009 | Youth Scientific School | Kostroma | |
-| Dec 2009 | Short research placement | Skobeltsyn Institute of Nuclear Physics, Moscow State University | One to two weeks, by specialization |
-| Mar - Apr 2011 | Youth conference with elements of a scientific school | Skobeltsyn Institute of Nuclear Physics, Moscow State University | Space specialization |
+| Oct 2009 | Sixth Youth Scientific School-Seminar "Modern Space Research" | Nekrasov Kostroma State University and Skobeltsyn Institute of Nuclear Physics, Moscow State University | Heliophysics, ionosphere, cosmic rays, transient luminous events, space weather, solar flares and satellite observations; listener participation, no presentation claimed |
+| Dec 2009 | Short research placement | Skobeltsyn Institute of Nuclear Physics, Moscow State University | One to two weeks, matched to the satellite-systems specialization; exact project scope is not established |
+| Mar - Apr 2011 | Youth conference with elements of a scientific school | Skobeltsyn Institute of Nuclear Physics, Moscow State University | Space specialization; participation is recorded, but no conference presentation is claimed |
 | Aug 2011 | International Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS; English-language programme; onboard systems, navigation, attitude control, tether dynamics, de-orbiting and Altium PCB laboratories |
 | Undated, within Aug 2012 - Jan 2020 | Conference talk, "Integrated Space Monitoring Systems as an Evolution of Geographic Information Systems" (RU) | TIBO forum, Minsk | Speaker; signed two-page text in `Articles/2012-2020. Satellite and UAV Optical Imaging Software/`. The year is not established - see below |
 | Aug 2013 | International Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS; English-language programme; systems engineering, flight dynamics, GNSS, requirements, architecture, link/power budgets, Pro/ENGINEER and NOAA reception |
@@ -188,20 +188,28 @@ The two Samara schools carry ECTS credit, which makes them the only academic cre
 
 The signed text of the TIBO talk also records my job title and unit at PELENG.
 
-## 09 Other Training
+## 09 Programming, Engineering and Professional Education
 
-| Date | Item | Issuer |
+For LinkedIn, structured programmes belong in **Education**; short standalone course completions, badges and other credentials belong in **Licenses & Certifications**. A certificate may be evidence that an educational programme was completed, but that does not mean the same item should be duplicated in both LinkedIn sections.
+
+### Structured programmes - LinkedIn Education
+
+| Date | Programme | Provider | Why it belongs in Education |
+|---|---|---|---|
+| 10 Dec 2010 - 29 Jan 2011 | **LabVIEW Basics I and LabVIEW Data Acquisition Systems**, 72 hours total | Institute for Advanced Training and Retraining in Information Technologies and Radioelectronics, BSUIR | Two instructor-led programming and instrumentation courses, 36 hours each |
+| 26 Oct - 21 Dec 2013 | **Java. JD1. Programming in Java**, 108 hours | IT-Academy | Classroom programme in Java software development |
+| Feb - Jun 2015 | **Building Web Applications with Ruby on Rails** | course.by | Multi-month instructor-led web-development programme |
+| Feb - Mar 2024 | **HelloNewJob, Stream 6** | NewHR | Seven-week cohort programme with homework, CV and LinkedIn review and interview practice |
+
+### Short courses and credentials - LinkedIn Licenses & Certifications
+
+| Date | Credential | Issuer |
 |---|---|---|
-| Dec 2010 | LabVIEW - Basics I | BSUIR |
-| Jan 2011 | LabVIEW - Data Acquisition | BSUIR |
-| 2011 | Fundamentals of smart-home system design | |
-| Oct 2012 - Dec 2013 | Java. JD1. Programming in Java | IT-Academy |
-| Feb - Jun 2015 | Building web applications with Ruby on Rails | course.by |
-| May - Jun 2016 | Documents and presentations in LaTeX | Coursera |
+| 2 - 11 Dec 2011 | Fundamentals of Smart Home System Design, 36 hours | National Open University INTUIT |
+| May - Jun 2016 | Documents and Presentations in LaTeX | Coursera |
 | 2021 | Learning SQL Programming; From Excel to SQL; Learning REST APIs; JSON Essential Training; HTTP Essential Training; Web Programming Foundations | LinkedIn Learning |
 | Jun 2023 | Learning Jira Software | LinkedIn Learning |
 | 2023 | Foundations of the Fourth Industrial Revolution (Industry 4.0) | LinkedIn Learning |
-| Feb - Mar 2024 | **HelloNewJob, Stream 6** - how successful candidates search for jobs today; job-search strategy and tactics; where to find suitable vacancies; the CV as a ticket to the interview; LinkedIn as a job-search tool; standing out among other candidates; self-presentation; talking about experience without failing | NewHR |
 | Jan 2025 | Advanced Prompt Engineering Techniques | LinkedIn Learning |
 | 25 Sep 2026 | [Claude Code 101](https://verify.skilljar.com/c/2vncnm8ifpk3) - certificate of completion | Anthropic Education |
 
@@ -209,7 +217,7 @@ The Ruby on Rails course (2015) lines up with the satellite reference database b
 
 Claude Code 101 is an official Anthropic course-completion credential, publicly verifiable through Skilljar. It records completion of introductory training in agentic coding workflows; it is not a professional certification exam. Safe phrasing: "Claude Code 101, certificate of completion, Anthropic Education, September 2026."
 
-HelloNewJob is the one structured programme in this section - seven weeks with homework, CV and LinkedIn review and interview practice, rather than recorded video. Its dates are worth noting: February to March 2024, while still employed at EPAM Systems Poland and five months before that contract ended. The same pattern as the 2018 C++ course before leaving PELENG - preparation ahead of a move rather than a reaction to one.
+HelloNewJob is a structured programme - seven weeks with homework, CV and LinkedIn review and interview practice, rather than recorded video. Its dates are worth noting: February to March 2024, while still employed at EPAM Systems Poland and five months before that contract ended. The same pattern as the 2018 C++ course before leaving PELENG - preparation ahead of a move rather than a reaction to one.
 
 ## 10 Claim to Evidence
 
@@ -223,6 +231,7 @@ HelloNewJob is the one structured programme in this section - seven weeks with h
 | Unit testing / TDD | QtTest coverage on the SIP platform; GoogleTest in independent projects | Test-Driven Development in C++; C++ Unit Testing: Google Test and Google Mock (2025) |
 | Design patterns | MVC/MVVM refactoring of the SIP call flow | C++ Design Patterns: Creational and Behavioral (2025) |
 | PostgreSQL / MySQL | The library platform, the oil & gas system, the PELENG satellite database | Learning SQL Programming; Using SQL with C++ |
+| LabVIEW / data acquisition | University-period supplementary programming and instrumentation study | LabVIEW Basics I and LabVIEW Data Acquisition Systems, BSUIR, 72 hours total |
 | Docker | **No project evidence** | Learning Docker (2025) - describe as coursework |
 | Node.js | Initial mediasoup conferencing server on the SIP project | Learning Node.js; Node.js Essential Training (2025) |
 | bash / Unix | Remote debugging on AWS Linux at EPAM; on-target work at Innowise | Learning Bash Scripting; Unix Essential Training |
