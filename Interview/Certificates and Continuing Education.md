@@ -173,12 +173,16 @@ These are worth keeping visible. They come from language schools rather than sel
 | Oct 2009 | Youth Scientific School | Kostroma | |
 | Dec 2009 | Short research placement | Skobeltsyn Institute of Nuclear Physics, Moscow State University | One to two weeks, by specialization |
 | Mar - Apr 2011 | Youth conference with elements of a scientific school | Skobeltsyn Institute of Nuclear Physics, Moscow State University | Space specialization |
-| Aug 2011 | International Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS; lectures in English, international lecturers and intake |
+| Aug 2011 | International Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS; English-language programme; onboard systems, navigation, attitude control, tether dynamics, de-orbiting and Altium PCB laboratories |
 | Undated, within Aug 2012 - Jan 2020 | Conference talk, "Integrated Space Monitoring Systems as an Evolution of Geographic Information Systems" (RU) | TIBO forum, Minsk | Speaker; signed two-page text in `Articles/2012-2020. Satellite and UAV Optical Imaging Software/`. The year is not established - see below |
-| Aug 2013 | International Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS; attended while at PELENG |
+| Aug 2013 | International Summer Space School - Advanced technologies for nanosatellite's experiments in space | Samara State Aerospace University | 3.5 ECTS; English-language programme; systems engineering, flight dynamics, GNSS, requirements, architecture, link/power budgets, Pro/ENGINEER and NOAA reception |
 | 5 - 6 Apr 2024 | Warsaw IT Days 2024 | Academic Partners Foundation, Warsaw | Participant |
 
-The two Samara schools carry ECTS credit, which makes them the only academic credit on this list outside the degree itself. They also support the aerospace specialization directly, and they were taught in English to an international intake - the earliest evidence here of working technically in English.
+The two Samara schools carry ECTS credit, which makes them the only academic credit on this list outside the degree itself. They also support the aerospace specialization directly, and they were taught in English to an international intake - the earliest evidence here of working technically in English. The second page of each certificate contains its formal syllabus, and the two sessions were materially different rather than repetitions of one course.
+
+**2011 syllabus.** Lectures covered piggyback nanosatellite launch; microsatellite design technologies using Altium Designer; solar and near-Earth space physics; onboard electronic and microprocessor control and communication systems; orientation and attitude stabilization; space navigation and motion determination; tether-system dynamics; low-orbit motion and de-orbiting; and recoverable-capsule motion in the atmosphere. Laboratories covered Altium PCB development, navigation, solar and Earth physics, tether systems, de-orbiting and onboard electronics, followed by a seminar on orientation and stabilization.
+
+**2013 syllabus.** Lectures covered space-systems engineering and standards, flight dynamics and attitude control, GNSS fundamentals and hardware, and micro/nanosatellite mission and system requirements, functional architecture, operational modes, link budget, power budget and advanced space technologies. Laboratories covered Pro/ENGINEER-based satellite design, mission and system requirements, link- and power-budget computation and practical NOAA satellite reception.
 
 **The year of the TIBO talk is not established.** The two-page text carries no date, and its PDF metadata records only a Word re-export of 5 May 2020 - as do all files in `Articles/`, so metadata dates nothing in that folder. The signature places the talk inside the PELENG period, August 2012 to January 2020. The open web, the forum's published programmes and the Belarusian library catalogues return nothing: the text was never indexed anywhere. It is therefore presented as undated within that window. The cost is low, because what this document uses the talk for is the signature rather than the date.
 
@@ -267,8 +271,8 @@ The repository uses period-named folders in `Articles/` and `Certificates/` when
 | Folder | What is in it |
 |---|---|
 | `1996-2007. School Years and Pre-University Research/` | The twelve school-age diplomas, 2005-2007 |
-| `2007-2012. Radiophysics Degree and University Research/` | LabVIEW at BSUIR, the smart-home course, the 2011 Samara Summer Space School |
-| `2012-2020. Satellite and UAV Optical Imaging Software/` | The 2013 Samara Summer Space School, attended while at PELENG |
+| `2007-2012. Radiophysics Degree and University Research/` | LabVIEW at BSUIR, the smart-home course, and the 2011 Samara Summer Space School certificate with its full syllabus on page 2 |
+| `2012-2020. Satellite and UAV Optical Imaging Software/` | The 2013 Samara Summer Space School certificate, attended while at PELENG, with its full syllabus on page 2 |
 | `C++ and Programming/` | C++, C, Java and embedded courses, 2013 onward |
 | `Cloud/` | The AWS badge source courses and the rest of the AWS and Azure coursework |
 | `Tools and Practices/` | SQL, REST, JSON, HTTP, Docker, bash, Unix, Node.js, Jira, LaTeX, Office, AI-assisted development |
