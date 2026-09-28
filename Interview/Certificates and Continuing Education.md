@@ -23,7 +23,7 @@ By cluster and total hours the light ones hold up: "roughly 40 hours of focused 
 | C++ | Classroom course, employer program, ~15 online courses 2020-2025 | IT-Academy C++ Fundamentals, 108 academic hours | Continuous, deliberate C++ study since 2018, alongside five years of commercial C/C++ employment |
 | Embedded / systems | Embedded C, Unix, bash, Docker, debugging C | LinkedIn cluster Dec 2024 - Jan 2025 | Self-directed preparation, backed by the embedded SIP project |
 | Testing | TDD in C++, Google Test / Google Mock | Udemy C++ Unit Testing, 3.5 h | Studied formally, then applied with QtTest on the SIP project |
-| AI-assisted development | Claude Code 101 completion certificate and detailed course notes | [Claude Code 101](https://verify.skilljar.com/c/2vncnm8ifpk3), Anthropic Education, Sep 2026 | Completed official introductory training in agentic coding workflows; course completion, not a professional certification |
+| AI-assisted development | Claude Code 101 completion certificate and detailed course notes | [Claude Code 101](https://academy.claude.com/verify/0d894a3281a0f8e5b9619884e4e33597), Claude Academy, Sep 2026 | Completed official introductory training in agentic coding workflows; course completion, not a professional certification |
 | Cloud | Two verifiable AWS digital training badges, plus course completions. No certification exam | **AWS Well-Architected Proficient** badge - assessed, May 2024 | Two AWS training badges, cloud coursework, and production use of AWS/Azure. **Never "AWS Certified"** - see section 06 |
 | Databases / web | SQL, Ruby on Rails, REST, JSON, HTTP | Ruby on Rails, course.by 2015 | Working familiarity, backed by the PELENG satellite database project |
 | Languages | English with graded exams; Swedish and Polish course completions | English B1 certificate, 82/100 | English certificates through B1; B2 exam 60.5/100 against a 70/100 certificate threshold, so no B2 certificate. Polish modules through B1.2 and Swedish courses through B2 are course records, not state proficiency certificates |
@@ -211,11 +211,11 @@ For LinkedIn, structured programmes belong in **Education**; short standalone co
 | Jun 2023 | Learning Jira Software | LinkedIn Learning |
 | 2023 | Foundations of the Fourth Industrial Revolution (Industry 4.0) | LinkedIn Learning |
 | Jan 2025 | Advanced Prompt Engineering Techniques | LinkedIn Learning |
-| 25 Sep 2026 | [Claude Code 101](https://verify.skilljar.com/c/2vncnm8ifpk3) - certificate of completion | Anthropic Education |
+| 25 Sep 2026 | [Claude Code 101](https://academy.claude.com/verify/0d894a3281a0f8e5b9619884e4e33597) - certificate of completion | Claude Academy |
 
 The Ruby on Rails course (2015) lines up with the satellite reference database built at PELENG on Rails and PostgreSQL in 2015-2016, which is a good example of training that was applied immediately.
 
-Claude Code 101 is an official Anthropic course-completion credential, publicly verifiable through Skilljar. It records completion of introductory training in agentic coding workflows; it is not a professional certification exam. Safe phrasing: "Claude Code 101, certificate of completion, Anthropic Education, September 2026."
+Claude Code 101 is an official Anthropic course-completion credential, publicly verifiable through [Claude Academy](https://academy.claude.com/verify/0d894a3281a0f8e5b9619884e4e33597). It records completion of introductory training in agentic coding workflows; it is not a professional certification exam. Safe phrasing: "Claude Code 101, certificate of completion, Claude Academy, September 2026."
 
 HelloNewJob is a structured programme - seven weeks with homework, CV and LinkedIn review and interview practice, rather than recorded video. Its dates are worth noting: February to March 2024, while still employed at EPAM Systems Poland and five months before that contract ended. The same pattern as the 2018 C++ course before leaving PELENG - preparation ahead of a move rather than a reaction to one.
 
@@ -293,7 +293,7 @@ The repository uses period-named folders in `Articles/` and `Certificates/` when
 `Articles/` follows the same rule, with three folders named after the documents that cite their contents.
 
 - EPAM C++ Mentoring Program (May 2020 - September 2021) and EPAM C++ Laboratory (March - September 2021) have no certificate documents; none were issued.
-- `Tools and Practices/2026 Claude Code 101.pdf` - Claude Code 101 certificate of completion, issued by Anthropic Education on 25 September 2026; publicly verifiable through [Skilljar](https://verify.skilljar.com/c/2vncnm8ifpk3).
+- `Tools and Practices/2026 Claude Code 101.pdf` - Claude Code 101 certificate of completion, issued through Claude Academy on 25 September 2026; publicly verifiable through [Claude Academy](https://academy.claude.com/verify/0d894a3281a0f8e5b9619884e4e33597).
 - `2018 C++ Programming.pdf` ("C++ Programming") reads "C++ Fundamentals (108 academic hours)", IT-Academy, Educational Center of High-Tech Park Belarus, signed by Vadim Zelenkov, General Manager.
 - `2020 C++ Development Fundamentals - White Belt.pdf` - C++ Development Fundamentals: White Belt - states that it is an online course without academic credit, from Moscow Institute of Physics and Technology, 04.03.2020.
 - The AWS and Azure findings in section 06 were verified by opening each file; the two misleading filenames were confirmed to be Udemy and LinkedIn Learning course completions respectively.
