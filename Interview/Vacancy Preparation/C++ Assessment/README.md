@@ -12,7 +12,10 @@ This directory is a self-contained interview and study guide for modern C++ engi
 | [Software Design](Software%20Design.md) | 122 | Principles, GoF patterns, architecture, APIs, error models, ABI, distributed contracts, and resilience |
 | [Algorithms and Data Structures](Algorithms%20and%20Data%20Structures.md) | 75 | Complexity, invariants, graph algorithms, search/window techniques, DSU, cycle detection, heaps, strings, and interval patterns |
 | [Engineering Practices](Engineering%20Practices.md) | 69 | Make/CMake, dependencies, reproducible builds, testing, Linux production work, and native plug-ins |
-| **Total** | **1,040** | Every numbered question has a model answer |
+| [Git and CI/CD](Git%20and%20CI-CD.md) | 55 | Git internals and recovery, collaboration, C++ build matrices, artifacts, supply-chain controls, releases, and deployment |
+| [Databases and SQL](Databases%20and%20SQL.md) | 60 | Relational modelling, SQL, indexes and plans, transactions, concurrency, migrations, and C++ database integration |
+| [Containers and Orchestration](Containers%20and%20Orchestration.md) | 55 | Docker/kernel fundamentals, native image builds, runtime security and debugging, resources, networking, and Kubernetes |
+| **Total** | **1,210** | Every numbered question has a model answer |
 
 ## Recommended study order
 
@@ -20,8 +23,11 @@ This directory is a self-contained interview and study guide for modern C++ engi
 2. Continue with **STL** to connect those rules to containers, algorithms, and concurrency facilities.
 3. Study **Algorithms and Data Structures** while implementing the central patterns from memory and testing their invariants.
 4. Use **Computer Science** for the machine, operating-system, network, and performance model underneath C++ programs.
-5. Use **Software Design** for component and system boundaries, API evolution, and architectural tradeoffs.
-6. Finish with **Engineering Practices** to cover how production C++ is built, tested, shipped, and diagnosed.
+5. Add **Databases and SQL** when the role stores state or integrates with data services.
+6. Use **Software Design** for component and system boundaries, API evolution, and architectural tradeoffs.
+7. Continue with **Engineering Practices** for builds, tests, Linux production work, and native plug-ins.
+8. Study **Git and CI/CD** for collaborative history, repeatable validation, artifact provenance, releases, and recovery.
+9. Finish with **Containers and Orchestration** when applications are packaged or operated as services.
 
 ## Building an interview from the guide
 
@@ -32,7 +38,7 @@ A balanced 60–90 minute interview should sample depth instead of attempting br
 - one coding problem with an explicit invariant and complexity analysis;
 - one concurrency, OS, or networking scenario relevant to the role;
 - one design/API tradeoff;
-- one build, test, profiling, or production-diagnostic follow-up.
+- one build, test, Git, data, delivery, or production-diagnostic follow-up.
 
 Begin with a basic question and deepen it using code, failure cases, and changed constraints. The model answers are reference material, not a checklist that every candidate must recite verbatim.
 
@@ -46,5 +52,8 @@ The most useful senior-level questions connect several guides:
 - A public header edit rebuilds the repository: include dependencies, templates, PImpl, CMake target propagation, and compiler caches.
 - A TCP service processes duplicate requests: byte-stream framing, timeouts/retries, idempotency keys, schema evolution, and observability.
 - A lock-free queue is slower than a mutex: memory ordering, cache-line contention, progress guarantees, workload shape, and measurement.
+- A database-backed command times out during commit: RAII transactions, unknown outcomes, idempotency, retries, and the outbox pattern.
+- A container works locally but crashes in production: image digest, ABI/runtime libraries, CPU architecture, cgroup limits, signals, and symbols.
+- A release must be rolled back after a schema change: immutable artifacts, expand/migrate/contract, mixed-version compatibility, and roll-forward decisions.
 
 Strong answers distinguish standard guarantees from common implementations, state preconditions and ownership, quantify complexity or resource bounds, and identify what evidence would validate a performance or production claim.
