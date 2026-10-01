@@ -55,6 +55,11 @@ Labels:
    - [ELF basics](#82-elf-basics)
    - [`gdb`](#83-gdb-backtraces-breakpoints-and-watchpoints)
    - [Profiling with `perf` and Valgrind](#84-profiling-with-perf-valgrind-and-related-tools)
+9. [Performance engineering](#9-performance-engineering)
+   - [Latency, throughput, and percentiles](#91-latency-throughput-and-percentiles)
+   - [Batching, coalescing, throttling, and backpressure](#92-batching-coalescing-throttling-and-backpressure)
+   - [Allocation cost and memory behavior](#93-allocation-cost-and-memory-behavior)
+   - [Diagnosing long-running and production-only failures](#94-diagnosing-long-running-and-production-only-failures)
 
 ---
 
@@ -1064,6 +1069,112 @@ Labels:
 7. **[Deep dive] Why is optimizing the hottest function not always the best action?**
 
    **Answer.** It may be inherently proportional to useful work, already near hardware limits, or hot only because an upstream design calls it too often. Blocking/queueing can dominate wall time while consuming little CPU. Apply Amdahl's law, inspect call paths and off-CPU time, eliminate unnecessary work/data movement first, and re-profile after every change.
+
+---
+
+# 9. Performance engineering
+
+## 9.1. Latency, throughput, and percentiles
+
+1. **[Basic] How do latency and throughput differ?**
+
+   **Answer.** Latency is the time one operation takes, usually measured as a distribution from request arrival to completion. Throughput is the amount of work completed per unit time. They interact but are not interchangeable: batching may improve throughput while delaying individual work, and adding concurrency may increase throughput until contention/queueing raises latency sharply. A performance requirement should name the workload, concurrency, percentile, and measurement boundary.
+
+2. **[Deep dive] Why do systems often show a “latency knee” near saturation?**
+
+   **Answer.** As offered load approaches service capacity, small bursts or service-time variation create queues faster than they can drain. Utilization may increase only slightly while queueing delay grows dramatically. Retries and timeouts can add more work, producing a feedback loop. Capacity plans therefore need headroom and overload control rather than assuming that a resource operating at 100% remains responsive.
+
+   ```mermaid
+   flowchart LR
+       A[offered load] --> B[work queue]
+       B --> C[finite service capacity]
+       C --> D[completed throughput]
+       B --> E[queueing delay]
+       E --> F[timeouts and retries]
+       F -->|extra load| A
+   ```
+
+3. **[Basic] What do p50, p95, and p99 mean?**
+
+   **Answer.** A p99 latency of 80 ms means 99% of recorded observations were at or below 80 ms and 1% were above it; p50 is the median. Percentiles expose tail behavior hidden by the mean, but they do not identify the worst case or explain the distribution. Report the sample window, population, units, and traffic mix. Do not average independently calculated percentiles across hosts; aggregate suitable histograms or raw observations.
+
+4. **[Deep dive] Why are averages insufficient for latency-sensitive services?**
+
+   **Answer.** A small fraction of very slow operations can be invisible in the average yet dominate user experience, deadlines, resource retention, and fan-out requests. In a request that waits for many downstream calls, the probability that at least one is in the tail increases with fan-out. Keep means for capacity/cost analysis, but pair them with percentiles, maximums under a defined window, error rates, and traces that explain outliers.
+
+5. **[Deep dive] What are common latency-measurement errors?**
+
+   **Answer.** Measuring only service time while excluding queue time, using a non-monotonic wall clock for durations, omitting timed-out requests, warming caches in a way production does not, and generating the next request only after the previous completes can all bias results. The last issue can create coordinated omission: the load generator stops sampling during stalls. Use a monotonic clock, a representative arrival process, bounded warm-up, full outcome accounting, and a histogram with adequate range/resolution.
+
+6. **[Design] How should a performance investigation be structured?**
+
+   **Answer.** State a falsifiable symptom and business metric; reproduce or collect production evidence; split end-to-end latency into queueing, CPU, I/O, locks, allocation, and downstream time; profile the relevant resource; change one factor; then remeasure correctness and the original metric. Preserve workload and environment metadata. A faster microbenchmark is not a successful optimization if end-to-end performance, memory, reliability, or maintainability regresses.
+
+## 9.2. Batching, coalescing, throttling, and backpressure
+
+1. **[Basic] What is batching, and what tradeoff does it make?**
+
+   **Answer.** Batching processes several logical items in one operation, amortizing fixed costs such as syscalls, locks, network headers, transactions, and device submissions. It often improves throughput and CPU efficiency but makes early items wait while the batch fills, increases temporary memory, and creates larger failure/retry units. Production batching normally needs both a maximum item/byte count and a maximum wait time.
+
+2. **[Basic] What is request or event coalescing?**
+
+   **Answer.** Coalescing combines redundant or superseded work rather than merely executing all work together. Concurrent cache misses for the same key can share one fetch; repeated “set current value” updates can collapse to the latest value. It is safe only when the operation's semantics permit merging—commands such as “increment” or audit events usually cannot be discarded. Cancellation, errors, and per-caller deadlines still need defined behavior.
+
+3. **[Basic] What is throttling?**
+
+   **Answer.** Throttling limits admission or execution rate/concurrency to protect a resource, enforce quotas, or shape traffic. Common mechanisms include token buckets, leaky buckets, semaphores, and per-tenant concurrency limits. A good design defines burst allowance, fairness, rejection versus delay, retry guidance, and metrics. A single global limit can allow one noisy tenant to starve others.
+
+4. **[Basic] What is backpressure?**
+
+   **Answer.** Backpressure lets a slower downstream stage communicate limited capacity upstream so work is slowed, rejected, sampled, or shed instead of accumulating without bound. In a synchronous path it may be blocking or an explicit “busy” result; in an asynchronous stream it may be credits/demand, bounded queues, or flow-control windows. It is an end-to-end policy: merely moving an unbounded queue to another component does not solve overload.
+
+5. **[Deep dive] Why is a bounded queue part of correctness, not only performance?**
+
+   **Answer.** An unbounded queue turns sustained overload into unbounded memory and ever-growing delay; by the time memory is exhausted, queued work may already be useless because deadlines expired. A bound makes overload behavior explicit. When full, the system must block, reject, drop according to priority, spill to a durable store, or reduce upstream demand. The chosen policy must preserve ordering, durability, and user-visible guarantees.
+
+6. **[Design] How do batching, throttling, and backpressure fit together?**
+
+   **Answer.** Batching improves service efficiency, throttling caps how much work is admitted or active, and backpressure propagates insufficient downstream capacity. A practical pipeline uses bounded queues, size/time-limited batches, per-stage concurrency limits, and deadline-aware load shedding. Monitor queue depth/age, batch fill ratio, rejection rate, service time, and end-to-end latency; otherwise a throughput optimization can silently become a latency outage.
+
+## 9.3. Allocation cost and memory behavior
+
+1. **[Basic] Why can dynamic allocation be expensive?**
+
+   **Answer.** Allocation may search/update allocator metadata, synchronize between threads, request/commit pages, fault in memory, and reduce cache/TLB locality. Deallocation can contend and may not return memory to the OS. The indirect cost—pointer chasing, fragmentation, larger working set, and unpredictable latency—is often more important than the allocator call itself. Modern allocators make common small allocations fast, so measure the actual workload.
+
+2. **[Deep dive] What are internal and external fragmentation?**
+
+   **Answer.** Internal fragmentation is unused space inside allocated blocks due to size classes, alignment, or over-allocation. External fragmentation is free memory split into pieces that cannot satisfy a larger contiguous request, even if the total is sufficient. Process RSS may remain high after frees because pages contain other live blocks or stay cached by the allocator. Object pools reduce some fragmentation patterns but can retain excessive memory themselves.
+
+3. **[Design] What techniques reduce allocation overhead in C++?**
+
+   **Answer.** First remove unnecessary ownership and copies; reserve container capacity when a reliable bound is known; store small values contiguously; reuse buffers; batch objects with the same lifetime in arenas; and consider `std::pmr` to inject a suitable memory resource. Small-buffer optimization and pools help selected size/lifetime patterns. Each technique changes memory retention, exception/lifetime handling, and complexity, so profile allocations and peak/steady-state memory before and after.
+
+4. **[Deep dive] When is an arena or monotonic allocator appropriate?**
+
+   **Answer.** It is ideal when many objects share a phase/request lifetime: allocate cheaply by bumping a pointer and release the whole region at once. Individual deallocation is absent or ineffective, destructors may need explicit handling, and memory remains until the arena resets. It is a poor fit when a few objects must outlive the phase, sizes are adversarial, or independent prompt reclamation is required. References into a reset arena become invalid immediately.
+
+5. **[Code] How do you prove that allocation is the bottleneck?**
+
+   **Answer.** Collect allocation counts, bytes, lifetimes, call stacks, contention, and RSS/heap profiles under a representative load; correlate them with CPU and latency. Then run a controlled change such as reserving a known container or substituting a scoped memory resource and compare the original end-to-end metric. A large allocation count alone is not proof—calls may be cheap and another resource may dominate. Include peak memory and tail latency, not only average CPU time.
+
+## 9.4. Diagnosing long-running and production-only failures
+
+1. **[Design] How do you investigate a failure that appears only after several hours?**
+
+   **Answer.** Make the system observable before waiting: timestamped structured logs with correlation IDs, bounded diagnostic buffers, resource/queue/thread metrics, crash/core-dump collection, build identifiers, and configuration snapshots. Look for variables correlated with time or work—memory, handles, queue age, counters, file descriptors, connections, cache size, clock transitions, and rare inputs. Accelerate safely with stress, smaller limits, deterministic seeds, and fault injection, while preserving evidence from the original environment.
+
+2. **[Code] How do you distinguish a deadlock, livelock, starvation, and a slow dependency in a “hung” process?**
+
+   **Answer.** Capture all thread stacks repeatedly. A stable wait-for cycle around locks suggests deadlock; changing stacks with no useful progress suggests livelock; one runnable/ready worker repeatedly losing access suggests starvation; many threads blocked in the same socket/file operation points to an external dependency or missing timeout. Add lock/queue telemetry, scheduler/off-CPU profiling, syscall tracing, and downstream health. One stack snapshot shows where threads are, not necessarily why they arrived there.
+
+3. **[Deep dive] Why are core dumps and exact build artifacts important?**
+
+   **Answer.** A core preserves memory mappings, registers, stacks, and much process state near failure, enabling offline inspection without keeping production paused. Useful analysis requires the exact executable, shared libraries, debug symbols, and preferably source/build metadata; mismatched artifacts produce plausible but wrong frames and variables. Dumps may contain credentials and user data, so collection, transfer, access, and retention need security controls.
+
+4. **[Design] What diagnostic features should exist before a production incident?**
+
+   **Answer.** Define stable metrics for latency, errors, saturation, queues, memory, handles, and restarts; structured rate-limited logs; distributed/request correlation; health and readiness signals; safe dynamic log levels; watchdog or hang-dump support; symbolized crash reporting; and a way to reproduce configuration/build provenance. Diagnostics themselves need bounded resource use and privacy rules. Retrofitting observability after a rare incident often means the decisive evidence is already gone.
 
 ---
 
