@@ -17,6 +17,10 @@ Labels:
 5. [Resource management and move semantics](#5-resource-management-and-move-semantics)
 6. [Templates, SFINAE, and concepts](#6-templates-sfinae-and-concepts)
 7. [Exceptions and safety guarantees](#7-exceptions-and-safety-guarantees)
+8. [Program behavior, initialization, and compile-time tools](#8-program-behavior-initialization-and-compile-time-tools)
+   - [Behavior categories, optimization, and sequencing](#81-behavior-categories-optimization-and-sequencing)
+   - [Static initialization and standard-library customization](#82-static-initialization-and-standard-library-customization)
+   - [Type traits, `if constexpr`, CTAD, and forms of polymorphism](#83-type-traits-if-constexpr-ctad-and-forms-of-polymorphism)
 
 ---
 
@@ -1287,7 +1291,7 @@ Labels:
 
    **Answer.** They are a common implementation: each polymorphic object contains one or more hidden pointers to tables of virtual functions and metadata. The standard does not require either representation. It guarantees observable virtual-dispatch, RTTI, casting, construction, and destruction semantics, leaving layout and dispatch mechanisms to the ABI/compiler.
 
-7. **[Code] Find the problem.**
+7. **[Code] What is wrong with deleting this `Derived` object through `Base*`?**
 
    ```cpp
    struct Base {
@@ -1305,6 +1309,10 @@ Labels:
    ```
 
    **Answer.** `Base` is polymorphic but its destructor is non-virtual. Deleting a `Derived` through `Base*` has undefined behavior and may skip `Derived::~Derived`, leaking the resource. Declare `virtual ~Base() = default;`. Better yet, transfer ownership with `std::unique_ptr<Base>` after fixing the destructor.
+
+8. **[Deep dive] What is a pure virtual call, and how can a program reach one?**
+
+   **Answer.** It is an attempted virtual dispatch to a function whose active-class final overrider is pure. A common cause is calling a virtual operation from a base constructor/destructor when the derived part is not active; another is using an object concurrently or through a dangling pointer while destruction changes or ends its dynamic lifetime. Implementations often terminate through a runtime stub such as `__cxa_pure_virtual`/`_purecall`, but the language behavior is undefined. Diagnose the lifetime/concurrency violation rather than treating the stub as the original cause.
 
 ## 4.6. `dynamic_cast` and object slicing
 
@@ -1351,6 +1359,10 @@ Labels:
    ```
 
    If value semantics are required, implement a virtual `clone()` and a value-wrapper, or use `std::variant` for a closed type set.
+
+7. **[Deep dive] What does `dynamic_cast` cost?**
+
+   **Answer.** An upcast to an unambiguous public base is normally a compile-time pointer adjustment and needs no runtime search. A downcast or cross-cast may inspect RTTI and hierarchy metadata and perform pointer adjustments; cost depends on the ABI, hierarchy shape, success/failure, and compiler, so there is no portable constant. It is usually small relative to I/O but can matter in a hot heterogeneous loop. Measure the real design, and avoid replacing a clear safe cast with manual type tags unless profiling and correctness justify it.
 
 ## 4.7. Operator overloading
 
@@ -1485,6 +1497,32 @@ Labels:
 
    **Answer.** `release()` makes `p` empty and no owner later deletes `raw`; an exception from `use()` makes the leak immediate. If only borrowing is needed, call `p->use()` or use `Resource* raw = p.get();` while keeping `p` alive. Use `release()` only at an ownership-transfer boundary whose recipient explicitly adopts the pointer.
 
+9. **[Code] What must a minimal `unique_ptr`-like owner implement?**
+
+   **Answer.** It stores one pointer (and normally a deleter), deletes copying, provides a non-throwing destructor, transfers ownership in move construction/assignment, and offers observers plus `release`, `reset`, and `swap`. Move assignment must release the old resource exactly once and handle self-move deliberately. A production implementation also needs array specialization, fancy-pointer/deleter rules, converting moves, constraints, empty-deleter compression, comparison utilities, and correct conditional `noexcept`; an interview sketch should not be substituted for `std::unique_ptr`.
+
+   ```cpp
+   template<class T>
+   class Owner {
+       T* p_ = nullptr;
+   public:
+       explicit Owner(T* p = nullptr) noexcept : p_(p) {}
+       ~Owner() { delete p_; }
+       Owner(const Owner&) = delete;
+       Owner& operator=(const Owner&) = delete;
+       Owner(Owner&& other) noexcept : p_(std::exchange(other.p_, nullptr)) {}
+       Owner& operator=(Owner&& other) noexcept {
+           if (this != &other) reset(std::exchange(other.p_, nullptr));
+           return *this;
+       }
+       T* get() const noexcept { return p_; }
+       T* release() noexcept { return std::exchange(p_, nullptr); }
+       void reset(T* p = nullptr) noexcept { T* old = std::exchange(p_, p); delete old; }
+       T& operator*() const { return *p_; }
+       T* operator->() const noexcept { return p_; }
+   };
+   ```
+
 ## 5.3. `std::shared_ptr`, `std::weak_ptr`, and the control block
 
 1. **[Basic] Which ownership model does `std::shared_ptr` express, and when is it actually needed?**
@@ -1531,7 +1569,7 @@ Labels:
 
    **Answer.** Separate smart-pointer objects that share a control block may be copied/reset/destroyed concurrently; reference-count operations are synchronized. Concurrent unsynchronized writes to the same `shared_ptr` object are not safe unless using the appropriate atomic shared-pointer facilities. The pointed-to object receives no automatic synchronization at all—its own data races must be prevented separately.
 
-10. **[Code] Find the problem.**
+10. **[Code] What ownership problem exists between `Node::parent` and `Node::children`?**
 
     ```cpp
     struct Node {
@@ -1541,6 +1579,10 @@ Labels:
     ```
 
     **Answer.** Parent and children form strong cycles: a parent owns each child and each child owns the parent, so the graph leaks when external owners disappear. Let the parent own children and make the back-reference non-owning: `std::weak_ptr<Node> parent;`. Tree construction should establish nodes under shared ownership before assigning weak parent links.
+
+11. **[Code] What must a simplified `shared_ptr` control block and implementation do?**
+
+    **Answer.** The control block stores strong and weak counts plus erased destruction/deallocation operations; `make_shared` may store the object in the same allocation. Copying a strong handle atomically increments the strong count. Releasing decrements it; the transition to zero destroys the managed object, and the control block is freed only after the weak count also reaches its terminal value. `weak_ptr::lock` must atomically increment the strong count only if it is nonzero, otherwise destruction can race with resurrection. A correct implementation also handles aliasing pointers, custom deleters/allocators, exception safety, memory ordering, `enable_shared_from_this`, and incomplete types—far beyond a naive `atomic<int>*` reference counter.
 
 ## 5.4. Move semantics and perfect forwarding
 
@@ -1933,6 +1975,138 @@ Labels:
 8. **[Code] Propose a strategy for testing exception safety in a class that performs several allocations.**
 
    **Answer.** Inject a deterministic allocator/resource that throws on the Nth allocation. For every `N` from the first allocation through successful completion, start from a known object snapshot, execute the operation, catch the injected exception, then verify invariants, observable state promised by the selected guarantee, live-object/resource counts, and continued usability/destruction. Run under AddressSanitizer/LeakSanitizer (or the platform equivalent), include copy/move/member-operation fault injection—not only allocation—and test success, self-assignment, and boundary sizes.
+
+---
+
+# 8. Program behavior, initialization, and compile-time tools
+
+## 8.1. Behavior categories, optimization, and sequencing
+
+1. **[Basic] What is undefined behavior, and why does it permit results that appear unrelated to the source code?**
+
+   **Answer.** Undefined behavior (UB) means that the C++ standard imposes no requirements on the execution after the invalid operation. Examples include signed integer overflow, an out-of-bounds access, dereferencing an invalid pointer, and a data race. An optimizing compiler may assume that a well-formed execution never reaches UB; it can therefore remove branches, reorder operations, or derive facts that make the observed failure look surprising. UB is not a portable error-reporting mechanism and is not guaranteed to crash.
+
+2. **[Deep dive] Distinguish undefined, unspecified, implementation-defined, and ill-formed behavior.**
+
+   **Answer.** Undefined behavior has no requirements. Unspecified behavior permits one of several valid outcomes without requiring the implementation to document which occurs on a particular execution, such as which equal element an algorithm chooses when its contract allows either. Implementation-defined behavior requires the implementation to choose and document an outcome, such as the signedness of plain `char`. An ill-formed program violates a compile-time rule; a diagnostic is normally required, except for explicitly designated ill-formed-no-diagnostic-required cases such as some ODR violations. These categories determine whether code is portable, diagnosable, or invalid—not merely whether its output is convenient.
+
+3. **[Deep dive] What is the as-if rule, and what counts as observable behavior?**
+
+   **Answer.** An implementation may transform a program in any way as long as the behavior observable under the abstract machine is preserved for a well-defined execution. Observable behavior includes accesses to volatile objects, data written to files or interactive devices under the library rules, and the synchronization-visible behavior of atomics; exact wording varies by standard version. Ordinary loads, temporary objects, and function calls may disappear when their effects cannot be observed. The rule does not protect timing, stack layout, debug-friendly instruction order, or effects that occur only on a UB path.
+
+4. **[Basic] What do “sequenced before,” “indeterminately sequenced,” and “unsequenced” mean?**
+
+   **Answer.** If evaluation A is sequenced before B, all value computations and side effects of A occur before those of B. Indeterminately sequenced evaluations do not overlap, but either whole evaluation may occur first. Unsequenced evaluations may be interleaved or occur in either order; conflicting unsequenced accesses to the same scalar object, where at least one modifies it, cause UB. Sequencing is a language rule within one thread and is different from inter-thread happens-before.
+
+5. **[Code] Is the order of function-argument evaluation left-to-right? What changed in C++17?**
+
+   **Answer.** The language does not generally require left-to-right evaluation of function arguments. Since C++17, each argument evaluation is indeterminately sequenced with respect to the others: one argument is fully evaluated before another begins, but the implementation may choose which one first. This prevents interleaving of the individual argument evaluations, but code such as `f(i++, i++)` still receives values in an unspecified order and should be rewritten into explicit statements when order matters. The function expression itself is sequenced before the arguments in C++17 and later.
+
+6. **[Deep dive] Which expressions impose useful sequencing, and which common intuitions are unsafe?**
+
+   **Answer.** `&&`, `||`, the comma operator, and the condition before the selected arm of `?:` impose sequencing; short-circuit operators also skip the right operand when appropriate. A full-expression completes before the next full-expression. Ordinary arithmetic operators do not impose a source-order evaluation rule, and parentheses control grouping rather than evaluation order. Initializer-list elements are evaluated left-to-right, while function arguments are not. Prefer separate named statements when correctness depends on order.
+
+7. **[Code] How do you investigate suspected undefined behavior?**
+
+   **Answer.** Reduce the case while preserving compiler flags and input, then enable warnings and run multiple complementary configurations: AddressSanitizer for many lifetime/bounds errors, UndefinedBehaviorSanitizer for selected UB, ThreadSanitizer for data races, and library debug/assertion modes for iterator/precondition errors. Compare debug and optimized builds, inspect optimizer diagnostics or generated code only after checking the source contract, and use static analysis where useful. A clean sanitizer run does not prove absence of UB: only executed and instrumented paths are checked, and sanitizers have blind spots.
+
+## 8.2. Static initialization and standard-library customization
+
+1. **[Basic] What initialization phases apply to objects with static storage duration?**
+
+   **Answer.** Static initialization consists of constant initialization when the initializer can be performed at compile time, otherwise zero-initialization. It occurs before dynamic initialization. Dynamic initialization then runs code such as non-constant constructors. Within one translation unit, ordered dynamic initialization generally follows definition order; across translation units the relative order is usually not a dependency contract. Thread-local objects have related rules tied to each thread.
+
+2. **[Deep dive] What is the static initialization order fiasco?**
+
+   **Answer.** It occurs when a namespace-scope object's dynamic initializer in one translation unit uses another dynamically initialized object from a different translation unit. Their relative initialization order is not reliably specified, so the consumer may observe only the target's zero-initialized storage. Destruction has the reverse dependency problem: one static object may use another after it has been destroyed. The bug can vary with link order and disappear under a debugger.
+
+   ```mermaid
+   flowchart LR
+       A[Translation unit A: logger] -. unspecified order .- B[Translation unit B: registry]
+       B -->|constructor calls logger| C{logger initialized?}
+       C -->|yes| D[works]
+       C -->|no| E[invalid early use]
+   ```
+
+3. **[Code] How does construct-on-first-use address initialization order?**
+
+   **Answer.** Return a function-local static object from an accessor. It is initialized when control first reaches its declaration, so dependency order follows call order; since C++11, its initialization is thread-safe. The object is still normally destroyed at program exit, so cross-static destruction dependencies can remain. For process-lifetime infrastructure, an intentionally never-destroyed object is sometimes justified, but the leak and shutdown semantics should be explicit rather than accidental.
+
+   ```cpp
+   Registry& registry() {
+       static Registry instance;
+       return instance;
+   }
+   ```
+
+4. **[Deep dive] How do `constexpr` and `constinit` help with global initialization?**
+
+   **Answer.** A `constexpr` object must have a constant initializer and is itself `const`, so it avoids runtime dynamic initialization. `constinit` requires static or thread-local storage to be statically initialized but does not make the object immutable; it rejects a change that would silently introduce dynamic initialization. These tools remove ordering dependencies only when the complete initializer is constant. They do not solve later unsynchronized access to a mutable global.
+
+5. **[Basic] May user code add declarations to `namespace std`?**
+
+   **Answer.** In general, no: adding declarations or definitions to `std` or its nested namespaces gives undefined behavior unless the standard explicitly permits that customization. A major permitted case is an explicit specialization of certain standard templates for a program-defined type, provided the specialization meets the template's requirements and the specific standard rule allows it. Adding overloads for fundamental or standard-library types, injecting helper functions, or forward-declaring standard types is not portable.
+
+6. **[Code] When is specializing `std::hash` appropriate, and what contract must it satisfy?**
+
+   **Answer.** An explicit `std::hash<MyType>` specialization is the conventional customization for a user-defined key type. It must be visible where instantiated, be callable for the key, and return equal hash values for keys considered equal by the associated equality predicate. Unequal keys may collide. An alternative is to leave `std` untouched and pass a custom hasher type to the unordered container, which is often clearer for multiple equality notions.
+
+7. **[Deep dive] Which identifiers are reserved to the implementation?**
+
+   **Answer.** Identifiers containing a double underscore anywhere and identifiers beginning with an underscore followed by an uppercase letter are reserved in all scopes. Identifiers beginning with an underscore are additionally reserved in the global namespace. The standard library and implementation also reserve specified macro/function names in relevant headers and contexts. Project names should avoid these patterns because a collision can make otherwise reasonable code ill-formed or non-portable.
+
+## 8.3. Type traits, `if constexpr`, CTAD, and forms of polymorphism
+
+1. **[Basic] What are type traits, and what kinds of questions do they answer?**
+
+   **Answer.** Type traits are compile-time templates, mostly in `<type_traits>`, that classify types, query properties, or transform types. Examples include `std::is_integral_v<T>`, `std::is_nothrow_move_constructible_v<T>`, `std::remove_cvref_t<T>`, and `std::common_type_t<A, B>`. They support generic implementation decisions and constraints. A trait only promises its documented semantic; inferring layout or safety from a similarly named property is a common error.
+
+2. **[Deep dive] How do `remove_reference`, `remove_cvref`, and `decay` differ?**
+
+   **Answer.** `remove_reference_t<T>` removes only `&` or `&&`. `remove_cvref_t<T>` first removes the reference and then top-level `const`/`volatile`. `decay_t<T>` approximates passing by value: it removes references and top-level cv-qualification, converts arrays to pointers, and converts function types to function pointers. Use the narrowest transformation that matches the intended contract; blind decay can erase array extent or function type information.
+
+3. **[Basic] How does `if constexpr` differ from an ordinary `if` inside a template?**
+
+   **Answer.** Its condition must be a constant expression. After template instantiation selects a branch, the other branch is discarded for that specialization, so code that would be ill-formed only for the current dependent type need not be instantiated. An ordinary `if` type-checks both branches even when its condition is constant. Non-dependent syntax and semantic errors must still be valid when the template is defined; `if constexpr` is not a way to hide arbitrary broken code.
+
+4. **[Code] Show a useful combination of a trait and `if constexpr`.**
+
+   **Answer.** The implementation can choose a valid, efficient operation while keeping one public template. In modern interface design, a concept may be better for rejecting unsupported types at the boundary, while `if constexpr` remains useful for implementation branches.
+
+   ```cpp
+   template<class T>
+   void relocate(T* first, T* last, T* destination) {
+       if constexpr (std::is_trivially_copyable_v<T>) {
+           std::memmove(destination, first,
+                        static_cast<std::size_t>(last - first) * sizeof(T));
+       } else {
+           std::uninitialized_move(first, last, destination);
+       }
+   }
+   ```
+
+   Real relocation code must also define overlap, destruction, and exception-safety rules; the example illustrates selection, not a complete container implementation.
+
+5. **[Basic] What is class template argument deduction (CTAD)?**
+
+   **Answer.** Since C++17, construction syntax may deduce a class template's arguments from constructor arguments or deduction guides, for example `std::pair p{1, 2.0};`. CTAD applies when naming the class template without an argument list in a deduction context; it does not make the type permanently generic, and it does not normally deduce through an arbitrary function parameter declared as a template-id. Explicit template arguments remain useful when the intended type differs from what construction naturally implies.
+
+6. **[Deep dive] What is a deduction guide, and when is a user-defined guide needed?**
+
+   **Answer.** A deduction guide maps constructor-like parameter types to a class-template specialization. Compilers synthesize implicit guides from constructors, but a user-defined guide is needed when the desired template argument is transformed, absent from constructor parameters, or otherwise not deducible. Guides affect deduction only; they do not construct the object and cannot compensate for an invalid constructor. Overly broad guides can produce surprising types, so they should express a stable semantic rule.
+
+   ```cpp
+   template<class It>
+   Buffer(It, It) -> Buffer<typename std::iterator_traits<It>::value_type>;
+   ```
+
+7. **[Basic] What forms of polymorphism does C++ support?**
+
+   **Answer.** Subtype polymorphism uses virtual dispatch through a base interface at runtime. Parametric polymorphism uses templates to write code over types. Ad-hoc polymorphism includes function/operator overloading and customization selected for particular types. Coercion polymorphism uses conversions so one operation accepts related representations. C++ also supports closed-set runtime polymorphism through `std::variant` and visitation, and type erasure such as `std::function`; these mechanisms have different openness, ownership, diagnostics, and cost models.
+
+8. **[Design] How do you choose between virtual dispatch, templates, `std::variant`, and type erasure?**
+
+   **Answer.** Use a virtual interface for an open runtime set of implementations with identity and stable object-oriented contracts. Use templates when types are known at compile time and static optimization/genericity outweigh code-size and build-time costs. Use `variant` when the alternative set is closed and exhaustive handling is valuable. Use type erasure when callers need a stable non-templated value/API that can hold unrelated implementations. Decide using extension ownership, ABI boundaries, lifetime, allocation, compile-time coupling, and required operations—not a blanket rule about dispatch speed.
 
 ---
 
