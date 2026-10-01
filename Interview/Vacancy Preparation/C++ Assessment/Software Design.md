@@ -30,6 +30,7 @@ Labels:
 17. [Naming and API consistency](#17-naming-and-api-consistency)
 18. [Error handling](#18-error-handling)
 19. [Compatibility, ABI stability, and library distribution](#19-compatibility-abi-stability-and-library-distribution)
+20. [Distributed integration contracts and resilience](#20-distributed-integration-contracts-and-resilience)
 
 ---
 
@@ -618,6 +619,18 @@ Labels:
 
    **Answer.** “Massive controllers” accumulate business logic, models become database records with no behavior, views perform domain decisions, and bidirectional updates create feedback loops. Keep use-case orchestration in application services, domain rules in the model, and display formatting in presentation code. Test domain and controller/presenter behavior without a real GUI, and test view wiring separately.
 
+5. **[Basic] What belongs in a ViewModel?**
+
+   **Answer.** A ViewModel exposes presentation-ready state, commands/actions, validation feedback, and observable changes needed by a particular view or closely related view family. It may transform domain values into display choices and coordinate asynchronous UI work. Core business invariants, database/network protocol details, widget instances, and assumptions about one concrete rendering toolkit should stay outside it. Its public state should make loading, success, empty, and error cases explicit.
+
+6. **[Deep dive] How should lifetime and threading be handled around a ViewModel?**
+
+   **Answer.** Long-running operations should be owned or cancellable according to the screen's lifetime; callbacks must not retain a destroyed view, and late results need a defined policy. UI-observable state is normally updated on the framework's UI thread, while I/O and heavy computation run elsewhere. Inject schedulers/executors, clocks, and service interfaces so tests can drive completion deterministically instead of sleeping or running a real event loop.
+
+7. **[Design] How do you incrementally refactor a fat UI class without stopping feature delivery?**
+
+   **Answer.** Characterize current behavior with focused tests, identify one use case, and extract its domain rule or I/O dependency behind a narrow seam. Introduce a presentation state/command boundary and route one event through it while the rest remains unchanged. Repeat by vertical slice, keeping adapters for legacy widgets and measuring regressions. A large “rewrite to MVVM” is riskier than moving responsibilities one independently testable behavior at a time.
+
 ---
 
 # 16. Publish-subscribe and event-driven systems
@@ -770,6 +783,58 @@ Labels:
 8. **[Design] What should a stable plugin boundary expose?**
 
    **Answer.** Prefer a small C ABI with versioned structs/function tables, opaque handles, explicit create/destroy functions, fixed-width types, negotiated capability/version fields, and caller-provided buffers or clearly paired allocators. Do not pass STL containers, C++ exceptions, compiler-specific class layouts, or ownership across unknown runtimes. Validate plugin versions and keep each side responsible for freeing what it allocated.
+
+---
+
+# 20. Distributed integration contracts and resilience
+
+1. **[Basic] What is the difference between a serialization format and an application protocol?**
+
+   **Answer.** A serialization format encodes data values—fields, numbers, strings, arrays—into bytes or text. An application protocol defines message meaning, allowed sequences, identifiers, versioning, errors, timeouts, retries, authorization, and state transitions. Choosing JSON, Protocol Buffers, or FlatBuffers does not answer whether a command is idempotent or how a response correlates with a request. Treat wire semantics as a first-class contract above the encoding.
+
+2. **[Design] How do JSON, Protocol Buffers, and FlatBuffers differ at a high level?**
+
+   **Answer.** JSON is human-readable and ubiquitous but verbose, dynamically typed, and requires explicit schema/validation discipline. Protocol Buffers use an IDL and compact binary encoding with generated types and strong field-evolution rules; decoding builds an object representation. FlatBuffers are schema-driven and designed for access directly from a validated byte buffer with little or no unpacking, trading a more constrained access/build model for low-copy latency. Choose using ecosystem, debuggability, message size, compatibility, allocation/latency, and trust-boundary validation—not benchmark slogans.
+
+3. **[Deep dive] What are backward and forward compatibility for a message schema?**
+
+   **Answer.** Backward compatibility commonly means a new reader can consume data written by an old writer; forward compatibility means an old reader can tolerate data written by a new writer. Exact terminology can vary, so state writer/reader versions explicitly. Prefer additive optional fields with stable identifiers and defaults, preserve unknown fields when the format supports it, never reuse removed numeric tags, and do not silently change a field's units or meaning. Run compatibility tests across supported version pairs.
+
+4. **[Deep dive] Why are idempotency keys useful?**
+
+   **Answer.** A caller that times out cannot know whether the server committed the operation before the response was lost. Retrying a non-idempotent command may duplicate a charge or order. A stable idempotency key lets the server record the command's outcome atomically with its effects and return the same logical result for duplicates. The design must define key scope, request-payload mismatch, retention, concurrency, and storage failure; an in-memory “seen set” is insufficient across restarts and replicas.
+
+5. **[Deep dive] How should a consumer handle duplicates, reordering, and stale messages?**
+
+   **Answer.** Make effects idempotent where possible, persist processed message or operation IDs when deduplication is required, and partition by an entity key when per-entity order matters. Include monotonic sequence/version information so a consumer can reject stale updates and detect gaps. Deduplication state needs a retention bound consistent with the broker's replay/redelivery window. “Exactly once” at one transport boundary does not automatically cover a database plus external side effect.
+
+6. **[Design] Why model a protocol or workflow as an explicit state machine?**
+
+   **Answer.** An enum/state type plus explicit transitions makes legal events, guards, side effects, retries, and terminal states reviewable and testable. Several booleans permit contradictory states such as `connected && closing && failed`, while scattered callbacks hide transition order. Persist state and transition intent together when recovery matters, make duplicate events safe, and define behavior for impossible/out-of-order inputs instead of assuming they never arrive.
+
+   ```mermaid
+   stateDiagram-v2
+       [*] --> Disconnected
+       Disconnected --> Connecting: connect
+       Connecting --> Ready: handshake succeeds
+       Connecting --> Backoff: failure / timeout
+       Backoff --> Connecting: retry budget permits
+       Ready --> Closing: close
+       Ready --> Backoff: connection lost
+       Closing --> Disconnected: resources released
+   ```
+
+7. **[Basic] How do timeout, retry, and circuit-breaker policies interact?**
+
+   **Answer.** A timeout bounds how long an attempt consumes resources; a retry makes another attempt for failures judged transient; a circuit breaker temporarily stops attempts when a dependency is consistently unhealthy. Retries need a total deadline, small budget, exponential backoff with jitter, and idempotent semantics. Layered libraries must coordinate budgets or retries multiply. A breaker should expose its state and probe recovery carefully; it is overload protection, not a substitute for fixing the dependency.
+
+8. **[Design] What observability should cross a client-server boundary?**
+
+   **Answer.** Propagate a trace/correlation context and record structured operation name, peer, version, outcome, latency, retry count, and relevant queue time without logging secrets or entire payloads by default. Metrics should distinguish transport, timeout, validation, business, and dependency failures. Distributed traces reveal the critical path; logs explain selected events; metrics show aggregate health. Stable identifiers and clock-aware timestamps are essential for joining evidence across processes.
+
+9. **[Deep dive] How do you roll out an incompatible distributed change safely?**
+
+   **Answer.** First introduce a compatibility bridge: additive schema fields, a version-negotiated endpoint, or dual read/write. Deploy consumers/readers that tolerate both forms before producers emit the new one, observe adoption and errors, migrate stored/in-flight data if necessary, and only later remove the old path. Feature flags and canaries reduce blast radius, but rollback must account for data already written in the new form. A simultaneous “flag day” is rarely safe when services deploy independently.
 
 ---
 
