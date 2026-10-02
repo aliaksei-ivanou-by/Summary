@@ -499,6 +499,12 @@ Labels:
 
     **Answer.** They communicate intent, encode tested boundary behavior, work across iterator/range types, and can use optimized implementations/execution policies. A loop remains preferable when control flow or coupled state does not map cleanly; forcing an algorithm chain can reduce clarity. With C++20 ranges, projections and views cover many previously awkward cases.
 
+11. **[Deep dive] Why can `std::sort` outperform C's `qsort`, even when both sort the same array?**
+
+    **Answer.** `qsort` erases the element type behind `void*`, receives the element size at runtime, and normally calls a comparator through a function pointer. That ABI is flexible, but it limits type checking and can prevent the compiler from inlining the comparison into the sorting loop. `std::sort` is instantiated for the iterator and comparator types, so the compiler sees element operations and a small lambda/function object, can inline them, and can optimize the combined loop. It also expresses the range as `[first,last)` without casts or a separate byte size.
+
+    Faster is not a language guarantee: library implementation, data distribution, comparator cost, code size, link-time optimization, and hardware all matter. Benchmark optimized equivalent programs on identical pre-generated inputs, verify the results, exclude setup/I/O from the timed region, and repeat enough runs to inspect the distribution rather than relying on one timing.
+
 ## 4.2. `lower_bound`, `upper_bound`, `remove_if`, `reverse`, `unique`, and erase-remove
 
 1. **[Basic] What does `lower_bound` return?**
@@ -990,6 +996,12 @@ Labels:
 14. **[Deep dive] What did chrono add in C++20?**
 
     **Answer.** Calendar types, days/weeks/months/years durations, clock conversions, time-zone database/zoned time, and chrono formatting/parsing make civil-time work more type-safe. Local times can be ambiguous or nonexistent at time-zone transitions. Implementation availability/data deployment must be checked without making the domain depend on a hard-coded offset.
+
+15. **[Deep dive] How does `co_await expression` obtain and use an awaiter, including `operator co_await`?**
+
+    **Answer.** In an ordinary coroutine body, the promise may first transform the operand through `promise.await_transform(expression)`. The resulting awaitable is then converted to an awaiter by a member `operator co_await`, a non-member overload found by argument-dependent lookup under the coroutine rules, or, if neither applies, by using the awaitable itself. `operator co_await` is therefore a customization step that adapts a domain object to the awaiter protocol; it does not itself suspend the coroutine.
+
+    The compiler calls `await_ready()` first. If it returns true, execution continues without suspension. Otherwise it suspends and calls `await_suspend(coroutine_handle)`: a `void` return leaves it suspended, `bool` keeps it suspended for true and resumes it for false, and a returned coroutine handle transfers execution to that coroutine. When the original coroutine continues, `await_resume()` supplies the value of the `co_await` expression or throws. The protocol provides mechanics only: the awaitable library must define scheduling, ownership, cancellation, thread-affinity, and the lifetime of both the coroutine frame and operation state.
 
 ## 7.2. Important C++23 features
 
