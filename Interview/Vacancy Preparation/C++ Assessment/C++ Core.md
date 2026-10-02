@@ -249,6 +249,10 @@ Labels:
 
    **Answer.** Both `local` and `cached` are alive while the function body executes. `local` has automatic storage and its lifetime ends on return, so returning `&local` creates a dangling pointer and later dereference is undefined behavior. `cached` has static storage and remains alive until program termination, so returning `&cached` is valid, although shared mutable state may require synchronization. The returned pointer's validity therefore depends on the runtime branch—an unsafe interface.
 
+7. **[Deep dive] Why can a `goto` or `switch` case label make code ill-formed by bypassing initialization?**
+
+   **Answer.** A control transfer cannot enter a variable's scope at a point that bypasses initialization when the language's jump rules prohibit that entry. `case` labels do not create nested scopes, so `case 0: Widget w; case 1: use(w);` is ill-formed: dispatch directly to `case 1` would skip `w`'s construction. Put each case body that owns objects in explicit braces. Transfers that leave a scope—`return`, `break`, `continue`, or an allowed `goto`—destroy fully constructed automatic objects whose scopes are exited, which is why RAII remains effective on structured early exits.
+
 ## 1.7. Linkage: internal, external, and no linkage
 
 1. **[Basic] What is linkage, and how does it differ from visibility and storage duration?**
@@ -279,6 +283,12 @@ Labels:
    ```
 
    **Answer.** It is a distinct internal-linkage object in every translation unit that includes the header. Incrementing it in one translation unit does not update the others. If a single program-wide object is intended, use `inline int counter = 0;` in C++17+, or `extern int counter;` in the header plus exactly one definition in a `.cpp`; preferably encapsulate mutation behind an interface.
+
+7. **[Deep dive] Why should an unnamed namespace normally not appear in a header?**
+
+   **Answer.** An unnamed namespace gives its members internal linkage, so every translation unit that includes the header receives distinct functions, objects, and types. Per-translation-unit state is then not shared, code and data may be duplicated, type identities differ, and references from inline/template definitions can create subtle ODR problems. A unity build may also change the number of copies or expose collisions, making behavior depend on build structure.
+
+   Keep unnamed namespaces in `.cpp` files for implementation-local entities. In a header, use a named `detail` namespace plus `inline` functions/variables or templates when definitions must be visible, and expose only the intended public names. Deliberate per-translation-unit state is rare and should be documented explicitly rather than obtained accidentally.
 
 ## 1.8. The ODR and `inline` functions/variables
 
@@ -381,6 +391,12 @@ Labels:
    #endif
    ```
 
+7. **[Deep dive] Can templates or non-static member functions be given C language linkage?**
+
+   **Answer.** A linkage specification such as `extern "C"` is permitted only at namespace scope, and template declarations cannot have C language linkage. Writing `extern "C" template<class T> void f(T);` is therefore ill-formed, as is placing an `extern "C"` specification directly inside a class definition. If a class is declared within an enclosing C-linkage block, its member names and member-function types still retain C++ language linkage under the special class-member rules.
+
+   A portable C-facing boundary should expose non-overloaded free functions with C-compatible parameter/result types, often operating on opaque handles. Templates, member functions, overloads, exceptions, and class layout remain behind C++ wrappers.
+
 ---
 
 # 2. Types, conversions, and initialization
@@ -422,6 +438,12 @@ Labels:
    ```
 
    **Answer.** `f(0)` selects `f(int)` because identity conversion is better than converting the null pointer constant to `void*`. `f(nullptr)` selects `f(void*)` because `nullptr` converts to a pointer and cannot implicitly convert to `int`.
+
+8. **[Deep dive] Why is `std::abs(a - b) < fixed_epsilon` not a universal floating-point equality test?**
+
+   **Answer.** A fixed absolute tolerance may be reasonable near zero but becomes too strict for large magnitudes and too loose for sufficiently small values. A common domain-specific test combines absolute and relative tolerances, for example `abs(a-b) <= abs_tol + rel_tol * max(abs(a), abs(b))`, with tolerances chosen from the problem's units and accumulated error rather than from `numeric_limits<T>::epsilon()` alone. NaNs, infinities, signed zero, overflow in the subtraction, and non-transitive approximate equality also require an explicit policy.
+
+   Exact equality is still correct when exact identity is the contract, such as comparing a value with itself after no arithmetic, testing some discrete encodings, or recognizing a deliberately produced sentinel. Geometry predicates such as orientation and intersection often need robust/adaptive or exact arithmetic; sprinkling an arbitrary epsilon into every comparison can make the algorithm topologically inconsistent.
 
 ## 2.2. Integral promotions and usual arithmetic conversions
 
@@ -817,7 +839,21 @@ Labels:
 
    **Answer.** `name()` returns a reference to a temporary destroyed as the return expression completes; callers receive a dangling reference. Return `std::string` by value. In `prefix()`, `value.substr` returns a temporary `std::string`; the returned `string_view` refers to that destroyed temporary (and `value` also dies on return). Return an owning `std::string`, or return a view only into storage whose lifetime is guaranteed by the API.
 
-## 3.2. `sizeof`, `alignof`, and pointers to members
+8. **[Basic] How does an lvalue reference `T&` differ from a pointer `T*`?**
+
+   **Answer.** A reference binds to an existing object or function when initialized and cannot later be reseated; assigning through an object reference assigns to the referred object. Its ordinary syntax is transparent (`r.member` rather than `p->member`), it has no pointer arithmetic, and it provides no valid null state. C++ has no arrays of references or pointers to references, although `std::reference_wrapper<T>` provides a copyable, reseatable reference-like value when a container needs one.
+
+   A reference is still non-owning and can dangle when the object's lifetime ends. Binding a reference through a dereferenced null or otherwise invalid pointer does not create a usable “null reference”; it violates the language's validity requirements. An implementation may represent a reference with an address internally, but its storage representation is not the reference's portable programming model.
+
+9. **[Deep dive] What do member-function ref-qualifiers `&`, `const &`, and `&&` control?**
+
+   **Answer.** A trailing ref-qualifier constrains the value category of the implicit object: `f() &` is callable only on non-const lvalues, `f() const &` on const/non-const lvalues (and, unless an `&&` overload changes the set, potentially rvalues), and `f() &&` on rvalues. They can prevent a reference-returning accessor from being called on a temporary: `T& value() &` avoids immediately producing a dangling reference. An rvalue overload can instead transfer state safely, preferably by value, for example `T value() && { return std::move(value_); }`.
+
+10. **[Deep dive] Why is returning `T&&` often more dangerous than returning by value?**
+
+    **Answer.** An rvalue reference return does not extend the referred object's lifetime. `T&& pass(T&& x) { return std::move(x); }` merely returns an alias to the caller's object; if the argument was temporary, a stored result reference dangles at the end of the full expression. Returning `std::move(local)` is worse because the local dies as the function returns. Return a value for a new result. Rvalue-reference returns are mainly justified by forwarding utilities or carefully designed `&&`-qualified accessors whose lifetime contract is explicit.
+
+## 3.2. `sizeof`, `alignof`, arrays, and pointers to members
 
 1. **[Basic] What does `sizeof` return and in which units? Is `sizeof(char) == 1` always true?**
 
@@ -864,6 +900,24 @@ Labels:
 
    std::invoke(member_function, d, 3);
    ```
+
+7. **[Basic] How is a built-in multidimensional array laid out, and how is `a[i][j]` addressed?**
+
+   **Answer.** `T a[R][C]` is an array of `R` elements, each of which is an array of `C` contiguous `T` objects. C++ uses row-major layout: the rightmost index varies fastest, so `a[i][j]` is equivalent to `*(*(a + i) + j)` and has flat offset `i * C + j`. Traversing rows in the outer loop and columns in the inner loop follows adjacent memory; the opposite order uses a large stride and can lose cache locality.
+
+8. **[Deep dive] What type does a two-dimensional array decay to when passed to a function, and why is `T**` different?**
+
+   **Answer.** In most expressions, `T[R][C]` decays once to `T (*)[C]`, a pointer to a row of exactly `C` elements. A parameter written `T a[][C]` is adjusted to that pointer type, so the column extent must be known to compute `i * C + j`; only the first extent may be omitted. `T**` instead points to a `T*` and usually represents separately addressed rows, so it is neither layout- nor type-compatible with a contiguous built-in 2D array. A reference template such as `T (&a)[R][C]` can preserve both extents.
+
+9. **[Design] Compare a contiguous matrix representation with a jagged array of row pointers.**
+
+   **Answer.** A flat `std::vector<T>` needs one allocation, has compact metadata, supports cache-friendly traversal and vectorization, and addresses `(r,c)` as `data[r * cols + c]`; swapping logical rows requires moving elements or maintaining a separate permutation. Independently allocated rows support different row lengths and constant-time row-pointer swaps, but add allocations, pointer chasing, fragmentation, and weaker locality. Choose from required shape and operations. For an owning rectangular matrix, contiguous storage plus Rule-of-Zero members is usually the safer default.
+
+10. **[Deep dive] Which pointer-arithmetic operations are defined, and what is a one-past pointer?**
+
+    **Answer.** For a pointer `p` to an element of an array object, `p + i`, `p - i`, increment/decrement, and indexing are defined only while the result stays within that same array or reaches the special position one past its last element. The one-past pointer is useful as an end sentinel and may be compared or subtracted relative to that array, but it does not point to an object and must not be dereferenced. A non-array object is treated as an array of length one for these rules.
+
+    Subtracting two pointers is defined only when both point into the same array object or one past it; the result has type `std::ptrdiff_t` and counts elements, not bytes. Relational comparisons between pointers to unrelated objects do not provide a portable ordering; use `std::less` when a strict total order over pointers is required by generic code. Built-in indexing is defined by `p[i] == *(p + i)` (and therefore even `i[p]` is well-formed), so it inherits the same bounds and lifetime requirements. Forming an out-of-range pointer is already invalid even if code never dereferences it.
 
 ## 3.3. Function signatures, overloading, and default arguments
 
@@ -913,6 +967,23 @@ Labels:
    ```
 
    **Answer.** Yes. Converting `int` to `long` and `int` to `double` are both standard conversion sequences of conversion rank; neither is better under the applicable tie-breakers. An explicit cast/literal suffix or an `f(int)` overload resolves it.
+
+8. **[Design] When should a parameter be passed by value, reference, or pointer, and when should an out-parameter be replaced by a return value?**
+
+   **Answer.** Pass by value when the function needs its own value, will move from it, or the type is cheap to copy. Use `const T&` for a non-null read-only borrow whose lifetime covers the call, especially for expensive lvalues; use `T&` when mutation of an existing non-null object is the contract. A raw pointer naturally expresses an optional/non-owning argument or C-style buffer boundary, but ownership must be stated separately; use `std::span` for a sized contiguous range and smart pointers only when ownership semantics belong in the interface.
+
+   Prefer returning a value or a named result struct to unrelated out-parameters: copy elision/moves make this efficient, and the call site makes produced values explicit. Mutable out-references can be appropriate for an operation whose central meaning is to modify an object; output buffers, stable ABI/C interop, or measured reuse requirements may justify pointers/references. Document mutation and avoid using a pointer merely to make an out-parameter visually conspicuous.
+
+9. **[Code] How can overloads preserve the constness of a returned pointer or view?**
+
+   **Answer.** Make the source parameter—not merely the return type—distinguish the overloads:
+
+   ```cpp
+   char* find_text(char* text, const char* needle);
+   const char* find_text(const char* text, const char* needle);
+   ```
+
+   For a `char*` argument, the mutable overload is a better match than conversion to `const char*`; for a `const char*` argument, only the const overload is viable. The result therefore cannot silently remove constness. Two functions cannot be overloaded only by return type, so the source cv-qualification must participate in the parameter list. The same pattern appears in const/non-const member accessors such as `operator[]` and `data()`.
 
 ## 3.4. Returning values, references/pointers, NRVO, and copy elision
 
@@ -1132,6 +1203,18 @@ Labels:
 
    Every public operation must continue to preserve the `0..100` invariant.
 
+8. **[Deep dive] Is private access checked per object or per class? What changes between class-template specializations?**
+
+   **Answer.** Access is checked for the member's class context, not for the particular `this` object. A member of `Box<int>` may therefore read or modify private members of another `Box<int>` object. This is useful for comparisons, swaps, concatenation, and other operations involving two values of the same type.
+
+   `Box<int>` and `Box<double>` are distinct class specializations. One specialization does not automatically receive access to another specialization's private members. If cross-specialization access is part of the design, grant it deliberately—for example with `template<class> friend class Box;`—or expose a narrower public operation. Do not broaden friendship merely to avoid designing the actual conversion or collaboration contract.
+
+9. **[Design] Does a private field remain meaningfully encapsulated if an accessor returns it as a non-const reference?**
+
+   **Answer.** Access control still prevents callers from naming the field directly, but returning `T&` gives them a durable alias that can mutate it without validation, locking, logging, cache invalidation, or preservation of the class invariant. The alias can also outlive the object or be invalidated by later representation changes. Such an accessor is often effectively a public field with a function-call spelling and a stronger compatibility constraint.
+
+   Return by value for small independent data, `const T&` or a read-only view for a lifetime-bounded observation, and named mutating operations when changes must preserve rules. A trivial getter/setter can still centralize future behavior and prevent address escape, but boilerplate alone is not encapsulation; a public aggregate is clearer when the data genuinely has no invariant to protect.
+
 ## 4.2. Constructors, destructor, `explicit`, `= default`, `= delete`, and Rules of 0/3/5
 
 1. **[Basic] Which special member functions can the compiler generate?**
@@ -1192,6 +1275,22 @@ Labels:
 
    The compiler-generated copy/move/destructor now have the desired semantics.
 
+9. **[Design] What does it mean for a C++ type to have value semantics, and why is a constructor only the first step?**
+
+   **Answer.** A value-like type represents a complete value rather than an identity or an externally managed handle. Construction establishes a valid invariant immediately; destruction is safe; copying, moving, and assignment have predictable domain meaning; and operations on a `const` object do not mutate its observable value. Copies should not acquire surprising observable coupling through hidden mutable state, although an implementation may share immutable storage. This makes the type usable much like a built-in value in local variables, containers, algorithms, and return values.
+
+   A constructor prevents two-phase initialization such as default-constructing an object and later assigning a mandatory capacity, but it does not finish the design. Encapsulation must prevent invalid transitions, ownership should normally be delegated to Rule-of-Zero members, special-member behavior must match the abstraction, and equality or other domain operations should be defined when meaningful. Some resource or identity types are intentionally move-only and are not values in this sense; forcing copyability would misrepresent their semantics.
+
+10. **[Deep dive] Why is a constructor template never a copy constructor, and what can happen for same-type construction?**
+
+    **Answer.** A copy constructor has one of the language-defined non-template forms such as `T(const T&)`. A constructor template such as `template<class U> T(const Wrapper<U>&)` may convert between related specializations, but it does not suppress the implicitly declared `T(const T&)`; for an ordinary same-type copy, that non-template copy constructor is normally preferred. A broad forwarding constructor is a separate hazard: `template<class U> T(U&&)` can be a better match than `T(const T&)` for a non-const lvalue. Constrain it to exclude `T` itself (after removing cv/ref), or explicitly provide the intended copy/move overloads.
+
+11. **[Deep dive] How does a `union` manage non-trivial alternatives, and why can `= default` differ from an empty user-provided destructor?**
+
+    **Answer.** A union provides overlapping storage, but at most one non-static data member is normally active. If alternatives such as `std::string` or `std::vector<int>` have non-trivial construction or destruction, the program must track the active alternative, start its lifetime explicitly (for example with placement new or `std::construct_at`), destroy it with `std::destroy_at` before switching alternatives, and implement copy/move logic that respects that tag. Reading an inactive member is generally undefined behavior except for narrow language exceptions.
+
+    The compiler defines a defaulted union constructor, destructor, or copy/move operation as deleted when the selected implicit operation cannot correctly choose or process a non-trivial active member. Writing `~U() {}` instead creates a user-provided destructor, so it exists, but its empty body destroys no alternative; the enclosing tagged-union logic must do that work first. Thus `~U() = default` and `~U() {}` are not interchangeable. Prefer `std::variant` for an ordinary type-safe tagged union unless manual storage and lifetime control are genuinely required.
+
 ## 4.3. Member initialization order and aggregate initialization
 
 1. **[Basic] In what order are virtual bases, direct bases, and data members initialized?**
@@ -1227,6 +1326,14 @@ Labels:
 6. **[Deep dive] What are C++20 designated initializers, and what restrictions do they have?**
 
    **Answer.** They initialize named direct data members of an aggregate, for example `Point p{.x = 1, .y = 2};`. Designators must name direct non-static members and appear in declaration order; C++ does not support C-style out-of-order, nested, or array-index designators. You cannot mix designated and ordinary clauses at the same brace level, and the target must remain an aggregate.
+
+7. **[Basic] Why initialize bases and members in a constructor's member-initializer list instead of assigning in its body?**
+
+   **Answer.** Bases and members are initialized before the constructor body begins. Omitting a member initializer therefore default-initializes the subobject first, and an assignment in the body only replaces that already-created value; this can require an unnecessary construction plus assignment. References, const members, bases without default constructors, and members without default constructors cannot be repaired that way and must be initialized directly. Prefer member initializers for the object's initial state, while remembering that declaration order—not list order—controls execution.
+
+8. **[Deep dive] How do default member initializers and delegating constructors interact?**
+
+   **Answer.** A default member initializer is a fallback used when the selected non-delegating constructor does not explicitly initialize that member; an explicit member initializer overrides it. A delegating constructor has a single member initializer naming another constructor of the same class. The target constructor initializes all bases and members and runs its body first, after which the delegating constructor's body runs. The delegating constructor cannot also initialize individual members, and a delegation cycle is ill-formed.
 
 ## 4.4. Inheritance and virtual inheritance
 
@@ -1264,6 +1371,20 @@ Labels:
    ```
 
    **Answer.** As written, it contains two: one inside `Left`, one inside `Right`, so `Diamond*` to `Base*` is ambiguous without selecting a path. If both intermediate edges are `virtual Base`, the most-derived `Diamond` contains one shared `Base`. Making only one edge virtual still leaves two base subobjects: one virtual and one non-virtual.
+
+8. **[Deep dive] Why is it dangerous for a base-class constructor to receive a pointer or reference to a derived data member?**
+
+   **Answer.** All base subobjects are initialized before any non-static data member of the derived class, regardless of the member-initializer-list spelling. A constructor such as `Derived() : Base(&member_), member_(...) {}` can therefore expose storage whose `Member` lifetime has not begun; if `Base` reads it, calls methods on it, or assumes its invariant, behavior is invalid. Merely storing the pointer for later use is delicate because the base constructor must not observe the member and exception paths must remain safe.
+
+   Prefer redesigning ownership so the dependency is constructed outside and passed to both objects. When the relationship is unavoidable, the base-from-member idiom places a small helper base containing the dependency before the dependent base in the base-specifier list; bases are then initialized in that declaration order. This is an advanced lifetime tool, not a reason to introduce multiple inheritance casually.
+
+9. **[Deep dive] What is a final overrider, and how can a virtual diamond have no unique one?**
+
+   **Answer.** For each virtual function in each class, the language determines the final overrider that virtual dispatch will call for an object of that class. If `Left` and `Right` virtually inherit `Base` and both override `Base::run`, a `Diamond : Left, Right` has one shared `Base` subobject but two competing final overriders. `Diamond` is ill-formed until it provides its own `run()` override that resolves the conflict. In a non-virtual diamond there are two separate `Base` subobjects, so each branch can have its own final overrider, although selecting a base path may still be ambiguous.
+
+10. **[Basic] What are the language differences between `class` and `struct`?**
+
+    **Answer.** They define the same kind of class type and support the same members, constructors, virtual functions, templates, and inheritance. The language differences are defaults: members and nested types are private by default in a `class` and public by default in a `struct`; an unqualified base is inherited privately by a `class` and publicly by a `struct`. Explicit access specifiers and base-access specifiers override those defaults. Conventionally, `struct` often denotes a simple data-like type and `class` an encapsulated type, but that convention adds no language rule.
 
 ## 4.5. Polymorphism: `virtual`, `override`, `final`, pure virtual functions, and virtual destructors
 
@@ -1313,6 +1434,30 @@ Labels:
 8. **[Deep dive] What is a pure virtual call, and how can a program reach one?**
 
    **Answer.** It is an attempted virtual dispatch to a function whose active-class final overrider is pure. A common cause is calling a virtual operation from a base constructor/destructor when the derived part is not active; another is using an object concurrently or through a dangling pointer while destruction changes or ends its dynamic lifetime. Implementations often terminate through a runtime stub such as `__cxa_pure_virtual`/`_purecall`, but the language behavior is undefined. Diagnose the lifetime/concurrency violation rather than treating the stub as the original cause.
+
+9. **[Code] Why can a derived declaration hide base overloads, and how does `using Base::f` help?**
+
+   **Answer.** Unqualified member-name lookup finds `f` in the derived scope and stops; it does not automatically merge overloads from the base. Thus a declaration such as `Derived::f(int)` hides every `Base::f` from calls made through a `Derived` expression, including `Base::f(double)`, even when the derived function overrides one virtual overload. `using Base::f;` introduces the base overload set into the derived scope, after which ordinary overload resolution chooses among it and the derived declarations. `override` should still mark intended overrides. An explicitly qualified call such as `object.Base::f()` selects the base implementation and suppresses virtual dispatch rather than merely restoring an overload.
+
+10. **[Deep dive] Can a virtual member function be a function template?**
+
+    **Answer.** No: a member function template cannot be declared `virtual`. Virtual dispatch operates over a fixed set of virtual member signatures for a class, while a function template denotes an open family of specializations produced on demand. A class template may still declare ordinary virtual functions—each class specialization then has concrete virtual members—and a non-template virtual name may have several ordinary overloads. To combine runtime dispatch with type-generic input, use a fixed erased interface, a visitor/double-dispatch design, `variant`, or perform template dispatch outside the virtual boundary.
+
+11. **[Design] What is the Non-Virtual Interface pattern, and why can a private virtual function still be overridden?**
+
+    **Answer.** NVI exposes a public non-virtual operation that enforces the stable contract—validation, locking, tracing, default arguments, preconditions, and postconditions—then delegates one customization step to a protected or private virtual hook. Derived classes override the hook rather than replacing the public protocol. Access control determines who may name or call a member; it does not prevent a derived declaration from overriding a private virtual function, and `override` verifies the relationship. A private hook prevents derived code from calling the base hook directly unless the base exposes a separate facility.
+
+12. **[Deep dive] What are covariant virtual return types, and why are smart-pointer returns not covariant?**
+
+    **Answer.** An override may narrow a return type from `Base*` to `Derived*`, or from `Base&` to `Derived&`, when the pointed-to/referred class relationship is accessible and unambiguous and the cv-qualification rules are satisfied. A call through `Base*` still has the statically declared `Base*` result, while a call through `Derived*` can use `Derived*`. This supports the classic raw-pointer `clone` idiom. Template wrappers are unrelated class types for covariance purposes, so `std::unique_ptr<Derived>` cannot override a function returning `std::unique_ptr<Base>`; use the same owning return type in every override, or a non-virtual owning wrapper around a covariant raw `clone_impl`.
+
+13. **[Deep dive] What does virtual dispatch cost, and when can a compiler devirtualize it?**
+
+    **Answer.** A virtual call may require loading dispatch metadata, making an indirect call, and applying a `this` adjustment; the indirect target can also inhibit inlining and branch prediction. Multiple and virtual inheritance may require additional pointer adjustments. None of this has one portable fixed cost, and the standard does not mandate vtables. A compiler can replace the call with a direct call when it proves the dynamic type or final overrider—for example from a local exact object, a `final` class/function, whole-program analysis, profile-guided optimization, or LTO. `final` enables opportunities but does not guarantee an optimization; measure representative code before redesigning a clear interface.
+
+14. **[Basic] How do an expression's static and dynamic types differ, and which language mechanisms use each?**
+
+    **Answer.** The static type is determined at compile time from the declaration and expression rules. The dynamic type is the most-derived type of the object currently denoted by a polymorphic glvalue; it can differ when a base pointer or reference refers to a derived object. Name lookup, overload resolution, access checking, non-virtual calls, and default-argument selection use static information. An unqualified virtual call selects the final overrider from the dynamic type, while `dynamic_cast` and `typeid` can inspect the runtime hierarchy under their rules. Passing by value can slice the object and make the new complete object's dynamic type equal to the base type.
 
 ## 4.6. `dynamic_cast` and object slicing
 
@@ -1364,6 +1509,25 @@ Labels:
 
    **Answer.** An upcast to an unambiguous public base is normally a compile-time pointer adjustment and needs no runtime search. A downcast or cross-cast may inspect RTTI and hierarchy metadata and perform pointer adjustments; cost depends on the ABI, hierarchy shape, success/failure, and compiler, so there is no portable constant. It is usually small relative to I/O but can matter in a hot heterogeneous loop. Measure the real design, and avoid replacing a clear safe cast with manual type tags unless profiling and correctness justify it.
 
+8. **[Code] What happens when a derived object is assigned through a `Base&`?**
+
+   ```cpp
+   Derived first;
+   Derived second;
+   Base& base = first;
+   base = second;
+   ```
+
+   **Answer.** Ordinary overload resolution selects `Base::operator=` from the static type of `base`, and `second` binds or converts to its `Base` subobject. Only the base portion of `first` is assigned; its derived members retain their old values. The resulting mixture can violate a cross-subobject invariant even though the complete object was never copied into a separate sliced value. A virtual assignment-like protocol is possible but does not automatically solve incompatible dynamic types or provide virtual construction. Polymorphic value semantics are usually expressed with `clone`, a value wrapper, or a closed `variant`; identity-bearing objects often disable public copying.
+
+9. **[Deep dive] When does `typeid(expression)` report a dynamic type, and what happens for a null pointer?**
+
+   **Answer.** `typeid(T)` describes the named type. For an expression that is a glvalue denoting an object of polymorphic class type, `typeid` evaluates the expression and reports the most-derived dynamic type. Otherwise it reports the static type under the operator's rules; `typeid(pointer)` therefore describes the pointer type, not its pointee. If `p` is a null pointer to a polymorphic type, `typeid(*p)` throws `std::bad_typeid` because the evaluated dereference denotes no object. This is a special rule—do not generalize it into a claim that dereferencing null is safe.
+
+10. **[Deep dive] How do `static_cast` and `dynamic_cast` differ for downcasts involving virtual bases?**
+
+    **Answer.** Converting a derived pointer/reference to an accessible unambiguous base is an upcast and works implicitly, including when the base is virtual; the implementation performs any required adjustment. A reverse `static_cast` from a virtual-base pointer/reference to a derived type is ill-formed because the shared virtual subobject does not encode one fixed compile-time reverse path. For a non-virtual base, such a `static_cast` may compile, but using the result is unsafe unless the object really has the target derived type. With a polymorphic source, `dynamic_cast` performs the runtime search, handles multiple/virtual inheritance and cross-casts, and reports failure with null for pointers or `std::bad_cast` for references.
+
 ## 4.7. Operator overloading
 
 1. **[Basic] Which operators can and cannot be overloaded? Can precedence, associativity, or arity change?**
@@ -1401,6 +1565,84 @@ Labels:
 9. **[Code] What properties are expected from a correct `operator==`, and why are side effects dangerous?**
 
    **Answer.** It should represent a stable equivalence relation: reflexive, symmetric, and transitive, with repeated comparisons giving the same result while values are unchanged. It should normally be inexpensive, non-mutating, and consistent with hashing and ordering. Side effects break generic algorithms and containers that may compare any number of times or in unspecified orders, making results depend on implementation details rather than values.
+
+10. **[Deep dive] What is special about overloaded `operator->` evaluation?**
+
+    **Answer.** For `handle->member`, if `handle` has class type, the compiler calls `handle.operator->()`. If that returns another class object, the process repeats until an overload returns a raw pointer, after which the built-in arrow accesses `member`; a result that can reach neither is ill-formed. This recursive “drill-down” rule lets smart pointers and proxy handles layer behavior while preserving arrow syntax. Provide const-correct overloads and return a pointer/proxy whose pointee lifetime covers the complete expression.
+
+11. **[Design] How can a flat matrix support `m[row][column]` without storing `T**`?**
+
+    **Answer.** The outer `operator[]` can return a small row-proxy by value containing a pointer/span to the first element of that row; the proxy's `operator[]` returns `T&`. The const matrix overload must return a const-aware proxy yielding `const T&`, rather than accidentally allowing mutation through a temporary proxy. The proxy is non-owning and becomes invalid when the matrix dies or reallocates, so document invalidation and check row bounds before forming it. A two-argument `operator()` (or a multidimensional subscript where the selected language version supports it) is often simpler and can expose checked access more clearly.
+
+12. **[Design] Why are symmetric binary operators such as `+` and `==` often non-members?**
+
+    **Answer.** In `lhs.operator+(rhs)`, the left operand must already be an object on which the member can be called; user-defined conversion is not used to manufacture that implicit object. A non-member `operator+(lhs, rhs)` treats both operands as ordinary arguments, so conversions can be considered symmetrically. If `Number` has an implicit constructor from `int`, a member may support `number + 2` but not `2 + number`, while an appropriate non-member can support both. Simple assignment must be a member, and compound assignments are normally members by convention because they mutate the left operand; symmetry is a design criterion, not a rule that every other operator must be free.
+
+13. **[Deep dive] What is the hidden-friend idiom, and how can it solve a class-template operator deduction problem?**
+
+    **Answer.** Define a non-member operator as a `friend` inside the class definition. It is then found by argument-dependent lookup when an operand has the class type, without adding an ordinary visible name to broad namespace lookup. Inside a class template, each specialization can define a concrete non-template operator:
+
+    ```cpp
+    template<class T>
+    class Number {
+    public:
+        Number(T value);
+        Number& operator+=(const Number& rhs);
+
+        friend Number operator+(Number lhs, const Number& rhs) {
+            lhs += rhs;
+            return lhs;
+        }
+    };
+    ```
+
+    A namespace-level `template<class T> operator+(const Number<T>&, const Number<T>&)` cannot deduce `T` by first converting an `int` argument, because template argument deduction does not perform user-defined conversions. Once a `Number<T>` operand brings the hidden friend into the candidate set, the other ordinary parameter may use the permitted conversion. Friendship should still expose only what the operation genuinely needs.
+
+14. **[Basic] What are the canonical relationships among `operator+=`, `operator+`, and their return types?**
+
+    **Answer.** A mutating compound assignment is normally a member returning `T&` and returns `*this`, which supports conventional chaining. The non-mutating binary operator can take its left operand by value, apply the compound operator, and return the result:
+
+    ```cpp
+    T& T::operator+=(const T& rhs) {
+        // update *this while preserving the invariant
+        return *this;
+    }
+
+    T operator+(T lhs, const T& rhs) {
+        lhs += rhs;
+        return lhs;
+    }
+    ```
+
+    This centralizes the semantic rule and can copy an lvalue or move an rvalue into `lhs`. It is not automatically optimal for every domain: heterogeneous operands, matrix expression chains, proxies, or types with asymmetric operations may need dedicated overloads or a different representation. Consistency between `+` and `+=` is a semantic convention that the language does not enforce.
+
+15. **[Basic] How are prefix and postfix increment distinguished, and what should they return?**
+
+    **Answer.** Prefix is `T& operator++()` and normally increments then returns `*this`. Postfix is distinguished by an unused `int` parameter: `T operator++(int)`. It normally saves the old value, calls prefix, and returns the saved value by value. The same pattern applies to `--`. Prefix avoids creating the old-value result, so it is a good generic default when that value is not needed; for simple scalar-like iterators a compiler can often eliminate an unused postfix copy, so this should not become a cargo-cult performance claim.
+
+16. **[Code] What happens if equally good member and non-member overloads implement the same operator?**
+
+    **Answer.** If both candidates are viable and neither has a better conversion sequence, an expression such as `-value` or `a + b` is ambiguous; a member is not automatically preferred merely because the class author wrote it. An explicit call such as `value.operator-()` or `operator-(value)` can select one, but ordinary operator syntax should not require that workaround. Provide one coherent customization or constrain the overloads so exactly one is best for each intended operand combination.
+
+17. **[Deep dive] Can an operator be overloaded only for fundamental types, and why is an unconstrained generic operator template risky?**
+
+    **Answer.** An ordinary overloaded operator must have at least one parameter whose type is a class or enum; code cannot redefine what unary `-` means for `int` or what `int + int` does. A dependent template declaration such as `template<class T> T operator-(T)` can be declared because some substitutions may produce class or enum types, but a specialization with only fundamental operands cannot supply a replacement for the built-in operation. Broad operator templates also enter many unrelated overload sets through lookup and can cause surprising matches or diagnostics. Constrain them to the intended abstraction and namespace, or make them hidden friends.
+
+18. **[Deep dive] Why are overloading `&&`, `||`, and comma usually poor API choices?**
+
+    **Answer.** Overloaded `&&` and `||` are function calls: both operands are evaluated, so they do not preserve built-in short-circuit behavior. Code such as `p && p->ready()` is therefore unsafe if the first operator resolves to an overload that evaluates the second operand even when `p` is false-like. The built-in comma operator sequences left before right and yields the right result. Overloaded comma had different sequencing behavior before C++17; since C++17, operator notation preserves left-before-right sequencing, while an explicit `operator,(a, b)` call follows function-argument rules. Even where sequencing is defined, these overloads violate strong reader expectations; prefer named functions and separate statements.
+
+19. **[Deep dive] What if a type overloads unary `operator&`, but code needs the object's real address?**
+
+    **Answer.** Then `&object` may invoke the overload and return something unrelated to the storage address. `std::addressof(object)` obtains the actual address while bypassing overloaded `operator&`. Generic low-level code should use it when arbitrary user-defined types are accepted. Application types should rarely overload address-of because it breaks a fundamental reading assumption and forces callers to know about this escape hatch.
+
+20. **[Deep dive] How do `strong_ordering`, `weak_ordering`, and `partial_ordering` differ, and what does defaulted `<=>` generate?**
+
+    **Answer.** A strong ordering has no unordered result and treats equal values as substitutable under the abstraction. A weak ordering also has no unordered result but may group distinguishable values into an equivalence class, as with case-insensitive ordering that preserves original spelling. A partial ordering can report unordered values, as floating-point comparison can with NaN. A defaulted `operator<=>` compares bases and members lexicographically, derives an appropriate comparison category from them, and—when no matching equality operator was declared—also causes a defaulted `operator==` to be declared. A hand-written, non-defaulted `<=>` does not by itself synthesize equality, so define `==` consistently when needed.
+
+21. **[Deep dive] What can unary `+` do to a class object or captureless lambda, and why is relying on that idiom fragile?**
+
+    **Answer.** If no overloaded unary plus applies, the built-in operator may become viable after a user-defined conversion to an arithmetic or pointer type. Thus `+value` can force a conversion function that a direct overload would otherwise avoid. A non-generic captureless lambda has a conversion to a matching function pointer, and unary `+lambda` is a compact idiom that triggers it. Multiple conversion functions can make the expression ambiguous, an overloaded `operator+` changes the meaning, and readers may not recognize the trick. Prefer an explicit target type or `static_cast` unless a narrow interop convention clearly benefits from the idiom.
 
 ---
 
@@ -1456,6 +1698,16 @@ Labels:
    ```
 
    **Answer.** If `run()` throws, `delete` is skipped and the resource leaks. A bare owning pointer also obscures ownership and complicates future early returns. If dynamic allocation is unnecessary, use `Resource resource; resource.run();`. Otherwise use `auto resource = std::make_unique<Resource>(); resource->run();`; both guarantee destruction on every exit path.
+
+9. **[Deep dive] Why can recursive destruction of a tree or linked structure be unsafe even when ownership is correct?**
+
+   **Answer.** A destructor such as `~Node() { delete left; delete right; }` consumes one call frame per level. A balanced tree has logarithmic depth, but an unbalanced, corrupted, adversarial, or partially updated structure can have linear depth; destroying a large one may overflow the process stack, which ordinary exception handling cannot reliably recover from. For unbounded depth, let the owning container perform iterative post-order cleanup with an explicit stack, detaching child links before deleting nodes so their destructors do not recurse. Resetting fields to null after releasing them is normally pointless because the object's lifetime is ending.
+
+10. **[Deep dive] How do overloaded `operator new` and `operator delete` differ from new- and delete-expressions?**
+
+    **Answer.** A new-expression selects an allocation function such as `operator new`, obtains storage, then constructs the object. A delete-expression first destroys the object, then selects a matching deallocation function such as `operator delete`. Allocation/deallocation functions may be replaced globally or declared as class-specific static members; array, sized, aligned, nothrow, and placement forms have distinct signatures and matching rules. Overloading them changes storage management, not constructor or destructor semantics.
+
+    If construction after allocation throws, the new-expression looks for the corresponding deallocation function, including a matching placement delete when one exists. The standard placement form `::new (address) T(...)` merely constructs in caller-supplied storage; that object must be destroyed explicitly and the storage released by its actual owner, never by an ordinary delete-expression. Custom overloads must preserve required alignment, handle zero-size requests correctly, and avoid recursively allocating through themselves.
 
 ## 5.2. `std::unique_ptr`
 
@@ -1698,6 +1950,17 @@ Labels:
     ```
 
     **Answer.** `f(value)` selects the primary `f(T)` with `T = int`, then uses its explicit `int` specialization. `f(&value)` selects the more specialized overload `f(T*)` with `T = int`; the explicit specialization shown belongs to the first template and does not apply. Function-template specializations do not participate as independent overload candidates—overload resolution chooses a primary template first.
+
+11. **[Basic] How does a `using` type alias differ from `typedef`, and what is an alias template?**
+
+    **Answer.** Both `using Id = ExistingType;` and `typedef ExistingType Id;` introduce another name for the same type; neither creates a distinct strong type. `using` usually reads more naturally for function pointers and nested types because the new name appears on the left of `=`, and it supports direct alias templates:
+
+    ```cpp
+    template<class T>
+    using Buffer = std::vector<T>;
+    ```
+
+    `typedef` cannot directly express that templated family, although a class template may contain a dependent `typedef`. Alias templates cannot themselves be explicitly or partially specialized; when specialization is required, use a class template (often with a nested `type`) and optionally expose a convenience alias to it.
 
 ## 6.2. Variadic templates and fold expressions
 
@@ -2054,6 +2317,17 @@ Labels:
 7. **[Deep dive] Which identifiers are reserved to the implementation?**
 
    **Answer.** Identifiers containing a double underscore anywhere and identifiers beginning with an underscore followed by an uppercase letter are reserved in all scopes. Identifiers beginning with an underscore are additionally reserved in the global namespace. The standard library and implementation also reserve specified macro/function names in relevant headers and contexts. Project names should avoid these patterns because a collision can make otherwise reasonable code ill-formed or non-portable.
+
+8. **[Deep dive] How should generic code customize `swap`, and how is conditional `noexcept` propagated?**
+
+   **Answer.** The primary `std::swap` moves through a temporary and therefore requires suitable move construction and move assignment. A type with a cheaper or invariant-aware exchange should provide a member `swap` whose `noexcept` condition reflects its underlying operations, plus a non-member overload in the type's own namespace that delegates to it. Generic code should enable the standard fallback and then make an unqualified call so argument-dependent lookup can find that overload:
+
+   ```cpp
+   using std::swap;
+   swap(a, b);
+   ```
+
+   Do not add an ordinary overload to `namespace std`. The non-member overload can use `noexcept(noexcept(a.swap(b)))`, and a generic wrapper can use `std::is_nothrow_swappable_v<T>` for its conditional specification; C++20 `std::ranges::swap` provides a standardized customization-point interface. Correct `noexcept` matters because containers and strong-guarantee code may choose safer strategies only when exchange cannot throw.
 
 ## 8.3. Type traits, `if constexpr`, CTAD, and forms of polymorphism
 
