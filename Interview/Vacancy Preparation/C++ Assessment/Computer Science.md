@@ -264,6 +264,12 @@ Labels:
 
    **Answer.** Sequential scans can evict a valuable working set, recency may not predict reuse, and equal-sized entry accounting fails when costs differ. TTL, LFU/TinyLFU, segmented LRU, admission policies, or workload-specific caches may do better. Hit rate alone is insufficient: measure latency, load cost, memory, and staleness correctness.
 
+5. **[Deep dive] What is the offline-optimal cache policy, and how can it help evaluate a real policy?**
+
+   **Answer.** Belady's MIN (OPT) assumes the complete future request trace is known. On each miss into a full cache, it evicts the resident item whose next request is farthest in the future, or an item that is never requested again. For equal-size entries, equal miss costs, and fixed capacity, this minimizes the number of misses. It is not deployable as an online policy because a real cache does not know future requests.
+
+   Replay the same representative trace through OPT and the candidate policy to obtain a lower bound on misses and quantify the policy gap across several capacities. Also report warm-up treatment, hit and miss counts, latency or weighted miss cost, memory budget, and workload phases. With variable object sizes, unequal load costs, expiry, or invalidation, the simple farthest-next-use rule is no longer the complete optimum, so the oracle and metric must match the real objective.
+
 ## 2.5. Memory-mapped I/O (`mmap`)
 
 1. **[Basic] What does `mmap` do?**
