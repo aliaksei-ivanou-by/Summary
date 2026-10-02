@@ -30,6 +30,11 @@ Labels:
    - [Knuth-Morris-Pratt string search](#62-knuth-morris-pratt-string-search)
    - [Merging intervals](#63-merging-intervals)
    - [Monotonic stacks and queues](#64-monotonic-stacks-and-queues)
+7. [Integrated implementation exercises](#7-integrated-implementation-exercises)
+   - [Cache replacement policies](#71-cache-replacement-policies)
+   - [Geometry: triangle intersection](#72-geometry-triangle-intersection)
+   - [Numerical methods: determinant](#73-numerical-methods-determinant)
+   - [Language frontend and interpreter: ParaCL](#74-language-frontend-and-interpreter-paracl)
 
 ---
 
@@ -83,19 +88,39 @@ Labels:
 
    **Answer.** A balanced tree provides deterministic O(log N) search/update, sorted iteration, range queries, predecessor/successor operations, and no dependence on hash quality. A hash table typically has lower expected lookup cost but unordered iteration, rehash spikes, and potentially adversarial collisions. Tree nodes have allocation/cache overhead; flat sorted arrays can outperform both for mostly-read data. Choose by required operations and latency guarantees, not only a lookup complexity table.
 
-5. **[Basic] What invariant defines a binary heap?**
+5. **[Basic] What invariant defines a binary search tree, and why does its height matter?**
+
+   **Answer.** Under a strict weak ordering, every key in a node's left subtree precedes the node and every key in its right subtree follows it, with a deliberate policy for equivalent keys. An inorder traversal is therefore sorted. Search, insertion, and deletion follow a root-to-leaf path and cost O(h), where h is the height: O(log N) for a balanced tree but O(N) when insertion order degenerates it into a chain. The search-tree invariant alone does not guarantee balance.
+
+6. **[Deep dive] Why do tree rotations preserve search order, and what must an implementation update?**
+
+   **Answer.** A left or right rotation changes a constant-size set of parent/child links while preserving the inorder sequence. In a right rotation, for example, the old root's left child becomes the new root and that child's right subtree moves between them; every key remains on the correct side of both nodes. Code must repair the parent link (including the overall root), transferred-child links, and all augmented metadata. Recompute metadata bottom-up—old root before new root—because the new root depends on the repaired child.
+
+7. **[Deep dive] Compare the AVL and red-black balance invariants.**
+
+   **Answer.** An AVL tree requires the heights of a node's two subtrees to differ by at most one, producing a tightly bounded height and usually fast lookups at the cost of maintaining heights and potentially more rebalancing on updates. A red-black tree colors nodes so the root and null leaves are black, red nodes have no red children, and every path from a node to a descendant null leaf has the same black height. This looser invariant still gives O(log N) height and often needs fewer rotations for updates. Standard ordered containers guarantee behavior and complexity, not either implementation.
+
+8. **[Design] How can a balanced BST answer rank and k-th-smallest queries in O(log N)?**
+
+   **Answer.** Store each node's subtree size: `size = 1 + size(left) + size(right)`. To find the k-th smallest key, compare k with the left-subtree size and descend left, return the current node, or subtract the skipped prefix and descend right. To count keys less than a value, descend as in search and accumulate the left-subtree size plus the current node whenever moving right. Insertions, deletions, and rotations must repair sizes on every affected path; with a valid balance invariant, update and query costs remain O(log N).
+
+9. **[Deep dive] Why is `distance(set.lower_bound(lo), set.upper_bound(hi))` not a logarithmic-time range-count query?**
+
+   **Answer.** Each bound lookup is O(log N), but ordinary `std::set` iterators are bidirectional rather than random-access, so `std::distance` advances through every element in the range. The total cost is O(log N + K), where K is the answer size. That is optimal when the elements must be visited, but not when only a count is needed. An order-statistics tree augmented with subtree sizes can compute two ranks and subtract them in O(log N); the standard `std::set` interface exposes no such rank operation.
+
+10. **[Basic] What invariant defines a binary heap?**
 
    **Answer.** In a min-heap, every parent is no greater than its children, so the root is a minimum; a max-heap reverses the relation. A binary heap is normally stored in an array: for zero-based index `i`, children are `2*i+1` and `2*i+2`, and the parent is `(i-1)/2`. It is only partially ordered—searching for an arbitrary value remains linear. Push and pop repair a root-to-leaf path in O(log N).
 
-6. **[Basic] What are adjacency lists and adjacency matrices?**
+11. **[Basic] What are adjacency lists and adjacency matrices?**
 
    **Answer.** An adjacency list stores each vertex's outgoing neighbors and uses O(V+E) space, making traversal O(V+E); it is the usual sparse-graph representation. An adjacency matrix uses O(V^2) space and gives constant-time edge-existence lookup, making it useful for dense/small graphs and some dynamic-programming or bitset techniques. For weighted graphs, edges also store weights. Directed graphs store only the stated direction; undirected graphs commonly insert both directions.
 
-7. **[Deep dive] What implementation choices matter for graph node identity?**
+12. **[Deep dive] What implementation choices matter for graph node identity?**
 
    **Answer.** Dense integer IDs allow vectors for colors, distances, and adjacency, giving compact predictable access. Arbitrary external IDs can be compressed to dense indices through a map while preserving a reverse mapping. Raw pointers to nodes require lifetime/stability guarantees and complicate hashing/serialization. Separate identity from display data, and decide whether parallel edges and self-loops are valid because algorithms and tests may treat them differently.
 
-8. **[Design] How do you choose between preprocessing and answering each query directly?**
+13. **[Design] How do you choose between preprocessing and answering each query directly?**
 
    **Answer.** Compare preprocessing cost and memory with the number and type of queries. Sorting once for many binary searches costs O(N log N + Q log N), often better than Q linear scans. Prefix sums spend O(N) time and space to answer range sums in O(1), while a mutable workload may need a Fenwick/segment tree with logarithmic updates and queries. Include update frequency, latency distribution, cache behavior, and whether data fits in memory.
 
@@ -446,6 +471,48 @@ Labels:
 5. **[Code] What are common implementation mistakes?**
 
    **Answer.** Storing values when indices are required for expiry, expiring after reading the answer, using the wrong comparison direction, and mishandling empty structures are common. For circular next-greater problems, iterate a virtual range of length 2N but normally push each original index only during the first pass. Test all-equal, strictly increasing/decreasing, K=1, K=N, duplicates at a boundary, and invalid window sizes.
+
+---
+
+# 7. Integrated implementation exercises
+
+## 7.1. Cache replacement policies
+
+1. **[Design] How would you implement and evaluate ARC, 2Q, LFU, or LIRS for a fixed-capacity request trace?**
+
+   **Answer.** Define the observable contract first: the capacity and request stream are inputs, a request already resident is a hit, and a miss may admit the key and evict another. Specify capacity zero, repeated keys, counter overflow/aging, and whether entries have equal size. Aim for O(1) average processing with a hash table plus stable list iterators or intrusive nodes. LFU also needs frequency buckets with an LRU tie-break; 2Q separates recent probationary entries from a main queue; ARC adapts the balance between recent and frequent lists using bounded ghost histories; LIRS tracks reuse distance through resident/nonresident stack metadata. Each policy needs explicit bounds for resident data and history metadata.
+
+   Compare hit counts on the same traces against simple LRU/FIFO and the offline-optimal Belady/MIN policy, which evicts the item whose next use lies farthest in the future. MIN requires future knowledge, so it is an evaluation upper bound rather than an online production policy. Precompute next-use positions by scanning backward, or maintain suitable future-position queues, then verify that an online policy never exceeds the oracle on the same model. Test scans, loops slightly larger than capacity, phase changes, hot/cold mixtures, all-unique input, capacity one/zero, and randomized traces checked against a slow reference. Assert list/map membership, uniqueness, size, and ghost-history invariants after every operation.
+
+## 7.2. Geometry: triangle intersection
+
+1. **[Code] How can the area of intersection of two planar triangles be computed robustly?**
+
+   **Answer.** Treat each triangle as a convex polygon. Normalize vertex orientation, then clip one triangle successively against the three half-planes of the other with a convex-polygon clipping algorithm such as Sutherland-Hodgman. The result has at most six vertices; compute its area with the shoelace formula and return zero for an empty or lower-dimensional intersection. Segment-line intersections and inside tests should share one orientation convention.
+
+   Robustness is the hard part. Define behavior for degenerate triangles, touching edges/vertices, collinear overlaps, large coordinates, and output tolerance. Exact integer/rational predicates can classify orientation reliably when the input domain permits them; floating-point code should use scale-aware error handling rather than one arbitrary epsilon for every magnitude. Test identical and disjoint triangles, containment, partial overlap, edge/vertex contact, reversed winding, degeneracy, symmetry `area(A,B) == area(B,A)`, and invariance under translation or vertex rotation.
+
+2. **[Design] How would you find every triangle in a very large 3D set that intersects at least one other triangle?**
+
+   **Answer.** Testing every pair is O(N^2) and is not viable for input approaching a million triangles. Use a broad phase that creates conservative candidates from axis-aligned bounding boxes, for example a sweep-and-prune structure, BVH/AABB tree, spatial grid, or another spatial index chosen for the coordinate distribution. Run an exact or robust triangle-triangle narrow phase only for candidate pairs, mark both indices on a confirmed intersection, and avoid duplicate work. Worst-case output/candidate complexity remains quadratic when many boxes or triangles overlap, so state that bound even if typical data is much better.
+
+   The narrow phase must define coplanar overlap, shared vertices/edges, zero-area triangles, numeric tolerance, and whether contact counts as intersection. Validate the broad phase against brute force on many small randomized inputs, then add adversarial cases such as coplanar clusters, long thin triangles, identical boxes with disjoint geometry, huge/small coordinates, and dense all-intersecting sets. Measure candidate count, memory, and end-to-end time rather than only the predicate.
+
+## 7.3. Numerical methods: determinant
+
+1. **[Code] How should a matrix determinant be computed, and how do numeric and exact domains change the algorithm?**
+
+   **Answer.** Do not use recursive Laplace expansion except for tiny teaching cases; it has factorial/exponential-scale work. For floating-point matrices, perform Gaussian elimination or an LU decomposition with partial pivoting in O(N^3) time and O(N^2) storage (or in place). Each row swap flips the sign, a zero pivot makes the determinant zero, and the determinant is the signed product of the resulting diagonal pivots. Pivoting and scaling reduce instability, but a tolerance must be relative to the matrix scale and application rather than a universal constant.
+
+   Integer input needs a declared result domain. Ordinary division can truncate and intermediate products can overflow even when the final determinant fits. Use a fraction-free method such as Bareiss with a sufficiently wide/exact integer type, rational arithmetic, or modular determinants plus reconstruction when bounds permit. Test empty/1x1 conventions as required, triangular matrices, a row swap, duplicate/dependent rows, singular and near-singular floating matrices, identity/permutation matrices, and randomized small cases against an exact or trusted reference.
+
+## 7.4. Language frontend and interpreter: ParaCL
+
+1. **[Design] How would you structure and test a ParaCL frontend and simulator supporting arithmetic, variables, input/output, `if`, and `while`?**
+
+   **Answer.** Split the system into a lexer, parser, typed or explicitly tagged abstract syntax tree, diagnostics, and an evaluator over a variable environment plus abstract input/output streams. Define grammar precedence/associativity and error recovery separately from execution. AST ownership should be explicit, usually through values and `std::unique_ptr`; an open virtual node hierarchy supports adding node types without rewriting a central variant, while `std::variant` plus visitors gives a closed exhaustive node set. Avoid raw `void*` payloads or an unprotected union with a manually synchronized type tag.
+
+   Evaluation must specify undefined variables, redeclaration, integer overflow/division by zero, condition truth rules, input exhaustion, and nontermination/resource limits. Keep source ranges on tokens/nodes so syntax and runtime diagnostics identify the failing construct. Test lexer and parser components independently, round-trip or snapshot ASTs where useful, and execute small programs covering precedence, nested blocks, both `if` branches, zero/many loop iterations, input/output, and failures. Differential/property tests can compare expression evaluation with a trusted reference; fuzz malformed programs and bound execution so an infinite loop cannot hang the test suite.
 
 ---
 
