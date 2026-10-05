@@ -14,7 +14,7 @@
 | `Project Description Template.md` | N/A | The structure every project document follows |
 | `1996-2007. School Years and Pre-University Research.md` | Sep 1996 - Jun 2007 | School, and the analytical chemistry research in 2005-2007 that preceded the degree |
 | `2007-2012. Radiophysics Degree and University Research.md` | Sep 2007 - Jun 2012 | The degree and its record, research background, statistics and clustering, atmospheric physics |
-| `2010-2012. Vehicle Satellite Monitoring Systems.md` | Jun 2010 - Dec 2012 | Hardware-facing engineering, field deployment, multi-domain diagnosis |
+| `2010-2012. Vehicle Satellite Monitoring Systems.md` | Jul 2010 - Dec 2012 | Hardware-facing engineering, field deployment, multi-domain diagnosis |
 | `2012-2020. Satellite and UAV Optical Imaging Software.md` | Aug 2012 - Jan 2020 | Algorithms, R&D, design under hard resource constraints |
 | `2020. Industrial 3D Scanning and Metrology Software.md` | Mar 2020 - May 2020 | Computer vision, 3D reconstruction, first commercial C++ |
 | `2020-2021. Independent C++ Engineering Projects.md` | May 2020 - Sep 2021 | The transition into commercial C++; clean-slate design, testing and tooling |
@@ -29,7 +29,8 @@
 | Sep 1996 | Jun 2007 | School; from 2005, research in analytical chemistry at a university laboratory | Secondary School No. 132; Belarusian State University, Faculty of Chemistry | Minsk | `1996-2007. School Years...` |
 | Sep 2007 | Jun 2012 | Radiophysics, five-year specialist degree (specialization: Satellite Information Systems and Technologies; qualification: Radiophysicist) | Belarusian State University | Minsk | `2007-2012. Radiophysics Degree...` |
 | Oct 2009 | Oct 2009 | Census enumerator, 2009 population census, part-time | National Statistical Committee of the Republic of Belarus (Belstat) | Minsk | `2007-2012. Radiophysics Degree...` |
-| Jun 2010 | May 2012 | Engineer, Department of Navigation and Information Technologies | Information Centre for Land Cadastre Data and Land Monitoring | Minsk | `2010-2012. Vehicle Satellite Monitoring...` |
+| Jul 2010 | May 2012 | Engineer, Department of Navigation and Information Technologies | Information Centre for Land Cadastre Data and Land Monitoring | Minsk | `2010-2012. Vehicle Satellite Monitoring...` |
+| Dec 2011 | May 2012 | Parallel university laboratory work; title recalled as engineer; collaborative technical documentation on GNSS and RTK positioning; exact laboratory and document names not recovered | Belarusian State University | Minsk | `2007-2012. Radiophysics Degree...` |
 | Aug 2012 | Jan 2020 | Design engineer and research engineer, research department of the Space Research and Design Division | PELENG, JSC | Minsk | `2012-2020. Satellite and UAV...` |
 | Oct 2012 | Dec 2012 | Software engineer, part-time | SKB Kamerton, JSC | Minsk | `2010-2012. Vehicle Satellite Monitoring...` |
 | Mar 2020 | May 2020 | C++ Software Engineer | RIFTEK, LLC | Minsk | `2020. Industrial 3D Scanning...` |
@@ -60,7 +61,7 @@
 
 Both tables are complete: every month of employment at EPAM and Innowise is either a named project or a period between them. Bench time is a normal feature of outsourcing and outstaffing companies - the engineer stays employed while the next engagement is staffed.
 
-The main timeline above is continuous too. Outside employment there are only the sixteen months of 2020-2021, which have their own document; the autumn of 2024, spent moving back from Warsaw to Minsk and settling tax residency; and short intervals between jobs.
+The main timeline above is continuous too. Outside an employer or company engagement there are only the sixteen months of 2020-2021, which have their own document; the autumn of 2024, spent moving back from Warsaw to Minsk and settling tax residency; and short intervals between jobs.
 
 ## 03 Career Shape in One Paragraph
 
