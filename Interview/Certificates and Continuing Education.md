@@ -20,7 +20,7 @@ By cluster and total hours the light ones hold up: "roughly 40 hours of focused 
 
 | Area | What exists | Strongest item | Safe claim |
 |---|---|---|---|
-| C++ | Classroom course, employer program, ~15 online courses 2020-2025 | IT-Academy C++ Fundamentals, 108 academic hours | Continuous, deliberate C++ study since 2018, alongside five years of commercial C/C++ employment |
+| C++ | Classroom course, employer program, ~15 online courses 2020-2025 | IT-Academy C++ Fundamentals, 108 academic hours | Continuous, deliberate C++ study since 2018, alongside five years of commercial C/C++ work |
 | Embedded / systems | Embedded C, Unix, bash, Docker, debugging C | LinkedIn cluster Dec 2024 - Jan 2025 | Self-directed preparation, backed by the embedded SIP project |
 | Testing | TDD in C++, Google Test / Google Mock | Udemy C++ Unit Testing, 3.5 h | Studied formally, then applied with QtTest on the SIP project |
 | AI-assisted development | Claude Code 101 completion certificate and detailed course notes | [Claude Code 101](https://academy.claude.com/verify/0d894a3281a0f8e5b9619884e4e33597), Claude Academy, Sep 2026 | Completed official introductory training in agentic coding workflows; course completion, not a professional certification |

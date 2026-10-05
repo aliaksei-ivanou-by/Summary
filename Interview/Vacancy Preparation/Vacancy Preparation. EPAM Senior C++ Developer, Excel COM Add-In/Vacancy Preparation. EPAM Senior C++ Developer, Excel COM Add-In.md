@@ -47,11 +47,11 @@ I am a C++ engineer who has worked on data-processing and asynchronous products 
 
 ### 30-Second Introduction
 
-Hi, my name is Aliaksei Ivanou. I am a C++ Software Engineer with more than six years in C and C++, five in commercial employment. My closest match is an EPAM sensor-data product: C++17 and MySQL with JavaScript-based user-facing functionality. Recent embedded Qt work adds asynchronous state handling, testing and cross-component debugging. I have not built an Excel COM Add-In; the transferable foundation is native C++, data processing, Windows tooling and reliable integration across language and runtime boundaries.
+Hi, my name is Aliaksei Ivanou. I am a C++ Software Engineer with more than six years in C and C++, five in commercial work. My closest match is an EPAM sensor-data product: C++17 and MySQL with JavaScript-based user-facing functionality. Recent embedded Qt work adds asynchronous state handling, testing and cross-component debugging. I have not built an Excel COM Add-In; the transferable foundation is native C++, data processing, Windows tooling and reliable integration across language and runtime boundaries.
 
 ### 90-Second Introduction
 
-Hi, my name is Aliaksei Ivanou. I am a C++ Software Engineer with more than six years of C and C++, five of them in commercial employment, plus an earlier R&D background in numerical and image processing.
+Hi, my name is Aliaksei Ivanou. I am a C++ Software Engineer with more than six years of C and C++, five of them in commercial work, plus an earlier R&D background in numerical and image processing.
 
 At EPAM I worked on a system that parsed and analyzed industrial sensor data. The backend was C++17, results were stored in MySQL, and JavaScript provided user-facing functionality inside the product. My main work was C++ feature development, defect correction and safe simplification of inherited code. I also changed JavaScript when a complete feature or fix crossed the native and user-facing boundary.
 
@@ -63,7 +63,7 @@ The direct gap is Excel COM Add-In development: I have not done it commercially.
 
 Use this version for "Tell me about yourself" when the interviewer leaves the length open. It is written to be spoken in about three minutes.
 
-Hi, my name is Aliaksei Ivanou. I am a C++ Software Engineer with more than six years of C and C++, five of them in commercial employment, and fourteen years across software engineering and R&D.
+Hi, my name is Aliaksei Ivanou. I am a C++ Software Engineer with more than six years of C and C++, five of them in commercial work, and fourteen years across software engineering and R&D.
 
 I can describe my background through the main types of projects I worked on. The first large area was R&D and image processing for satellite and airborne optical systems. The stack there was mainly MATLAB and internal data-processing tools. I worked on image stitching, stabilization, debayering, image fusion, compression and quality assessment. The main value of that work was not only writing scripts, but building algorithms that could improve real image data and still be practical under performance and hardware constraints.
 
@@ -87,7 +87,7 @@ The recruiter received `C++ 6 years`, `Async 2 years`, `JavaScript 4 years`, `Pe
 
 | Figure sent | Accurate spoken clarification |
 |---|---|
-| C++ - 6 years | "I have more than six years of C and C++ practice, including five years in commercial employment. The remaining period was full-time independent C++ work and EPAM's mentoring programme before I joined EPAM." |
+| C++ - 6 years | "I have more than six years of C and C++ practice, including five years of commercial work. The remaining period was full-time independent C++ work and EPAM's mentoring programme before I joined EPAM." |
 | Async - 2 years | "That was an approximate span rather than two years spent exclusively on concurrency. My strongest concentrated experience is the recent embedded project: Qt threads and background work, queued events, SIP/WebRTC callbacks, async Windows operations and shutdown/state coordination." |
 | JavaScript - 4 years | "That described project exposure across the period, not four years as a primary JavaScript developer. My direct work was occasional JavaScript changes on the EPAM sensor-data product and an early Node.js conferencing-server contribution; C++ remained my main responsibility." |
 | Performance - 4 years | "That described work in performance- and resource-sensitive systems, not four years as a dedicated profiling specialist. My evidence is numerical image and point-cloud processing, sensor-data workflows and an embedded product. I would discuss a measurement-first approach, but I do not claim Excel performance experience." |
@@ -111,7 +111,7 @@ Use this table to choose evidence, not as a script to recite. `Adjacent` means t
 
 | Vacancy requirement | Fit | Evidence to discuss | Boundary of the claim | Best source/story |
 |---|---|---|---|---|
-| 5+ years of C++, particularly maintaining COM Add-Ins | Adjacent | C++17 sensor-data product; C++17/Qt phone application; Linphone SDK watchdog/failover implementation; C++17/Qt/PCL prototype | More than six years of C/C++ practice and five in commercial employment, but none in a COM Add-In | Oil and gas cross-layer change; SIP server recovery |
+| 5+ years of C++, particularly maintaining COM Add-Ins | Adjacent | C++17 sensor-data product; C++17/Qt phone application; Linphone SDK watchdog/failover implementation; C++17/Qt/PCL prototype | More than six years of C/C++ practice and five in commercial work, but none in a COM Add-In | Oil and gas cross-layer change; SIP server recovery |
 | JavaScript for client-side Excel interaction; Node.js in the responsibility | Adjacent | Occasional JavaScript at EPAM; contribution to early Node.js conferencing-server code; C++ client integration | No JavaScript inside Excel, no Office.js and no ownership of the later server rewrite | Sensor-data workflow; early conferencing path |
 | Microsoft Office APIs and Excel COM Add-In architecture | Gap | Transferable C++, Windows, concurrency and integration background; current technical study | No direct production evidence | Direct gap answer plus learning exercise |
 | Large datasets, 50k+ formulas and/or real-time processing | Adjacent | Industrial sensor processing, image algorithms and point-cloud reconstruction | No supported claim for formula-heavy workbooks, high-frequency financial streams, update rate or dataset size | Sensor data; PELENG; RIFTEK |

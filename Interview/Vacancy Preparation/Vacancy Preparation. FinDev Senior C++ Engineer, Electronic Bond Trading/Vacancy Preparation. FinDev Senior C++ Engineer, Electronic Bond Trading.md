@@ -95,11 +95,11 @@ I am a C++ engineer whose strongest work has been inside long-lived production s
 
 ### 30-Second Introduction
 
-Hi, my name is Aliaksei Ivanou. I am a C++ Software Engineer with more than six years in C and C++, five of them in commercial employment. My closest match to this role is two years on a decades-old production platform where a C core sat behind Java and Scala services on Linux in AWS, and most of the work was following a failure across those boundaries to whichever component actually owned it. Before that, C++17 and MySQL on an enterprise data product. Fixed income is a domain I have not worked in.
+Hi, my name is Aliaksei Ivanou. I am a C++ Software Engineer with more than six years in C and C++, five of them in commercial work. My closest match to this role is two years on a decades-old production platform where a C core sat behind Java and Scala services on Linux in AWS, and most of the work was following a failure across those boundaries to whichever component actually owned it. Before that, C++17 and MySQL on an enterprise data product. Fixed income is a domain I have not worked in.
 
 ### 90-Second Introduction
 
-Hi, my name is Aliaksei Ivanou. I am a C++ Software Engineer with more than six years of C and C++, five of them in commercial employment, plus an earlier R&D background in numerical and image processing.
+Hi, my name is Aliaksei Ivanou. I am a C++ Software Engineer with more than six years of C and C++, five of them in commercial work, plus an earlier R&D background in numerical and image processing.
 
 The project closest to this role ran for two years at EPAM: an integrated library platform serving a vendor with nine thousand-plus library customers. The core domain logic was C89; around it were Java data services, a Java desktop client and Scala API services, with PostgreSQL underneath and custom inter-service protocols between them, all on Linux in AWS. My primary responsibility was the C core, but the work that mattered was diagnostic: a user saw something wrong in Java or through the REST API, and the cause was in C, in a protocol payload, or in runtime state. I worked log-first across the request path, used gdb and core dumps on the AWS hosts for native failures, and put the fix where the behaviour was actually owned. Releases were twice a year, so a defect that shipped had months to affect customers - that shapes how carefully you change code.
 
@@ -111,7 +111,7 @@ Two things I would put on the table early: my commercial C++ is five years, not 
 
 Use this version for "Tell me about yourself" when the interviewer leaves the length open. It is written to be spoken in about three minutes.
 
-Hi, my name is Aliaksei Ivanou. I am a C++ Software Engineer with more than six years of C and C++, five of them in commercial employment, and fourteen years across software engineering and R&D.
+Hi, my name is Aliaksei Ivanou. I am a C++ Software Engineer with more than six years of C and C++, five of them in commercial work, and fourteen years across software engineering and R&D.
 
 I can describe my background through the main types of projects I worked on. The first large area was R&D and image processing for satellite and airborne optical systems. The stack there was mainly MATLAB and internal data-processing tools. I worked on image stitching, stabilization, debayering, image fusion, compression and quality assessment. The main value of that work was not only writing scripts, but building algorithms that could improve real image data and still be practical under performance and hardware constraints.
 
@@ -137,7 +137,7 @@ Finish the current sentence and use this close: "The closest match is the two ye
 
 This is the first hard filter in the posting, so it needs an answer that is delivered calmly and without negotiation.
 
-Five years of commercial C++ employment - RIFTEK, EPAM and Innowise. More than six years of practice in total, with sixteen months of full-time independent C++ work and EPAM's mentoring programme and laboratory in between. Fourteen years in software engineering and R&D altogether, counted from 2012; the earlier part was algorithm and image-processing R&D in MATLAB, so I do not count it as C++.
+Five years of commercial C++ work across RIFTEK, EPAM and Innowise. RIFTEK was a short informal commercial engagement rather than registered employment; formal C++ employment begins with EPAM. More than six years of practice in total, with sixteen months of full-time independent C++ work and EPAM's mentoring programme and laboratory in between. Fourteen years in software engineering and R&D altogether, counted from 2012; the earlier part was algorithm and image-processing R&D in MATLAB, so I do not count it as C++.
 
 Then say what the difference is supposed to buy, and show it:
 

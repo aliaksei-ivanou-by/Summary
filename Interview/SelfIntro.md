@@ -4,7 +4,7 @@
 
 ## Self Intro 1 - Project-Based (5 Minutes)
 
-Hi, my name is Aliaksei Ivanou. I am a C++ Software Engineer with more than six years of C and C++, five of them in commercial employment, and fourteen years across software engineering and R&D.
+Hi, my name is Aliaksei Ivanou. I am a C++ Software Engineer with more than six years of C and C++, five of them in commercial work, and fourteen years across software engineering and R&D.
 
 I can describe my background through the main types of projects I worked on. The first large area was R&D and image processing for satellite and airborne optical systems. The stack there was mainly MATLAB and internal data-processing tools. I worked on image stitching, stabilization, debayering, image fusion, compression and quality assessment. The main value of that work was not only writing scripts, but building algorithms that could improve real image data and still be practical under performance and hardware constraints.
 
@@ -24,7 +24,7 @@ So the common theme across my projects is complex system work. I am comfortable 
 
 ## Self Intro 2 - Company-Based (5 Minutes)
 
-Hi, my name is Aliaksei Ivanou. I am a C++ Software Engineer with more than six years of C and C++, five of them in commercial employment, and fourteen years across software engineering and R&D.
+Hi, my name is Aliaksei Ivanou. I am a C++ Software Engineer with more than six years of C and C++, five of them in commercial work, and fourteen years across software engineering and R&D.
 
 I graduated from Belarusian State University, Faculty of Radiophysics and Computer Technologies, in 2012 - a five-year specialist degree in radiophysics, with a specialization in satellite information systems. My first long-term role was at PELENG in Minsk, where I worked for more than seven years as a design and research engineer. The stack was mainly MATLAB and internal data-processing tools. I worked on image-processing algorithms for satellite and airborne optical systems: image stitching, stabilization, debayering, image fusion, compression and quality assessment. This gave me a strong engineering foundation before I moved fully into commercial C and C++ development.
 
@@ -220,7 +220,7 @@ What the project did for me was structural. Three months is not long, but it was
 
 This is the earliest part of my career, and I would bring it up when the role involves hardware, field-facing engineering, or simply when someone asks how I learned to debug.
 
-From June 2010 to May 2012 I was an engineer in the navigation and information technologies department of the Belarusian state land-cadastre organization, which operates the national Land Information System. The department delivered GPS and GLONASS vehicle monitoring to fleet operators. I installed and connected around two hundred tracking terminals across more than ten cities, one per vehicle, covering roughly two hundred vehicles including both road and rail units, configured the server side of the monitoring platform for new vehicles and clients, handled equipment acceptance and repair, coordinated procurement with the manufacturers, and trained clients to use the system. I also built the organization's web presence on Joomla and Drupal.
+From July 2010 to May 2012 I was an engineer in the navigation and information technologies department of the Belarusian state land-cadastre organization, which operates the national Land Information System. The department delivered GPS and GLONASS vehicle monitoring to fleet operators. I installed and connected around two hundred tracking terminals across more than ten cities, one per vehicle, covering roughly two hundred vehicles including both road and rail units, configured the server side of the monitoring platform for new vehicles and clients, handled equipment acceptance and repair, coordinated procurement with the manufacturers, and trained clients to use the system. I also built the organization's web presence on Joomla and Drupal.
 
 This was field engineering rather than a software role, and I present it that way. I carried out the installations myself, sometimes alone and sometimes as the senior of a pair, alongside server-side configuration, equipment support, client training and the organization's Joomla and Drupal sites.
 
