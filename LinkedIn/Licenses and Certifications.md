@@ -27,7 +27,37 @@ This is a signed, institutionally issued classroom programme comprising 108 acad
 - **Description:** Certificate and official training record for the 108-academic-hour C++ course completed from 5 March to 4 May 2018.
 - **Source:** [Open document](<../Certificates/C++ and Programming/2018 C++ Programming.pdf>)
 
-### 2. Well-Architected Proficient
+### 2. AI-Assisted Development Training
+
+| LinkedIn field | Value |
+|---|---|
+| Name | AI-Assisted Development Training |
+| Issuing organization | Innowise Group |
+| Issue date | October 2026 |
+| Expiration | Does not expire |
+| Credential ID | 8O98YK6R9NXCD4EH |
+| Credential URL | [Innowise verification](https://cert.inno.ws/verify/8O98YK6R9NXCD4EH) |
+| Skills | AI-Assisted Software Development; AI Agents; Prompt Engineering; Context Engineering; Specification-Driven Development |
+
+This is a certificate of completion for a substantial internal employer programme, not a professional certification. The programme comprised 637 minutes (10 h 37 min) of course material, a 6-10-hour C++ practical assignment, and a one-hour live completion review.
+
+#### Media
+
+##### Media 1
+
+- **Type:** Document
+- **Title:** AI-Assisted Development Training - Certificate of Completion
+- **Description:** Innowise Group certificate confirming completion of the internal AI-Assisted Development Training programme in October 2026; credential ID 8O98YK6R9NXCD4EH.
+- **Source:** [Open document](<../Certificates/Tools and Practices/2026 AI-Assisted Development Training.pdf>)
+
+##### Media 2
+
+- **Type:** Link
+- **Title:** AI for Developers - Course Notes and Practical Work
+- **Description:** Public record of 637 minutes (10 h 37 min) of course material covering AI coding agents, prompt and context engineering, specification-driven development, agent skills, subagents, MCP, security, and applied workflows. It includes a 6-10-hour Catch2 `--retry-failed` assignment with a specification, tests, independent review, validation evidence, and a reproducible patch series; completion was followed by a one-hour live review.
+- **Source:** [Open repository](https://github.com/aliaksei-ivanou-by/Course_AI_for_developers)
+
+### 3. Well-Architected Proficient
 
 | LinkedIn field | Value |
 |---|---|
@@ -45,7 +75,7 @@ This is an assessed AWS knowledge badge, not an AWS Certification.
 
 No additional media needed. The public Credly credential URL above is the primary verification source; the course-completion PDF does not document the assessed badge itself.
 
-### 3. AWS Cloud Quest: Cloud Practitioner - Training Badge
+### 4. AWS Cloud Quest: Cloud Practitioner - Training Badge
 
 | LinkedIn field | Value |
 |---|---|
@@ -63,7 +93,7 @@ Keep `Training Badge` in the name. This is not the proctored AWS Certified Cloud
 
 No additional media needed. The public Credly credential URL above is the primary verification source, and there is no matching badge PDF in `Certificates/`.
 
-### 4. Claude Code 101
+### 5. Claude Code 101
 
 | LinkedIn field | Value |
 |---|---|

@@ -4,15 +4,16 @@
 
 ## 01 What These Credentials Are Worth
 
-A course completion certificate is weak evidence. It records attendance, not competence, and almost all of these record between one and three hours of video. A project is stronger evidence for every skill that has a project behind it, so the certificates matter most where project evidence is absent or shallow - especially Docker - and as supplementary context for Node.js, bash and cloud experience already grounded in projects. They also record a deliberate learning trajectory over time.
+A course completion certificate is usually weak evidence. Most standalone certificates here record between one and three hours of video, and a project is stronger evidence for every skill that has a project behind it. The Innowise AI-Assisted Development Training is different in scale and structure: 637 minutes (10 h 37 min) of course material, a 6-10-hour C++ practical assignment, and a one-hour live completion review. The remaining certificates matter most where project evidence is absent or shallow - especially Docker - and as supplementary context for Node.js, bash and cloud experience already grounded in projects. Together they also record a deliberate learning trajectory over time.
 
 The honest ordering of what is in this repository:
 
 1. **IT-Academy, C++ Fundamentals, 108 academic hours (2018).** Classroom course at the Educational Center of High-Tech Park Belarus, issued and signed institutionally. By an order of magnitude the most substantial C++ credential here.
 2. **EPAM C++ Mentoring Program (May 2020 - September 2021) and EPAM C++ Laboratory (March - September 2021).** Over a year of structured, mentored, employer-run training. No certificates were issued for either, so there is no document - but in substance these outweigh every online course on the list, and they are worth describing in an interview.
-3. **Language course records** - English certificates through B1 with graded exams, plus a B2 course exam below the certificate threshold; Swedish and Polish as completed course modules. These are school records rather than self-reported study.
-4. **Samara State Aerospace University Summer Space School (2011, 2013), 3.5 ECTS each.** University credit, aerospace-specific.
-5. **Everything else** - LinkedIn Learning, Udemy, Coursera, AWS Skill Builder. Individually light. Collectively meaningful only as a trajectory, which is how this document presents them.
+3. **Innowise, AI-Assisted Development Training (2026).** Structured internal employer training comprising 637 minutes (10 h 37 min) of course material, a 6-10-hour C++ practical assignment, and a one-hour live completion review. The certificate is publicly verifiable, and the separate course repository preserves the notes and practical evidence.
+4. **Language course records** - English certificates through B1 with graded exams, plus a B2 course exam below the certificate threshold; Swedish and Polish as completed course modules. These are school records rather than self-reported study.
+5. **Samara State Aerospace University Summer Space School (2011, 2013), 3.5 ECTS each.** University credit, aerospace-specific.
+6. **Everything else** - LinkedIn Learning, Udemy, Coursera, AWS Skill Builder. Individually light. Collectively meaningful only as a trajectory, which is how this document presents them.
 
 By cluster and total hours the light ones hold up: "roughly 40 hours of focused C++, embedded and tooling study between December 2024 and April 2025, before starting the embedded project" is a credible statement. As twenty-eight separate line items they do not.
 
@@ -23,7 +24,7 @@ By cluster and total hours the light ones hold up: "roughly 40 hours of focused 
 | C++ | Classroom course, employer program, ~15 online courses 2020-2025 | IT-Academy C++ Fundamentals, 108 academic hours | Continuous, deliberate C++ study since 2018, alongside five years of commercial C/C++ work |
 | Embedded / systems | Embedded C, Unix, bash, Docker, debugging C | LinkedIn cluster Dec 2024 - Jan 2025 | Self-directed preparation, backed by the embedded SIP project |
 | Testing | TDD in C++, Google Test / Google Mock | Udemy C++ Unit Testing, 3.5 h | Studied formally, then applied with QtTest on the SIP project |
-| AI-assisted development | Claude Code 101 completion certificate and detailed course notes | [Claude Code 101](https://academy.claude.com/verify/0d894a3281a0f8e5b9619884e4e33597), Claude Academy, Sep 2026 | Completed official introductory training in agentic coding workflows; course completion, not a professional certification |
+| AI-assisted development | Innowise internal programme: 637 min of course material, a 6-10 h C++ assignment and a 1 h live review; Claude Code 101; [public course notes and practical artifacts](https://github.com/aliaksei-ivanou-by/Course_AI_for_developers) | [AI-Assisted Development Training](https://cert.inno.ws/verify/8O98YK6R9NXCD4EH), Innowise Group, Oct 2026 | Completed structured, practice-based employer training in AI-assisted software development; certificate of completion, not a professional certification |
 | Cloud | Two verifiable AWS digital training badges, plus course completions. No certification exam | **AWS Well-Architected Proficient** badge - assessed, May 2024 | Two AWS training badges, cloud coursework, and production use of AWS/Azure. **Never "AWS Certified"** - see section 06 |
 | Databases / web | SQL, Ruby on Rails, REST, JSON, HTTP | Ruby on Rails, course.by 2015 | Working familiarity, backed by the PELENG satellite database project |
 | Languages | English with graded exams; Swedish and Polish course completions | English B1 certificate, 82/100 | English certificates through B1; B2 exam 60.5/100 against a 70/100 certificate threshold, so no B2 certificate. Polish modules through B1.2 and Swedish courses through B2 are course records, not state proficiency certificates |
@@ -190,7 +191,7 @@ The signed text of the TIBO talk also records my job title and unit at PELENG.
 
 ## 09 Programming, Engineering and Professional Education
 
-For LinkedIn, structured programmes belong in **Education**; short standalone course completions, badges and other credentials belong in **Licenses & Certifications**. A certificate may be evidence that an educational programme was completed, but that does not mean the same item should be duplicated in both LinkedIn sections.
+For LinkedIn, degree-like, school and cohort programmes normally belong in **Education**; independently issued completion certificates, badges and other verifiable credentials belong in **Licenses & Certifications**. A substantial internal employer programme can therefore sit in Licenses & Certifications when its certificate is the public artifact. The same item should not be duplicated in both LinkedIn sections.
 
 ### Structured programmes - LinkedIn Education
 
@@ -201,7 +202,7 @@ For LinkedIn, structured programmes belong in **Education**; short standalone co
 | Feb - Jun 2015 | **Building Web Applications with Ruby on Rails** | course.by | Multi-month instructor-led web-development programme |
 | Feb - Mar 2024 | **HelloNewJob, Stream 6** | NewHR | Seven-week cohort programme with homework, CV and LinkedIn review and interview practice |
 
-### Short courses and credentials - LinkedIn Licenses & Certifications
+### Credentials - LinkedIn Licenses & Certifications
 
 | Date | Credential | Issuer |
 |---|---|---|
@@ -212,10 +213,13 @@ For LinkedIn, structured programmes belong in **Education**; short standalone co
 | 2023 | Foundations of the Fourth Industrial Revolution (Industry 4.0) | LinkedIn Learning |
 | Jan 2025 | Advanced Prompt Engineering Techniques | LinkedIn Learning |
 | 25 Sep 2026 | [Claude Code 101](https://academy.claude.com/verify/0d894a3281a0f8e5b9619884e4e33597) - certificate of completion | Claude Academy |
+| 8 Oct 2026 | [AI-Assisted Development Training](https://cert.inno.ws/verify/8O98YK6R9NXCD4EH) - certificate of completion, ID 8O98YK6R9NXCD4EH | Innowise Group |
 
 The Ruby on Rails course (2015) lines up with the satellite reference database built at PELENG on Rails and PostgreSQL in 2015-2016, which is a good example of training that was applied immediately.
 
 Claude Code 101 is an official Anthropic course-completion credential, publicly verifiable through [Claude Academy](https://academy.claude.com/verify/0d894a3281a0f8e5b9619884e4e33597). It records completion of introductory training in agentic coding workflows; it is not a professional certification exam. Safe phrasing: "Claude Code 101, certificate of completion, Claude Academy, September 2026."
+
+The Innowise programme is the substantial item in this cluster: 637 minutes (10 h 37 min) of course material, followed by a 6-10-hour practical assignment and a one-hour live completion review. The certificate publicly verifies completion, while the separate [AI for Developers repository](https://github.com/aliaksei-ivanou-by/Course_AI_for_developers) documents the breadth of the theory, module quizzes, applied workshops, and practical work. The assignment extended Catch2 with `--retry-failed` through a written specification, 23 reproducible patches, independent review, and full validation. Safe phrasing: "AI-Assisted Development Training, internal Innowise programme with 10 h 37 min of course material, a 6-10-hour C++ assignment and a one-hour live completion review, October 2026." It is a certificate of completion, not an external professional certification.
 
 HelloNewJob is a structured programme - seven weeks with homework, CV and LinkedIn review and interview practice, rather than recorded video. Its dates are worth noting: February to March 2024, while still employed at EPAM Systems Poland and five months before that contract ended. The same pattern as the 2018 C++ course before leaving PELENG - preparation ahead of a move rather than a reaction to one.
 
@@ -230,6 +234,7 @@ HelloNewJob is a structured programme - seven weeks with homework, CV and Linked
 | Concurrency | QtConcurrent / QThread on the SIP platform | Parallel and Concurrent Programming with C++, Parts 1 and 2 (2025) |
 | Unit testing / TDD | QtTest coverage on the SIP platform; GoogleTest in independent projects | Test-Driven Development in C++; C++ Unit Testing: Google Test and Google Mock (2025) |
 | Design patterns | MVC/MVVM refactoring of the SIP call flow | C++ Design Patterns: Creational and Behavioral (2025) |
+| AI-assisted development | [AI for Developers course record](https://github.com/aliaksei-ivanou-by/Course_AI_for_developers): 637 min of course material plus the 6-10 h Catch2 `--retry-failed` assignment with specification, implementation, independent review and validation | Innowise AI-Assisted Development Training (2026); Claude Code 101 (2026) |
 | PostgreSQL / MySQL | The library platform, the oil & gas system, the PELENG satellite database | Learning SQL Programming; Using SQL with C++ |
 | LabVIEW / data acquisition | University-period supplementary programming and instrumentation study | LabVIEW Basics I and LabVIEW Data Acquisition Systems, BSUIR, 72 hours total |
 | Docker | **No project evidence** | Learning Docker (2025) - describe as coursework |
@@ -261,19 +266,21 @@ The twelve school-age diplomas from 2005-2007 also sit outside this document by 
 
 - **"How did you move from MATLAB into C++?"** It started in 2018 with a 108-hour classroom course at the High-Tech Park educational centre in Minsk, while I was still at PELENG. After leaving, I spent sixteen months in EPAM's C++ mentoring programme and their C++ laboratory, alongside my own projects. The first commercial C++ role was RIFTEK in 2020, and the first large one was at EPAM from 2021.
 
-- **"How do you keep your skills current?"** Most recently and concretely: I joined Innowise in December 2024 and spent the following four months working through embedded C, Unix and bash, Docker, Node.js, C++ concurrency, design patterns, exception handling, TDD and Google Test - roughly forty hours - before starting on the embedded SIP platform in May 2025, which needed all of it.
+- **"How do you keep your skills current?"** Most recently, I completed Innowise's internal AI-Assisted Development Training in October 2026: 637 minutes (10 h 37 min) of course material, a 6-10-hour C++ assignment, and a one-hour live completion review. The public course repository preserves the notes and the end-to-end Catch2 implementation. Before the embedded SIP project, I also spent roughly forty hours on embedded C, Unix and bash, Docker, Node.js, C++ concurrency, design patterns, exception handling, TDD and Google Test, then applied that preparation on the project from May 2025.
 
-- **"Do you have any certifications?"** No certification exams. I hold two AWS digital training badges from 2024 - Well-Architected Proficient and Cloud Quest Cloud Practitioner - which are verifiable on Credly but are training badges, not AWS Certifications. The most substantial training is the 108-hour C++ course at IT-Academy in 2018 and EPAM's C++ mentoring programme (May 2020 - September 2021) and C++ laboratory (March - September 2021), neither of which issued certificates.
+- **"Do you have any certifications?"** No external professional certification exams. I hold a publicly verifiable Innowise certificate of completion for the practice-based AI-Assisted Development Training programme, an official Claude Code 101 completion certificate, and two AWS digital training badges from 2024. The AWS items are training badges, not AWS Certifications. My other substantial training includes the 108-hour C++ course at IT-Academy in 2018 and EPAM's C++ mentoring programme (May 2020 - September 2021) and C++ laboratory (March - September 2021), neither of which issued certificates.
+
+- **"What did the AI-Assisted Development Training involve?"** A broad internal programme with 637 minutes (10 h 37 min) of material covering AI coding agents, prompt and context engineering, specification-driven development, skills, subagents, MCP, security, model and cost selection, and controlled engineering workflows. It was followed by a 6-10-hour Catch2 assignment: specification, implementation, testing, independent review and reproducible validation. Completion was checked in a one-hour live review.
 
 - **"You list AWS - are you certified?"** Not certified, no. I have two AWS training badges from May 2024 - Well-Architected Proficient, which required passing the assessment, and Cloud Quest Cloud Practitioner - and I can send the Credly links. AWS calls those training badges rather than certifications, and I keep that distinction. My production experience is from EPAM: the library platform ran on AWS EC2, where I debugged remotely over SSH with gdb and core dumps, and the oil-and-gas system ran in Azure.
 
 - **"What was the EPAM mentoring programme?"** A structured internal C++ training programme running from May 2020 to September 2021, with an assigned mentor, alongside EPAM's C++ laboratory from March to September 2021. No certificate was issued for either.
 
-- **"That is a lot of short online courses."** Individually they are one to three hours and I do not present them as expertise. What they show is a pattern: continuous C++ study since 2018, and a deliberate push into embedded, concurrency and testing right before a project that required exactly those.
+- **"That is a lot of short online courses."** Individually they are one to three hours and I do not present them as expertise. What they show is a pattern: continuous C++ study since 2018, and a deliberate push into embedded, concurrency and testing right before a project that required exactly those. The Innowise AI-assisted development programme is separate from that short-course cluster: 10 h 37 min of course material, a 6-10-hour practical assignment, and a one-hour live completion review.
 
 ## 13 Sources
 
-All credentials above were read directly from the PDF files in `Certificates/`. Issuers, dates and durations are taken from the certificate documents themselves, except where noted below.
+All credentials above were read directly from the PDF files in `Certificates/`. Issuers and dates are taken from the certificate documents themselves, except where noted below. Course scope and practical-work details come from the linked course repository. The 637-minute course duration and the one-hour live-review duration are candidate-supplied and are not stated on the certificate; the 6-10-hour assignment size is the estimate stated in the practical task README.
 
 The repository uses period-named folders in `Articles/` and `Certificates/` when material belongs to a specific career period. Training that belongs to no single period is grouped by subject, and periods without source artifacts do not have empty folders.
 
@@ -293,6 +300,7 @@ The repository uses period-named folders in `Articles/` and `Certificates/` when
 `Articles/` follows the same rule, with three folders named after the documents that cite their contents.
 
 - EPAM C++ Mentoring Program (May 2020 - September 2021) and EPAM C++ Laboratory (March - September 2021) have no certificate documents; none were issued.
+- `Tools and Practices/2026 AI-Assisted Development Training.pdf` - Innowise Group certificate of completion, issued 8 October 2026 to Aliaksei Ivanou, Embedded & C++; credential ID `8O98YK6R9NXCD4EH`, publicly verifiable at [Innowise Certificator](https://cert.inno.ws/verify/8O98YK6R9NXCD4EH). The [AI for Developers repository](https://github.com/aliaksei-ivanou-by/Course_AI_for_developers) supplies the course notes and practical artifacts; its practical-task README gives the assignment estimate as 6-10 hours. The 637-minute course duration and one-hour live review are candidate-supplied information rather than claims printed on the certificate.
 - `Tools and Practices/2026 Claude Code 101.pdf` - Claude Code 101 certificate of completion, issued through Claude Academy on 25 September 2026; publicly verifiable through [Claude Academy](https://academy.claude.com/verify/0d894a3281a0f8e5b9619884e4e33597).
 - `2018 C++ Programming.pdf` ("C++ Programming") reads "C++ Fundamentals (108 academic hours)", IT-Academy, Educational Center of High-Tech Park Belarus, signed by Vadim Zelenkov, General Manager.
 - `2020 C++ Development Fundamentals - White Belt.pdf` - C++ Development Fundamentals: White Belt - states that it is an online course without academic credit, from Moscow Institute of Physics and Technology, 04.03.2020.
